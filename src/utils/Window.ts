@@ -22,7 +22,7 @@ export async function load(app: Electron.App) {
     resizable: true,
     center: true,
     title: 'Deezer Discord RPC',
-    icon: join(__dirname, '..', 'img', 'app.ico'),
+    icon: join(__dirname, '..', 'img', 'app.png'),
     webPreferences: {
       preload: resolve(__dirname, '..', 'preload.js')
     }

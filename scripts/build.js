@@ -11,6 +11,9 @@ if (existsSync(resolve('dist'))) {
 
 // App build
 console.log('Building setup...');
+/**
+ * @type {import('electron-builder').Configuration} Configuration
+ */
 const config = {
   appId: 'com.github.yuuto.deezerdiscordrpc',
   productName: 'Deezer Discord RPC',
@@ -26,7 +29,8 @@ const config = {
   linux: {
     category: 'Audio;AudioVideo',
     target: ['snap', 'deb', 'AppImage', 'rpm'],
-    icon: join(__dirname, '..', 'src', 'img', 'app.png'),
+    publish: null,
+    icon: join(__dirname, '..', 'src', 'img', 'app.icns'),
   },
   artifactName: 'DeezerDiscordRPC-${os}-${arch}.${ext}',
   files: [
