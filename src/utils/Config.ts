@@ -23,10 +23,8 @@ export async function set(app: Electron.App, key: string, value: unknown) {
 
 export async function get(app: Electron.App, key?: string) {
   const path = getConfigPath(app);
-  console.log(path);
   if (!existsSync(path)) writeFileSync(path, '{}');
   const data = JSON.parse(readFileSync(path, 'utf-8'));
-  console.log(data); 
   return key ? data[key] : data;
 }
 
