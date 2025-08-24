@@ -1,11 +1,11 @@
 import { join } from 'path';
-import { existsSync, writeFileSync } from 'fs';
+import { existsSync, writeFileSync, readFileSync } from 'fs';
 import { dialog } from 'electron';
 
 export async function set(app: Electron.App, key: string, value: unknown) {
   const path = getConfigPath(app);
   if (!existsSync(path)) writeFileSync(path, '{}');
-  const data = await import(path);
+  const data = JSON.parse(readFileSync(path, 'utf-8'));;
   data[key] = value;
   try {
     writeFileSync(path, JSON.stringify(data));
@@ -23,8 +23,10 @@ export async function set(app: Electron.App, key: string, value: unknown) {
 
 export async function get(app: Electron.App, key?: string) {
   const path = getConfigPath(app);
+  console.log(path);
   if (!existsSync(path)) writeFileSync(path, '{}');
-  const data = await import(path);
+  const data = JSON.parse(readFileSync(path, 'utf-8'));
+  console.log(data); 
   return key ? data[key] : data;
 }
 

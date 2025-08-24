@@ -14,6 +14,7 @@ export async function setActivity(options: {
     albumCover, app, type, trackId, songTime
   } = options;
   const tooltipText = await Config.get(app, 'tooltip_text');
+  const statusName = await Config.get(app, 'status_name');
   switch (tooltipText) {
     case 'app_name':
       tray.setToolTip('Deezer Discord RPC');
@@ -45,13 +46,49 @@ export async function setActivity(options: {
     }
   };
 
+  const getStatusDisplayType = () => {
+    switch (statusName) {
+      case 'song_title':
+      case 'artists_and_title':
+      case 'title_and_artists':
+        return 2;
+      case 'artists_song':
+        return 1;
+      default:
+        return 0;
+    }
+  };
+
+  const getActivityDetails = () => {
+    switch (statusName) {
+      case 'artists_and_title':
+        return `${trackArtists} - ${trackTitle}`;
+      case 'title_and_artists':
+        return `${trackTitle} - ${trackArtists}`;
+      default:
+        return trackTitle;
+    }
+  };
+
+  const getActivityState = () => {
+    switch (statusName) {
+      case 'artists_and_title':
+      case 'title_and_artists':
+        return undefined;
+      default:
+        return trackArtists;
+    }
+  };
+
   const button = (getTrackLink() && parseInt(trackId) > 0) && { label: 'Play on Deezer', url: getTrackLink() };
   const isLivestream = (Date.now() + timeLeft) < Date.now();
   const playedTime = Date.now() - songTime + timeLeft;
+
   client.user.setActivity({
     type: ActivityType.Listening,
-    details: trackTitle,
-    state: trackArtists,
+    statusDisplayType: getStatusDisplayType(),
+    details: getActivityDetails(),
+    state: getActivityState(),
     largeImageKey: albumCover,
     largeImageText: albumTitle,
     instance: false,
