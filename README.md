@@ -50,6 +50,13 @@ brew install --cask cutetenshii/stuff/deezer-discord-rpc
 | **macOS** (arm64, Apple Silicon) | [![](https://img.shields.io/github/downloads/CuteTenshii/deezer-discord-rpc/latest/DeezerDiscordRPC-mac-arm64.dmg?style=for-the-badge&logo=apple)](https://github.com/CuteTenshii/deezer-discord-rpc/releases/latest/download/DeezerDiscordRPC-mac-arm64.dmg)        |
 | **macOS** (x64, Intel)           | [![](https://img.shields.io/github/downloads/CuteTenshii/deezer-discord-rpc/latest/DeezerDiscordRPC-mac-x64.dmg?style=for-the-badge&logo=apple)](https://github.com/CuteTenshii/deezer-discord-rpc/releases/latest/download/DeezerDiscordRPC-mac-x64.dmg)            |
 
+## Building from Source
+
+1. Clone the repository: `git clone https://github.com/CuteTenshii/deezer-discord-rpc`
+2. Install the dependencies with bun (package manager): `bun install`
+3. To build the app for release, run: `bun run build`
+4. If you want to run it in development mode, run: `bun run start`
+
 ## Screenshots
 
 #### RPC on profile:
