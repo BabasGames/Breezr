@@ -20,6 +20,18 @@ export async function init(app: Electron.App, client: import('@xhayper/discord-r
       { label: 'Check for updates', type: 'normal', click: () => updater() },
       { type: 'separator' },
       {
+        label: 'Status name', type: 'submenu', submenu: await Promise.all([
+          ['Deezer', 'app_name'],
+          ['Song title', 'song_title'],
+          ['Artists song', 'artists_song'],
+          ['Artists song - Song title', 'artists_and_title'],
+          ['Song title - Artists song', 'title_and_artists'],
+        ].map(async (v): Promise<MenuItemConstructorOptions> => ({
+          label: v[0], type: 'radio', id: v[1], checked: await Config.get(app, 'status_name') === v[1],
+          click: (menuItem) => Config.set(app, 'status_name', menuItem.id),
+        })))
+      },
+      {
         label: 'Tooltip text', type: 'submenu', submenu: await Promise.all([
           ['App name', 'app_name'],
           ['App version', 'app_version'],
