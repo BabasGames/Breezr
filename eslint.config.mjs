@@ -1,5 +1,4 @@
 import { defineConfig, globalIgnores } from 'eslint/config';
-import tseslint from 'typescript-eslint';
 import typescriptEslint from '@typescript-eslint/eslint-plugin';
 import globals from 'globals';
 import path from 'node:path';
@@ -19,28 +18,22 @@ const compat = new FlatCompat({
 export default defineConfig([
   globalIgnores(['**/dist/', '**/node_modules/']),
   eslint.configs.recommended,
-  tseslint.configs.recommended,
   {
     extends: compat.extends('eslint:recommended', 'plugin:@typescript-eslint/recommended'),
-
     plugins: {
       '@typescript-eslint': typescriptEslint,
     },
-
     languageOptions: {
       globals: {
         ...globals.node,
       },
-
       ecmaVersion: 'latest',
       sourceType: 'module',
     },
-
     rules: {
       indent: ['error', 2, {
         SwitchCase: 1,
       }],
-
       quotes: ['error', 'single'],
       semi: ['error', 'always'],
       'object-curly-spacing': ['error', 'always'],
