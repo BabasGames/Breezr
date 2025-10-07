@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.3.6
+
+* Upgraded packages
+* Icon should now be shown on Linux
+* Add support for customizable status name display (https://github.com/CuteTenshii/deezer-discord-rpc/pull/123)
+* Fixed some CSS classes
+
 ## 1.3.5
 
 * Fixed the RPC (well, this time it should be fixed [I hope])

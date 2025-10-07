@@ -125,7 +125,7 @@ export async function load(app: Electron.App) {
          const playObserver = new MutationObserver(() => ipcRenderer.send('update_activity', false));
          playObserver.observe(document.querySelector('.chakra-button__group > button[data-testid^="play_button_"]'), { attributes: true, childList: false, subtree: false });
          document.querySelector('.chakra-button__group > button[data-testid^="play_button_"]').addEventListener('click', () => ipcRenderer.send('update_activity', false));`);
-  runJs(`const chakraStack = document.querySelector('#dzr-app > .naboo > div > div > a.chakra-link');
+  runJs(`const chakraStack = document.querySelector('#dzr-app > .naboo > div[class*="css-"] > div[class*="css-"] a.chakra-link');
          const navContainer = document.createElement('div');
          navContainer.style.display = 'flex';
          navContainer.style.justifyContent = 'space-around';
