@@ -2,7 +2,7 @@
 
 ## 1.3.7
 
-* Add links on the RPC to the artist, track and album 
+* Add links on the RPC to the artist, track and album
 
 ## 1.3.6
 
