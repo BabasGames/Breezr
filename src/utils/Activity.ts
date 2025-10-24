@@ -3,18 +3,12 @@ import { tray } from './Tray';
 import { version } from '../../package.json';
 import { ActivityType } from 'discord-api-types/v10';
 
-export async function setActivity(options: {
-  client: import('@xhayper/discord-rpc').Client, albumId: number, trackId: string, playing: boolean, timeLeft: number,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  trackTitle: string, trackArtists: any, albumCover: string, albumTitle: string, app: Electron.App, type: string,
-  songTime: number
-}) {
-  const {
-    timeLeft, playing, client, albumTitle, trackArtists, trackTitle,
-    albumCover, app, type, trackId, songTime
-  } = options;
-  const tooltipText = await Config.get(app, 'tooltip_text');
-  const statusName = await Config.get(app, 'status_name');
+export async function setActivity({
+  timeLeft, playing, client, albumTitle, albumId, trackArtists, trackTitle, albumCover, app, type, trackId, songTime,
+  firstArtistId,
+}: ActivityOptions) {
+  const tooltipText = Config.get<string>(app, 'tooltip_text');
+  const statusName = Config.get<string>(app, 'status_name');
   switch (tooltipText) {
     case 'app_name':
       tray.setToolTip('Deezer Discord RPC');
@@ -33,9 +27,7 @@ export async function setActivity(options: {
       break;
   }
   if (!client) return;
-
-  if (!playing)
-    return await client.user.clearActivity();
+  if (!playing) return await client.user.clearActivity();
 
   const getTrackLink = () => {
     switch (type) {
@@ -80,7 +72,8 @@ export async function setActivity(options: {
     }
   };
 
-  const button = (getTrackLink() && parseInt(trackId) > 0) && { label: 'Play on Deezer', url: getTrackLink() };
+  const trackLink = getTrackLink();
+  const button = (trackLink && parseInt(trackId) > 0) && { label: 'Play on Deezer', url: trackLink };
   const isLivestream = (Date.now() + timeLeft) < Date.now();
   const playedTime = Date.now() - songTime + timeLeft;
 
@@ -88,12 +81,31 @@ export async function setActivity(options: {
     type: ActivityType.Listening,
     statusDisplayType: getStatusDisplayType(),
     details: getActivityDetails(),
+    detailsUrl: trackLink,
     state: getActivityState(),
+    stateUrl: firstArtistId ? `https://www.deezer.com/artist/${firstArtistId}` : undefined,
     largeImageKey: albumCover,
     largeImageText: albumTitle,
+    largeImageUrl: albumId ? `https://www.deezer.com/album/${albumId}` : undefined,
     instance: false,
     startTimestamp: playedTime,
     [isLivestream ? 'startTimestamp' : 'endTimestamp']: Date.now() + timeLeft,
     buttons: button ? [button] : undefined,
   }).catch(() => {});
+}
+
+interface ActivityOptions {
+  client: import('@xhayper/discord-rpc').Client;
+  albumId: number;
+  trackId: string;
+  playing: boolean;
+  timeLeft: number,
+  trackTitle: string;
+  trackArtists: string;
+  albumCover: string;
+  albumTitle: string;
+  app: Electron.App;
+  type: string,
+  songTime: number;
+  firstArtistId: string;
 }

@@ -185,31 +185,36 @@ async function updateActivity(app: Electron.App, currentTimeChanged?: boolean) {
   setThumbarButtons();
 
   const client = RPC.client;
-  const code =
-    `(() => {
-      const albumId = document.querySelector('.track-link[href*="album"]')?.getAttribute('href').split('/')[3];
+  // language=JavaScript
+  const code = `(() => {
+      const currentSong = dzPlayer.getCurrentSong();
+      const albumId = currentSong?.ALB_ID;
       const trackId = dzPlayer.getSongId() || dzPlayer.getRadioId();
       const radioType = dzPlayer.getRadioType();
       const playerType = dzPlayer.getPlayerType();
       const mediaType = dzPlayer.getMediaType();
       const isLivestreamRadio = playerType === 'radio' && radioType === 'livestream';
       const playerInfo = document.querySelector('[data-testid="miniplayer_container"] .marquee-content')?.textContent;
-      const trackName = dzPlayer.getSongTitle() + (dzPlayer.getCurrentSong()?.VERSION ? ' ' + dzPlayer.getCurrentSong()?.VERSION : '') ||
-                        dzPlayer.getCurrentSong()?.LIVESTREAM_TITLE || dzPlayer.getCurrentSong()?.EPISODE_TITLE || playerInfo;
-      const albumName = (!isLivestreamRadio ? dzPlayer.getAlbumTitle() : dzPlayer.getCurrentSong().LIVESTREAM_TITLE) ||
-                        dzPlayer.getCurrentSong()?.SHOW_NAME || playerInfo;
-      const artists = dzPlayer.getCurrentSong()?.ARTISTS?.map(art => art.ART_NAME)?.join(', ') || dzPlayer.getArtistName() ||
-                      dzPlayer.getCurrentSong()?.SHOW_NAME || playerInfo?.split(' · ')?.[1];
+      const trackName = dzPlayer.getSongTitle() + (currentSong?.VERSION ? ' ' + currentSong?.VERSION : '') ||
+                        currentSong?.LIVESTREAM_TITLE || currentSong?.EPISODE_TITLE || playerInfo;
+      const albumName = (!isLivestreamRadio ? dzPlayer.getAlbumTitle() : currentSong.LIVESTREAM_TITLE) ||
+                        currentSong?.SHOW_NAME || playerInfo;
+      const artists = currentSong?.ARTISTS?.map(art => art.ART_NAME)?.join(', ') || dzPlayer.getArtistName() ||
+                      currentSong?.SHOW_NAME || playerInfo?.split(' · ')?.[1];
+      const firstArtistId = currentSong?.ART_ID;
       const playing = dzPlayer.isPlaying();
       const songTime = Math.floor(dzPlayer.getDuration() * 1000);
       const timeLeft = Math.floor(dzPlayer.getRemainingTime() * 1000);
-      const cover = dzPlayer.getCurrentSong()?.LIVESTREAM_IMAGE_MD5 || dzPlayer.getCurrentSong()?.EPISODE_IMAGE_MD5 ||
-                    dzPlayer.getCurrentSong()?.SHOW_ART_MD5 || dzPlayer.getCover();
+      const cover = currentSong?.LIVESTREAM_IMAGE_MD5 || currentSong?.EPISODE_IMAGE_MD5 ||
+                    currentSong?.SHOW_ART_MD5 || dzPlayer.getCover();
       let coverType = 'misc';
       if (mediaType === 'song') coverType = 'cover';
       if (mediaType === 'episode') coverType = 'talk';
       const coverUrl = \`https://e-cdns-images.dzcdn.net/images/\${coverType}/\${cover}/256x256-000000-80-0-0.jpg\`;
-      return JSON.stringify({ albumId, trackId, mediaType, playerType, trackName, albumName, artists, playing, songTime, timeLeft, coverUrl, isLivestreamRadio });
+      return JSON.stringify({
+        albumId, trackId, mediaType, playerType, trackName, albumName, artists, playing, songTime, timeLeft, coverUrl,
+        isLivestreamRadio, firstArtistId
+      });
     })()`;
   runJs(code).then(async (r) => {
     const result: JSResult = JSON.parse(r);
@@ -238,7 +243,13 @@ async function updateActivity(app: Electron.App, currentTimeChanged?: boolean) {
       };
 
       await setActivity({
-        client, albumId: result.albumId, timeLeft: result.timeLeft, app, ...currentTrack, type: result.mediaType,
+        client,
+        albumId: result.albumId,
+        firstArtistId: result.firstArtistId,
+        timeLeft: result.timeLeft,
+        app,
+        ...currentTrack,
+        type: result.mediaType,
         songTime: realSongTime
       }).then(() => log('Activity', 'Updated'));
     }
@@ -271,5 +282,6 @@ interface JSResult {
   albumName: string,
   isLivestreamRadio: boolean,
   mediaType: string,
-  trackId: string
+  trackId: string,
+  firstArtistId: string;
 }
