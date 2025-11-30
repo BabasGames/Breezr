@@ -38,37 +38,18 @@ export async function setActivity({
     }
   };
 
-  const getStatusDisplayType = () => {
+  const getStatusName = () => {
     switch (statusName) {
       case 'song_title':
-      case 'artists_and_title':
-      case 'title_and_artists':
-        return 2;
+        return trackTitle;
       case 'artists_song':
-        return 1;
-      default:
-        return 0;
-    }
-  };
-
-  const getActivityDetails = () => {
-    switch (statusName) {
+        return trackArtists;
       case 'artists_and_title':
         return `${trackArtists} - ${trackTitle}`;
       case 'title_and_artists':
         return `${trackTitle} - ${trackArtists}`;
       default:
-        return trackTitle;
-    }
-  };
-
-  const getActivityState = () => {
-    switch (statusName) {
-      case 'artists_and_title':
-      case 'title_and_artists':
-        return undefined;
-      default:
-        return trackArtists;
+        return 'Deezer';
     }
   };
 
@@ -79,10 +60,10 @@ export async function setActivity({
 
   client.user.setActivity({
     type: ActivityType.Listening,
-    statusDisplayType: getStatusDisplayType(),
-    details: getActivityDetails(),
+    name: getStatusName(),
+    details: trackTitle,
     detailsUrl: trackLink,
-    state: getActivityState(),
+    state: trackArtists,
     stateUrl: firstArtistId ? `https://www.deezer.com/artist/${firstArtistId}` : undefined,
     largeImageKey: albumCover,
     largeImageText: albumTitle,
