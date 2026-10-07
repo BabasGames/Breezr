@@ -1,7 +1,7 @@
 import type { BrowserWindow } from 'electron';
 import { homedir } from 'os';
 import {
-  defaultSourcePath, displayPath, parseCaelestiaScheme, parsePywal, publicSourceKey, type PathEnv, type SourceUpdate,
+  defaultSourcePath, displayPath, normalizeSourcePath, parseCaelestiaScheme, parsePywal, publicSourceKey, type PathEnv, type SourceUpdate,
 } from '../shared/palette';
 import { isDeezerUrl } from '../shared/origin';
 import type { ThemeConfig } from '../shared/theme-model';
@@ -34,7 +34,8 @@ export function createThemeState(app: Electron.App, win: BrowserWindow): ThemeSt
   const fileSource = (theme: ThemeConfig) => {
     const kind = theme.source === 'pywal' ? 'pywal' : 'caelestia';
     return {
-      path: theme.sourcePaths[kind] || defaultSourcePath(kind, env),
+      // Re-checked here too (defence in depth): only a local .json file is ever opened.
+      path: normalizeSourcePath(theme.sourcePaths[kind], env.home) || defaultSourcePath(kind, env),
       parse: kind === 'pywal' ? parsePywal : parseCaelestiaScheme,
     };
   };

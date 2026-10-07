@@ -95,7 +95,8 @@ export function paletteFingerprint(palette: ExternalPalette | null): string {
 export interface PathEnv { home: string; XDG_STATE_HOME?: string; XDG_CACHE_HOME?: string; PYWAL_CACHE_DIR?: string }
 
 const isAbsolute = (p: string) => p.startsWith('/') || /^[A-Za-z]:[\\/]/.test(p);
-const absOr = (value: string | undefined, fallback: string) => (value && isAbsolute(value) ? value : fallback);
+const isNetworkPath = (p: string) => /^[\\/]{2}/.test(p);
+const absOr = (value: string | undefined, fallback: string) => (value && isAbsolute(value) && !isNetworkPath(value) ? value : fallback);
 const join = (dir: string, ...parts: string[]) => [dir.replace(/[\\/]+$/, ''), ...parts].join('/');
 
 /** Same lookup rules as Caelestia (XDG_STATE_HOME) and pywal (PYWAL_CACHE_DIR, then XDG_CACHE_HOME). */
@@ -121,7 +122,7 @@ export function normalizeSourcePath(value: unknown, home: string): string {
     path = home + path.slice(1);
   }
   if (!path || path.length > MAX_PATH || path.includes('\u0000') || !isAbsolute(path)) return '';
-  if (/^[\\/]{2}/.test(path)) return '';
+  if (isNetworkPath(path)) return '';
   if (!/\.json$/i.test(path)) return '';
   return path;
 }
