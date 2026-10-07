@@ -1,0 +1,21 @@
+{
+  "name": "dynamic",
+  "flavour": "default",
+  "mode": "light",
+  "variant": "tonalspot",
+  "colours": {
+    "surface": "fdf7ff",
+    "surfaceContainerLow": "f8f1fa",
+    "surfaceContainer": "f2ecf4",
+    "surfaceContainerHigh": "ece6ee",
+    "surfaceContainerHighest": "e6e0e9",
+    "surfaceBright": "fdf7ff",
+    "outlineVariant": "cac4d0",
+    "outline": "79747e",
+    "onSurface": "1d1b20",
+    "onSurfaceVariant": "49454f",
+    "primary": "65558f",
+    "onPrimary": "ffffff",
+    "error": "ba1a1a"
+  }
+}

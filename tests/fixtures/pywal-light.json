@@ -1,0 +1,22 @@
+{
+    "wallpaper": "/tmp/light.png",
+    "alpha": "100",
+    "colors": {
+        "color0": "#fafafa",
+        "color1": "#b3261e",
+        "color2": "#386a20",
+        "color3": "#7d5700",
+        "color4": "#0061a4",
+        "color5": "#6750a4",
+        "color6": "#006a6a",
+        "color7": "#3a3a3a",
+        "color8": "#e0e0e0",
+        "color9": "#b3261e",
+        "color10": "#386a20",
+        "color11": "#7d5700",
+        "color12": "#0061a4",
+        "color13": "#6750a4",
+        "color14": "#006a6a",
+        "color15": "#1c1b1f"
+    }
+}
