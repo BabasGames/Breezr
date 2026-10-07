@@ -6,7 +6,7 @@ import { DEFAULT_CONFIG, validateConfig, type BreezrConfig } from '../shared/con
  * corrupt, or unreadable (permissions). A corrupt file is kept aside as config.json.bak-<date> when possible.
  * No Electron import, so it can be unit-tested.
  */
-export function readConfigFile(path: string): { config: BreezrConfig; warnings: string[] } {
+export function readConfigFile(path: string, home = ''): { config: BreezrConfig; warnings: string[] } {
   if (!existsSync(path)) return { config: structuredClone(DEFAULT_CONFIG), warnings: [] };
   let raw: unknown;
   try {
@@ -22,5 +22,5 @@ export function readConfigFile(path: string): { config: BreezrConfig; warnings: 
     }
     return { config: structuredClone(DEFAULT_CONFIG), warnings };
   }
-  return validateConfig(raw);
+  return validateConfig(raw, { home });
 }
