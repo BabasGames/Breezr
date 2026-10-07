@@ -76,5 +76,7 @@
   "settings.about.source": "Kaynak kodu",
   "settings.about.upstream": "Tenshii'nin deezer-discord-rpc projesine dayanır",
   "settings.about.license": "MIT lisansı",
-  "settings.about.translations": "Çeviriler otomatik olarak oluşturuldu. Düzeltmeler GitHub'da memnuniyetle karşılanır."
+  "settings.about.translations": "Çeviriler otomatik olarak oluşturuldu. Düzeltmeler GitHub'da memnuniyetle karşılanır.",
+  "nav.back": "Geri",
+  "nav.forward": "İleri"
 }

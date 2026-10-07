@@ -76,5 +76,7 @@
   "settings.about.source": "源代码",
   "settings.about.upstream": "基于 Tenshii 的 deezer-discord-rpc",
   "settings.about.license": "MIT 许可证",
-  "settings.about.translations": "翻译由机器生成。欢迎在 GitHub 上提交修正。"
+  "settings.about.translations": "翻译由机器生成。欢迎在 GitHub 上提交修正。",
+  "nav.back": "后退",
+  "nav.forward": "前进"
 }

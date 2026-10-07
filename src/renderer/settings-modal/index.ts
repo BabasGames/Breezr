@@ -1,7 +1,7 @@
 import { bridge } from './bridge';
 import { createModal } from './modal';
 import { createTranslator } from '../../shared/i18n';
-import { startGearButton } from './gear-button';
+import { startTopbarButtons } from './topbar-buttons';
 
 (() => {
   // The bundle is injected on every dom-ready; a reload starts from a fresh document, an SPA navigation does not.
@@ -37,6 +37,8 @@ import { startGearButton } from './gear-button';
 
   void bridge().settings.get().then((snapshot) => {
     const t = createTranslator(snapshot.locale, snapshot.messages, snapshot.fallback);
-    startGearButton(() => { void modal.open(); }, t('settings.openButton'));
+    startTopbarButtons(() => { void modal.open(); }, {
+      back: t('nav.back'), forward: t('nav.forward'), settings: t('settings.openButton'),
+    });
   });
 })();

@@ -76,5 +76,7 @@
   "settings.about.source": "소스 코드",
   "settings.about.upstream": "Tenshii의 deezer-discord-rpc 기반",
   "settings.about.license": "MIT 라이선스",
-  "settings.about.translations": "번역은 자동으로 생성되었습니다. GitHub에서 수정 제안을 환영합니다."
+  "settings.about.translations": "번역은 자동으로 생성되었습니다. GitHub에서 수정 제안을 환영합니다.",
+  "nav.back": "뒤로",
+  "nav.forward": "앞으로"
 }

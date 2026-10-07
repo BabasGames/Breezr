@@ -76,5 +76,7 @@
   "settings.about.source": "ソースコード",
   "settings.about.upstream": "Tenshii 氏の deezer-discord-rpc がベースです",
   "settings.about.license": "MIT ライセンス",
-  "settings.about.translations": "翻訳は自動生成されたものです。GitHub での修正を歓迎します。"
+  "settings.about.translations": "翻訳は自動生成されたものです。GitHub での修正を歓迎します。",
+  "nav.back": "戻る",
+  "nav.forward": "進む"
 }
