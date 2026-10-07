@@ -34,7 +34,8 @@ export function renderAppearance(ctx: ModalContext): HTMLElement {
     const id = `color-${key}`;
     const error = h('span', { class: 'warning' });
     const picker = h('input', { type: 'color', id, value: theme().colors[key], 'data-focus-id': id });
-    const text = h('input', { type: 'text', class: 'hex', value: theme().colors[key], 'aria-label': t(`settings.appearance.color.${key}`), 'data-focus-id': `${id}-hex` });
+    // dir=ltr: in Arabic the bidi algorithm would otherwise render "#ff2bd6" as "ff2bd6#".
+    const text = h('input', { type: 'text', class: 'hex', dir: 'ltr', value: theme().colors[key], 'aria-label': t(`settings.appearance.color.${key}`), 'data-focus-id': `${id}-hex` });
     // Hex codes are not words: no red spell-check squiggles.
     text.spellcheck = false;
     picker.addEventListener('input', () => {
@@ -111,7 +112,7 @@ export function renderAppearance(ctx: ModalContext): HTMLElement {
       picker.addEventListener('change', () => ctx.update(ctx.draft));
       varRows.set(name, { swatch, picker });
       return h('div', { class: 'row var-row' },
-        h('code', { title: name }, name.replace('--tempo-colors-', '')),
+        h('code', { title: name, dir: 'ltr' }, name.replace('--tempo-colors-', '')),
         swatch,
         picker,
         overridden
