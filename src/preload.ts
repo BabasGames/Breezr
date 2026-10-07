@@ -17,5 +17,9 @@ if (globalThis.location.protocol === 'https:' && /(^|\.)deezer\.com$/.test(globa
       ipcRenderer.removeAllListeners('breezr:settings:open');
       ipcRenderer.on('breezr:settings:open', () => callback());
     },
+    onSource: (callback: (update: unknown) => void) => {
+      ipcRenderer.removeAllListeners('breezr:settings:source');
+      ipcRenderer.on('breezr:settings:source', (_event: unknown, update: unknown) => callback(update));
+    },
   },
 });
