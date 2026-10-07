@@ -7,6 +7,7 @@ import type { SettingsSnapshot } from '../../shared/settings-types';
 import { renderAppearance } from './tab-appearance';
 import { renderAbout } from './tab-about';
 import { renderGeneral } from './tab-general';
+import { createDebouncer, PREVIEW_DEBOUNCE_MS } from '../../shared/debounce';
 
 type TabId = 'appearance' | 'general' | 'about';
 
@@ -14,8 +15,14 @@ export interface ModalContext {
   draft: BreezrConfig;
   snapshot: SettingsSnapshot;
   t: Translate;
-  /** Replaces the draft, previews its theme, and re-renders unless `rerender` is false (live color dragging). */
+  /**
+   * Replaces the draft and previews its theme. With `rerender: false` (a colour being dragged or typed) the
+   * preview waits until the value has been stable for PREVIEW_DEBOUNCE_MS; otherwise it is sent at once and
+   * the tab is re-rendered.
+   */
   update(next: BreezrConfig, options?: { rerender?: boolean }): void;
+  /** Sends a pending (debounced) preview now — e.g. when a colour picker closes. */
+  flushPreview(): void;
 }
 
 type TabRenderer = (ctx: ModalContext) => HTMLElement;
@@ -35,14 +42,17 @@ export function createModal(host: HTMLElement) {
   let draft: BreezrConfig | null = null;
   let tab: TabId = 'appearance';
   let container: HTMLElement | null = null;
-  let previewFrame = 0;
   let returnFocus: HTMLElement | null = null;
 
-  const schedulePreview = () => {
-    cancelAnimationFrame(previewFrame);
-    previewFrame = requestAnimationFrame(() => {
-      if (draft) bridge().settings.preview(draft.theme);
-    });
+  // Every preview re-injects the theme into the whole Deezer page; doing it on each mouse move while a
+  // colour picker is dragged made the page stutter. Continuous edits wait until the value is stable.
+  const sendPreview = () => {
+    if (draft) bridge().settings.preview(draft.theme);
+  };
+  const previewDebouncer = createDebouncer(sendPreview, PREVIEW_DEBOUNCE_MS);
+  const previewNow = () => {
+    previewDebouncer.cancel();
+    sendPreview();
   };
 
   const close = () => {
@@ -54,14 +64,15 @@ export function createModal(host: HTMLElement) {
   };
 
   const cancel = () => {
-    cancelAnimationFrame(previewFrame);
+    previewDebouncer.cancel();
     bridge().settings.cancel();
     close();
   };
 
   const save = async () => {
     if (!draft) return;
-    cancelAnimationFrame(previewFrame);
+    // Save applies the draft itself; a pending preview would only apply it twice.
+    previewDebouncer.cancel();
     await bridge().settings.save(draft);
     close();
   };
@@ -77,9 +88,14 @@ export function createModal(host: HTMLElement) {
       update(next, options) {
         draft = next;
         ctx.draft = next;
-        schedulePreview();
-        if (options?.rerender !== false) render();
+        if (options?.rerender === false) {
+          previewDebouncer.call();
+          return;
+        }
+        previewNow();
+        render();
       },
+      flushPreview: () => previewDebouncer.flush(),
     };
     const tabs: [TabId, string][] = [
       ['appearance', t('settings.tabs.appearance')],

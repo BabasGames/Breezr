@@ -45,6 +45,11 @@ export function renderAppearance(ctx: ModalContext): HTMLElement {
       setTheme(setColor(theme(), key, picker.value), false);
       refreshLive();
     });
+    // The native picker closed (or the value was committed): no need to wait for the debounce.
+    picker.addEventListener('change', () => ctx.flushPreview());
+    text.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') ctx.flushPreview();
+    });
     text.addEventListener('input', () => {
       const hex = normalizeHex(text.value);
       if (!hex) {
