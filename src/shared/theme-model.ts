@@ -202,11 +202,22 @@ export function buildThemeVars(look: ThemeLook): Record<ManagedVar, string> {
   return vars;
 }
 
+// Theme the page and every part that shares the page's theme. Deezer also inverts some areas on purpose
+// (e.g. lyrics over a light album cover get data-theme="light" inside a dark page): forcing our colors there
+// put light text on a light background, so subtrees whose theme differs from the page's are left to Deezer.
+const THEME_SELECTORS = [
+  ':root:not([data-theme])',
+  ':root[data-theme="dark"]',
+  ':root[data-theme="dark"] [data-theme="dark"]',
+  ':root[data-theme="light"]',
+  ':root[data-theme="light"] [data-theme="light"]',
+].join(', ');
+
 export function themeToCss(vars: Record<string, string>): string {
   // !important: Deezer's dark rules reach (0,3,0) specificity (`.chakra-ui-dark [data-theme]:not([data-theme])`).
   // On custom properties it only beats Deezer's normal declarations, nothing else.
   const lines = Object.keys(vars).sort().map((name) => `  ${name}: ${vars[name]} !important;`);
-  return `:root, [data-theme] {\n${lines.join('\n')}\n}\n`;
+  return `${THEME_SELECTORS} {\n${lines.join('\n')}\n}\n`;
 }
 
 const preset = (id: string, name: string, base: Base, colors: ThemeColors): Preset =>
