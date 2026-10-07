@@ -6,6 +6,7 @@ import { Menu, Tray } from 'electron';
 import { version } from '../../package.json';
 import { log } from './log';
 import { win } from './window';
+import type { StatusName, TooltipText } from '../shared/config-schema';
 import MenuItemConstructorOptions = Electron.MenuItemConstructorOptions;
 
 const iconPath = join(__dirname, '..', 'img', 'tray.png');
@@ -27,8 +28,8 @@ export async function init(app: Electron.App, client: import('@xhayper/discord-r
           ['Artists song - Song title', 'artists_and_title'],
           ['Song title - Artists song', 'title_and_artists'],
         ].map(async (v): Promise<MenuItemConstructorOptions> => ({
-          label: v[0], type: 'radio', id: v[1], checked: await Config.get(app, 'status_name') === v[1],
-          click: (menuItem) => Config.set(app, 'status_name', menuItem.id),
+          label: v[0], type: 'radio', id: v[1], checked: Config.get(app, 'status_name') === v[1],
+          click: (menuItem) => Config.set(app, 'status_name', menuItem.id as StatusName),
         })))
       },
       {
@@ -39,12 +40,12 @@ export async function init(app: Electron.App, client: import('@xhayper/discord-r
           ['Artists song - Song title', 'artists_and_title'],
           ['Song title - Artists song', 'title_and_artists'],
         ].map(async (v): Promise<MenuItemConstructorOptions> => ({
-          label: v[0], type: 'radio', id: v[1], checked: await Config.get(app, 'tooltip_text') === v[1],
-          click: (menuItem) => Config.set(app, 'tooltip_text', menuItem.id),
+          label: v[0], type: 'radio', id: v[1], checked: Config.get(app, 'tooltip_text') === v[1],
+          click: (menuItem) => Config.set(app, 'tooltip_text', menuItem.id as TooltipText),
         })))
       },
       {
-        label: 'Don\'t close to tray', type: 'checkbox', checked: await Config.get(app, 'dont_close_to_tray'),
+        label: 'Don\'t close to tray', type: 'checkbox', checked: Config.get(app, 'dont_close_to_tray'),
         click: (menuItem) => Config.set(app, 'dont_close_to_tray', menuItem.checked)
       },
       {
