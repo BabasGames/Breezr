@@ -100,5 +100,7 @@
   "settings.appearance.source.disabledHint": "فعّل السمة المخصصة لاختيار مصدر.",
   "settings.appearance.presets.disabledBySource": "ارجع إلى الوضع اليدوي لتطبيق إعداد مسبق.",
   "settings.appearance.contrastSource": "تباين منخفض من المصدر ({ratio}:1): يمكن تصحيحه في القسم المتقدم عند الحاجة.",
-  "settings.appearance.contrastAccent": "لون التمييز غير واضح على الخلفية ({ratio}:1). يوصى بنسبة 3:1 أو أكثر."
+  "settings.appearance.contrastAccent": "لون التمييز غير واضح على الخلفية ({ratio}:1). يوصى بنسبة 3:1 أو أكثر.",
+  "settings.general.animateSidebar": "تحريك القائمة الجانبية",
+  "settings.general.animateSidebarHelp": "تنزلق القائمة اليسرى عند طيّها أو فتحها (تتوقف إذا طلب النظام تقليل الحركة)."
 }

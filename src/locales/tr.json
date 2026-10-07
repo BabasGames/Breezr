@@ -95,5 +95,7 @@
   "settings.appearance.source.disabledHint": "Kaynak seçmek için özel temayı açın.",
   "settings.appearance.presets.disabledBySource": "Hazır ayar uygulamak için Elle'ye dönün.",
   "settings.appearance.contrastSource": "Kaynaktan düşük kontrast ({ratio}:1): gerekirse Gelişmiş bölümünde düzeltin.",
-  "settings.appearance.contrastAccent": "Vurgu arka planda zor görünüyor ({ratio}:1). 3:1 veya üzeri önerilir."
+  "settings.appearance.contrastAccent": "Vurgu arka planda zor görünüyor ({ratio}:1). 3:1 veya üzeri önerilir.",
+  "settings.general.animateSidebar": "Yan menüyü canlandır",
+  "settings.general.animateSidebarHelp": "Sol menü açılıp kapanırken kayar (sistem daha az animasyon isterse kapalıdır)."
 }

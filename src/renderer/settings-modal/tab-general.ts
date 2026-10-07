@@ -21,6 +21,9 @@ export function renderGeneral(ctx: ModalContext): HTMLElement {
   const closeToTray = h('input', { type: 'checkbox', id: 'dont-close', checked: ctx.draft.dont_close_to_tray, 'data-focus-id': 'dont-close' });
   closeToTray.addEventListener('change', () => set({ dont_close_to_tray: closeToTray.checked }));
 
+  const animateSidebar = h('input', { type: 'checkbox', id: 'animate-sidebar', checked: ctx.draft.animate_sidebar, 'data-focus-id': 'animate-sidebar' });
+  animateSidebar.addEventListener('change', () => set({ animate_sidebar: animateSidebar.checked }));
+
   return h('div', {},
     h('fieldset', {},
       h('div', { class: 'row' },
@@ -37,5 +40,8 @@ export function renderGeneral(ctx: ModalContext): HTMLElement {
         select<TooltipText>('tooltip-text', ctx.draft.tooltip_text, TOOLTIP_TEXTS.map((id) => [id, t(`option.tooltip.${id}`)]),
           (tooltip_text) => set({ tooltip_text }))),
       h('div', { class: 'row' }, h('label', { for: 'dont-close' }, t('tray.dontCloseToTray')), closeToTray)),
+    h('fieldset', {},
+      h('div', { class: 'row' }, h('label', { for: 'animate-sidebar' }, t('settings.general.animateSidebar')), animateSidebar),
+      h('p', { class: 'hint' }, t('settings.general.animateSidebarHelp'))),
   );
 }

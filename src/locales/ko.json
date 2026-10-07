@@ -95,5 +95,7 @@
   "settings.appearance.source.disabledHint": "소스를 선택하려면 사용자 지정 테마를 켜세요.",
   "settings.appearance.presets.disabledBySource": "프리셋을 적용하려면 수동으로 되돌리세요.",
   "settings.appearance.contrastSource": "소스의 대비가 낮습니다({ratio}:1). 필요하면 고급에서 수정하세요.",
-  "settings.appearance.contrastAccent": "강조 색상이 배경에서 잘 보이지 않습니다({ratio}:1). 3:1 이상을 권장합니다."
+  "settings.appearance.contrastAccent": "강조 색상이 배경에서 잘 보이지 않습니다({ratio}:1). 3:1 이상을 권장합니다.",
+  "settings.general.animateSidebar": "사이드 메뉴 애니메이션",
+  "settings.general.animateSidebarHelp": "왼쪽 메뉴를 접거나 펼칠 때 미끄러지듯 움직입니다(시스템이 애니메이션 줄이기를 요청하면 꺼짐)."
 }

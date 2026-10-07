@@ -96,5 +96,7 @@
   "settings.appearance.source.disabledHint": "Aktivieren Sie das eigene Design, um eine Quelle zu wählen.",
   "settings.appearance.presets.disabledBySource": "Wechseln Sie zurück zu Manuell, um eine Vorlage anzuwenden.",
   "settings.appearance.contrastSource": "Geringer Kontrast der Quelle ({ratio}:1) — bei Bedarf unter Erweitert korrigieren.",
-  "settings.appearance.contrastAccent": "Der Akzent ist auf dem Hintergrund schwer zu erkennen ({ratio}:1). Empfohlen sind 3:1 oder mehr."
+  "settings.appearance.contrastAccent": "Der Akzent ist auf dem Hintergrund schwer zu erkennen ({ratio}:1). Empfohlen sind 3:1 oder mehr.",
+  "settings.general.animateSidebar": "Seitenmenü animieren",
+  "settings.general.animateSidebarHelp": "Das linke Menü gleitet beim Ein- und Ausklappen (aus, wenn das System weniger Animationen wünscht)."
 }
