@@ -107,7 +107,12 @@ export function defaultSourcePath(kind: 'caelestia' | 'pywal', env: PathEnv): st
 
 const MAX_PATH = 4096;
 
-/** A user-typed path: trimmed, leading ~ expanded, must end up absolute. '' means "use the default". */
+/**
+ * A user-typed path: trimmed, leading ~ expanded; must end up an absolute local path to a .json file.
+ * '' means "use the default". The path can be set from the page (and so by its third-party scripts):
+ * network paths are refused — on Windows, merely opening \\\\host\\share sends the user's NTLM credentials —
+ * and so is anything that is not a .json file, so the source cannot be used to probe arbitrary files.
+ */
 export function normalizeSourcePath(value: unknown, home: string): string {
   if (typeof value !== 'string') return '';
   let path = value.trim();
@@ -116,6 +121,8 @@ export function normalizeSourcePath(value: unknown, home: string): string {
     path = home + path.slice(1);
   }
   if (!path || path.length > MAX_PATH || path.includes('\u0000') || !isAbsolute(path)) return '';
+  if (/^[\\/]{2}/.test(path)) return '';
+  if (!/\.json$/i.test(path)) return '';
   return path;
 }
 
