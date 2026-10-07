@@ -1,4 +1,5 @@
 import { contrastRatio, mix, normalizeHex, parseHex, rgbToHsl, shiftLightness } from './color';
+import type { ExternalPalette, SourceKind } from './palette';
 
 export type Base = 'dark' | 'light';
 export type Derivation = 'hsl' | 'mix';
@@ -19,6 +20,12 @@ export interface ThemeConfig {
   colors: ThemeColors;
   overrides: Record<string, string>;
   presets: Preset[];
+  /** Where colours come from; 'manual' = the colours above (v2.0 behaviour). */
+  source: SourceKind;
+  /** '' = the default path for that source. */
+  sourcePaths: { caelestia: string; pywal: string };
+  /** Cross-fade between old and new colours when they change. */
+  smoothTransitions: boolean;
 }
 export type ThemeLook = Pick<ThemeConfig, 'base' | 'derivation' | 'colors' | 'overrides'>;
 
@@ -120,20 +127,43 @@ function readableOn(color: string): string {
   return contrastRatio('#000000', color) >= contrastRatio('#ffffff', color) ? '#000000' : '#ffffff';
 }
 
-export function buildThemeVars(look: ThemeLook): Record<ManagedVar, string> {
-  const accent = normalizeHex(look.colors.accent) ?? DEEZER_COLORS.accent;
-  const bg = normalizeHex(look.colors.background) ?? DEEZER_COLORS.background;
-  const text = normalizeHex(look.colors.text) ?? DEEZER_COLORS.text;
-  const L = deriveLadder(bg, look.base, look.derivation);
+/** The manual look with the source's colours and base on top (invalid source values are ignored). */
+export function effectiveLook(look: ThemeLook, palette?: ExternalPalette | null): ThemeLook {
+  if (!palette) return look;
+  const colors = { ...look.colors };
+  for (const key of ['accent', 'background', 'text'] as const) {
+    const value = palette.colors[key];
+    const hex = typeof value === 'string' ? normalizeHex(value) : null;
+    if (hex) colors[key] = hex;
+  }
+  return { ...look, base: palette.base ?? look.base, colors };
+}
+
+function validLadder(ladder: string[] | undefined): string[] | null {
+  if (!Array.isArray(ladder) || ladder.length !== LADDER_STEPS) return null;
+  const normalized = ladder.map((v) => (typeof v === 'string' ? normalizeHex(v) : null));
+  return normalized.every((v): v is string => v !== null) ? normalized : null;
+}
+
+/**
+ * Deezer variables for a look. Priority: colours derived from the manual theme < the external source's
+ * palette (colours, exact ladder and texts when it has them) < the user's Advanced overrides.
+ */
+export function buildThemeVars(look: ThemeLook, palette?: ExternalPalette | null): Record<ManagedVar, string> {
+  const effective = effectiveLook(look, palette);
+  const accent = normalizeHex(effective.colors.accent) ?? DEEZER_COLORS.accent;
+  const bg = normalizeHex(effective.colors.background) ?? DEEZER_COLORS.background;
+  const text = normalizeHex(effective.colors.text) ?? DEEZER_COLORS.text;
+  const L = validLadder(palette?.ladder) ?? deriveLadder(bg, effective.base, effective.derivation);
   // Interactive states move away from the background, like Deezer's own hover colors.
-  const away = look.base === 'dark' ? 1 : -1;
+  const away = effective.base === 'dark' ? 1 : -1;
 
   const textHover = mix(text, bg, 0.08);
   const textPressed = mix(text, bg, 0.14);
-  const textSecondary = mix(text, bg, 0.3);
+  const textSecondary = (palette?.textSecondary && normalizeHex(palette.textSecondary)) || mix(text, bg, 0.3);
   const textDisabled = mix(text, bg, 0.55);
   const accentText = shiftLightness(accent, away * 0.08);
-  const onAccent = readableOn(accent);
+  const onAccent = (palette?.onAccent && normalizeHex(palette.onAccent)) || readableOn(accent);
 
   const vars: Record<ManagedVar, string> = {
     [`${T}background-neutral-primary-default`]: L[0],
@@ -195,7 +225,7 @@ export function buildThemeVars(look: ThemeLook): Record<ManagedVar, string> {
     '--color-accent-strong': shiftLightness(accent, -away * 0.06),
   } as Record<ManagedVar, string>;
 
-  for (const [name, value] of Object.entries(look.overrides)) {
+  for (const [name, value] of Object.entries(effective.overrides)) {
     const hex = normalizeHex(value);
     if (hex && isManagedVar(name)) vars[name] = hex;
   }
@@ -237,4 +267,20 @@ export const DEFAULT_THEME: ThemeConfig = {
   colors: { ...DEEZER_COLORS },
   overrides: {},
   presets: [],
+  source: 'manual',
+  sourcePaths: { caelestia: '', pywal: '' },
+  smoothTransitions: true,
 };
+
+/** WCAG AA for body text, and the usual 3:1 for large/non-text elements such as the accent. */
+export const CONTRAST_TEXT_MIN = 4.5;
+export const CONTRAST_ACCENT_MIN = 3;
+
+/** Contrast of the main text and of the accent against the main background, as Deezer will show them. */
+export function themeContrast(vars: Record<ManagedVar, string>): { text: number; accent: number } {
+  const bg = vars[`${T}background-neutral-primary-default`];
+  return {
+    text: contrastRatio(vars[`${T}text-neutral-primary-default`], bg),
+    accent: contrastRatio(vars[`${T}background-accent-primary-default`], bg),
+  };
+}
