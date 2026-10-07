@@ -144,7 +144,7 @@ describe('defaultSourcePath', () => {
 
 describe('normalizeSourcePath', () => {
   const home = '/home/u';
-  test('absolute path kept, trimmed', () => expect(normalizeSourcePath('  /a/b.json ', home)).toBe('/a/b.json'));
+  test('absolute path kept, trimmed', () => expect(normalizeSourcePath('  /a/colors.json ', home)).toBe('/a/colors.json'));
   test('~/ is expanded', () => expect(normalizeSourcePath('~/x/colors.json', home)).toBe('/home/u/x/colors.json'));
   test('bare ~ is not a .json file', () => expect(normalizeSourcePath('~', home)).toBe(''));
   test('~ without a home gives empty', () => expect(normalizeSourcePath('~/x', '')).toBe(''));
@@ -156,6 +156,12 @@ describe('normalizeSourcePath', () => {
     expect(normalizeSourcePath(v, home)).toBe('');
   });
   test('.JSON in upper case is fine', () => expect(normalizeSourcePath('/x/Colors.JSON', home)).toBe('/x/Colors.JSON'));
+  test.each([['/x/scheme.json'], ['/x/colors.json'], ['/x/pywal-colors.json'], ['/x/my_scheme.json'], ['/x/wal.colors.json']])(
+    'palette file name %p is accepted', (v) => expect(normalizeSourcePath(v, home)).toBe(v));
+  test.each([['/home/u/.config/Code/User/settings.json'], ['/x/package.json'], ['/x/b.json'], ['/x/mycolors.json'], ['/x/colors.json/evil.json']])(
+    'other .json file %p is refused — page scripts must not probe arbitrary files (review #3)', (v) => {
+      expect(normalizeSourcePath(v, home)).toBe('');
+    });
   test('Windows drive path is fine', () => expect(normalizeSourcePath('C:\\Users\\u\\colors.json', home)).toBe('C:\\Users\\u\\colors.json'));
   test.each(['', '   ', 'relative/path', './x', 42, null, undefined, '/a\u0000b', `/${'x'.repeat(4096)}`])('%p is rejected', (v) => {
     expect(normalizeSourcePath(v, home)).toBe('');

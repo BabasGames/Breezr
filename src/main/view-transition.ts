@@ -40,7 +40,8 @@ export const VT_RELEASE_JS = `(() => {
 export const VT_STYLE_CSS = `:root:active-view-transition-type(breezr-theme)::view-transition-old(root),
 :root:active-view-transition-type(breezr-theme)::view-transition-new(root) { animation-duration: 600ms; }`;
 
-async function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T | 'timeout'> {
+/** Resolves with the promise's value, or with 'timeout' after `ms` (the promise keeps running). */
+export async function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T | 'timeout'> {
   let timer: ReturnType<typeof setTimeout> | undefined;
   try {
     return await Promise.race([promise, new Promise<'timeout'>((resolve) => { timer = setTimeout(() => resolve('timeout'), ms); })]);

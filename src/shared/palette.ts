@@ -112,7 +112,7 @@ const MAX_PATH = 4096;
  * A user-typed path: trimmed, leading ~ expanded; must end up an absolute local path to a .json file.
  * '' means "use the default". The path can be set from the page (and so by its third-party scripts):
  * network paths are refused — on Windows, merely opening \\\\host\\share sends the user's NTLM credentials —
- * and so is anything that is not a .json file, so the source cannot be used to probe arbitrary files.
+ * and so is anything that is not a palette .json file, so the source cannot be used to probe arbitrary files.
  */
 export function normalizeSourcePath(value: unknown, home: string): string {
   if (typeof value !== 'string') return '';
@@ -123,7 +123,9 @@ export function normalizeSourcePath(value: unknown, home: string): string {
   }
   if (!path || path.length > MAX_PATH || path.includes('\u0000') || !isAbsolute(path)) return '';
   if (isNetworkPath(path)) return '';
-  if (!/\.json$/i.test(path)) return '';
+  // Only palette file names (scheme.json, colors.json, pywal-colors.json…): otherwise the read/status round
+  // trip would tell page scripts whether any .json file (an app's settings, say) exists on the disk.
+  if (!/(^|[\\/])([^\\/]*[-_.])?(scheme|colors)\.json$/i.test(path)) return '';
   return path;
 }
 

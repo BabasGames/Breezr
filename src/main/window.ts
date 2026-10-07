@@ -9,6 +9,7 @@ import { setActivity } from './rpc/activity';
 import { setDeezerLanguage } from './i18n';
 import { checkTempoVariables, forgetInsertedTheme, installTransitionStyle } from './theme';
 import { createThemeState } from './theme-runtime';
+import { withTimeout } from './view-transition';
 import type { ThemeState } from './theme-state';
 import { openSettings, registerSettings } from './settings';
 import { classifyWindowOpen, isDeezerUrl } from '../shared/origin';
@@ -185,8 +186,11 @@ export async function load(app: Electron.App) {
   ipcMain.on('nav_forward', () => win.webContents.navigationHistory.goForward());
   ipcMain.on('retry_load', () => loadDeezer());
 
-  // Read the saved source before Deezer loads: the first paint already has the source's colours.
-  await themeState.start(Config.get(app, 'theme'));
+  // Read the saved source before Deezer loads: the first paint already has the source's colours. Bounded: a
+  // path on a stalled network mount must never keep Deezer from loading (the cached palette is used meanwhile,
+  // and the watcher catches up later).
+  const started = await withTimeout(themeState.start(Config.get(app, 'theme')), 1000);
+  if (started === 'timeout') log('Theme', 'Colour source slow to read: loading Deezer without waiting for it');
   await loadDeezer();
 }
 
