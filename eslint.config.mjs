@@ -43,5 +43,13 @@ export default defineConfig([
       // The core rule flags parameter names inside function *types*; the TypeScript-aware rule (from tseslint) covers real unused vars.
       'no-unused-vars': 'off',
     },
-  }
+  },
+  {
+    files: ['src/renderer/**/*.ts'],
+    languageOptions: {
+      globals: { ...globals.browser },
+    },
+    // tsc already resolves names; the core rule does not know DOM types such as HTMLElementTagNameMap.
+    rules: { 'no-undef': 'off' },
+  },
 ]);

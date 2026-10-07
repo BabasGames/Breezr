@@ -40,6 +40,7 @@ jobs:
       - name: Build
         run: |
           bun run tsc
+          bun run build:modal
           bun run copy-assets
           bun scripts/build.js ${{ matrix.build-os }}
 

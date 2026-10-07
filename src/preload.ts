@@ -5,7 +5,8 @@ contextBridge.exposeInMainWorld('ipcRenderer', {
   send: (channel: string, payload: never[]) => ipcRenderer.send(channel, payload)
 });
 
-contextBridge.exposeInMainWorld('breezr', {
+// Settings are only offered to Deezer pages (login popups share this preload); the main process checks again.
+if (globalThis.location.protocol === 'https:' && /(^|\.)deezer\.com$/.test(globalThis.location.hostname)) contextBridge.exposeInMainWorld('breezr', {
   settings: {
     get: () => ipcRenderer.invoke('breezr:settings:get'),
     preview: (theme: unknown) => ipcRenderer.send('breezr:settings:preview', theme),

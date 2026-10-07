@@ -9,6 +9,19 @@ import { setActivity } from './rpc/activity';
 import { setDeezerLanguage } from './i18n';
 import { applyTheme, checkTempoVariables, forgetInsertedTheme } from './theme';
 import { openSettings, registerSettings } from './settings';
+import { isDeezerUrl } from '../shared/origin';
+import { readFileSync } from 'fs';
+
+const modalBundlePath = join(__dirname, '..', 'renderer', 'settings-modal.bundle.js');
+let modalBundle: string | undefined;
+function settingsModalBundle(): string | undefined {
+  try {
+    modalBundle ??= readFileSync(modalBundlePath, 'utf-8');
+  } catch (e) {
+    log('Window', 'Settings modal bundle missing — run `bun run build:modal`', String(e));
+  }
+  return modalBundle;
+}
 
 const deezerUrl = 'https://account.deezer.com/login/';
 const offlinePagePath = join(__dirname, '..', 'offline.html');
@@ -64,6 +77,10 @@ export async function load(app: Electron.App) {
   win.webContents.on('dom-ready', () => {
     forgetInsertedTheme();
     applyTheme(win.webContents, Config.get(app, 'theme'));
+    if (isDeezerPage()) {
+      const bundle = settingsModalBundle();
+      if (bundle) runJs(bundle).catch((e) => log('Window', 'Could not inject the settings modal', String(e)));
+    }
   });
 
   win.webContents.on('before-input-event', (event, input) => {
@@ -406,9 +423,5 @@ interface JSResult {
 }
 
 function isDeezerPage() {
-  try {
-    return new URL(win.webContents.getURL()).hostname.endsWith('deezer.com');
-  } catch {
-    return false;
-  }
+  return isDeezerUrl(win.webContents.getURL());
 }
