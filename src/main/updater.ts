@@ -1,8 +1,8 @@
-import { log } from './Log';
+import { log } from './log';
 import { version } from '../../package.json';
 import { app, dialog, shell } from 'electron';
 import { readFileSync } from 'fs';
-import { win } from './Window';
+import { win } from './window';
 import { isNewerRelease } from '../shared/version';
 
 /**

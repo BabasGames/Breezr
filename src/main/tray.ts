@@ -1,11 +1,11 @@
 import { join } from 'path';
-import updater, { updatesEnabled } from './Updater';
-import * as Config from './Config';
-import * as RPC from './RPC';
+import updater, { updatesEnabled } from './updater';
+import * as Config from './config';
+import * as RPC from './rpc/client';
 import { Menu, Tray } from 'electron';
 import { version } from '../../package.json';
-import { log } from './Log';
-import { win } from './Window';
+import { log } from './log';
+import { win } from './window';
 import MenuItemConstructorOptions = Electron.MenuItemConstructorOptions;
 
 const iconPath = join(__dirname, '..', 'img', 'tray.png');

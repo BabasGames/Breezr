@@ -1,7 +1,7 @@
 import { join } from 'path';
 import { existsSync, writeFileSync, readFileSync } from 'fs';
 import { dialog } from 'electron';
-import { win } from './Window';
+import { win } from './window';
 
 export async function set(app: Electron.App, key: string, value: unknown) {
   const path = getConfigPath(app);

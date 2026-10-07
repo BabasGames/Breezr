@@ -1,11 +1,11 @@
-import { userAgent } from '../variables';
+import { userAgent } from './variables';
 import { join, resolve } from 'path';
-import * as Config from './Config';
-import * as RPC from './RPC';
-import { log } from './Log';
-import { runJs, wait } from '../functions';
+import * as Config from './config';
+import * as RPC from './rpc/client';
+import { log } from './log';
+import { runJs, wait } from './functions';
 import { BrowserWindow, ipcMain, shell, nativeImage, session } from 'electron';
-import { setActivity } from './Activity';
+import { setActivity } from './rpc/activity';
 
 const deezerUrl = 'https://account.deezer.com/login/';
 const offlinePagePath = join(__dirname, '..', 'offline.html');
