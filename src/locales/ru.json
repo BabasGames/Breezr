@@ -98,7 +98,5 @@
   "settings.appearance.source.disabledHint": "Включите свою тему, чтобы выбрать источник.",
   "settings.appearance.presets.disabledBySource": "Вернитесь в режим «Вручную», чтобы применить пресет.",
   "settings.appearance.contrastSource": "Низкий контраст от источника ({ratio}:1): при необходимости исправьте в расширенных настройках.",
-  "settings.appearance.contrastAccent": "Акцент плохо виден на фоне ({ratio}:1). Рекомендуется 3:1 или выше.",
-  "settings.appearance.smoothTransitions": "Плавный переход",
-  "settings.appearance.smoothTransitionsHelp": "Плавная смена цветов при изменении; выключается, если система просит меньше анимаций."
+  "settings.appearance.contrastAccent": "Акцент плохо виден на фоне ({ratio}:1). Рекомендуется 3:1 или выше."
 }

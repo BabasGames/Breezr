@@ -24,10 +24,9 @@ describe('no palette = exactly the v2.0 output', () => {
 });
 
 describe('new theme fields', () => {
-  test('defaults: manual source, default paths, smooth transitions on', () => {
+  test('defaults: manual source, default paths', () => {
     expect(DEFAULT_THEME.source).toBe('manual');
     expect(DEFAULT_THEME.sourcePaths).toEqual({ caelestia: '', pywal: '' });
-    expect(DEFAULT_THEME.smoothTransitions).toBe(true);
   });
 });
 

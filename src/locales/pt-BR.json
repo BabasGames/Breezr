@@ -96,7 +96,5 @@
   "settings.appearance.source.disabledHint": "Ative o tema personalizado para escolher uma origem.",
   "settings.appearance.presets.disabledBySource": "Volte para Manual para aplicar uma predefinição.",
   "settings.appearance.contrastSource": "Contraste baixo vindo da origem ({ratio}:1): corrija no modo Avançado se precisar.",
-  "settings.appearance.contrastAccent": "O destaque aparece pouco sobre o fundo ({ratio}:1). Recomenda-se 3:1 ou mais.",
-  "settings.appearance.smoothTransitions": "Transição suave",
-  "settings.appearance.smoothTransitionsHelp": "Esmaecimento entre as cores quando mudam; desativado se o sistema pedir menos animações."
+  "settings.appearance.contrastAccent": "O destaque aparece pouco sobre o fundo ({ratio}:1). Recomenda-se 3:1 ou mais."
 }

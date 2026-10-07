@@ -96,7 +96,5 @@
   "settings.appearance.source.disabledHint": "Attiva il tema personalizzato per scegliere un'origine.",
   "settings.appearance.presets.disabledBySource": "Torna a Manuale per applicare un preset.",
   "settings.appearance.contrastSource": "Contrasto basso dalla fonte ({ratio}:1): correggilo in Avanzate se serve.",
-  "settings.appearance.contrastAccent": "L'accento si vede poco sullo sfondo ({ratio}:1). Si consiglia 3:1 o più.",
-  "settings.appearance.smoothTransitions": "Transizione morbida",
-  "settings.appearance.smoothTransitionsHelp": "Dissolvenza tra i colori quando cambiano; disattivata se il sistema chiede meno animazioni."
+  "settings.appearance.contrastAccent": "L'accento si vede poco sullo sfondo ({ratio}:1). Si consiglia 3:1 o più."
 }
