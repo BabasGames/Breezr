@@ -1,5 +1,15 @@
 # Changelog
 
+## 2.1.0
+
+- Colour sources (opt-in, Settings → Appearance): follow Caelestia's Material You palette, a pywal-format
+  `colors.json` (pywal, wallust, matugen templates…) or the system accent colour, live.
+- Smooth transition: colours cross-fade when they change (can be turned off; off when the system asks for less motion).
+- Dragging a colour picker no longer makes the page stutter: the preview waits until the colour is stable.
+- Lyrics over a light album cover are readable again with a custom theme.
+- Back/forward buttons moved to the top bar; collapsing the sidebar no longer blanks the page.
+- Crisp tray icon.
+
 ## 2.0.0
 
 - Breezr: hard fork of deezer-discord-rpc 1.4.0 under a new name, app id and config folder.
