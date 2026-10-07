@@ -40,6 +40,8 @@ export default defineConfig([
       '@stylistic/quotes': ['error', 'single'],
       '@stylistic/semi': ['error', 'always'],
       '@stylistic/object-curly-spacing': ['error', 'always'],
+      // The core rule flags parameter names inside function *types*; the TypeScript-aware rule (from tseslint) covers real unused vars.
+      'no-unused-vars': 'off',
     },
   }
 ]);
