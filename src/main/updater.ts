@@ -4,6 +4,7 @@ import { app, dialog, shell } from 'electron';
 import { readFileSync } from 'fs';
 import { win } from './window';
 import { isNewerRelease } from '../shared/version';
+import { t } from './i18n';
 
 /**
  * False when the app was started with --disable-updates, which packagers whose package manager
@@ -52,9 +53,9 @@ export default async function updater(fromStartup: boolean = false) {
       log('Updater', 'The version', latestTag, 'is available to download!');
       dialog.showMessageBox({
         type: 'info',
-        title: 'Update available',
-        buttons: ['Cancel', 'Download'],
-        message: `The version ${latestTag} is available to download!`,
+        title: t('updater.available.title'),
+        buttons: [t('updater.cancel'), t('updater.available.download')],
+        message: t('updater.available.message', { version: latestTag }),
         defaultId: 1,
       }).then(({ response }) => {
         if (response === 1) {
@@ -72,8 +73,8 @@ export default async function updater(fromStartup: boolean = false) {
       if (!fromStartup)
         await dialog.showMessageBox(win, {
           type: 'info',
-          title: 'No update available',
-          message: 'You are using the latest version.',
+          title: t('updater.none.title'),
+          message: t('updater.none.message'),
         });
     }
   } catch (reason) {
@@ -82,9 +83,9 @@ export default async function updater(fromStartup: boolean = false) {
     if (fromStartup) return;
     dialog.showMessageBox(win, {
       type: 'error',
-      buttons: ['Close', 'Retry'],
-      title: 'Cannot get latest release',
-      message: 'Cannot get the latest release.',
+      buttons: [t('updater.error.close'), t('updater.error.retry')],
+      title: t('updater.error.title'),
+      message: t('updater.error.title'),
       detail: reason?.toString(),
       defaultId: 1
     }).then(async ({ response: response_1 }) => {

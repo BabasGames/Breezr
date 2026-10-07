@@ -6,6 +6,7 @@ import { log } from './log';
 import { runJs, wait } from './functions';
 import { BrowserWindow, ipcMain, shell, nativeImage, session } from 'electron';
 import { setActivity } from './rpc/activity';
+import { setDeezerLanguage } from './i18n';
 
 const deezerUrl = 'https://account.deezer.com/login/';
 const offlinePagePath = join(__dirname, '..', 'offline.html');
@@ -119,7 +120,12 @@ export async function load(app: Electron.App) {
   win.webContents.on('did-finish-load', () => {
     playerWatchId++;
     stopActivityPoll();
-    if (new URL(win.webContents.getURL()).hostname.endsWith('deezer.com')) watchForPlayer(app, playerWatchId);
+    if (new URL(win.webContents.getURL()).hostname.endsWith('deezer.com')) {
+      watchForPlayer(app, playerWatchId);
+      runJs('document.documentElement.lang')
+        .then((lang: unknown) => setDeezerLanguage(typeof lang === 'string' ? lang : undefined))
+        .catch(() => undefined);
+    }
   });
 
   // Discord drops the activity when the connection closes, so resend it once the client is back.

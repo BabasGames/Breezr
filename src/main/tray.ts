@@ -6,76 +6,72 @@ import { Menu, Tray } from 'electron';
 import { version } from '../../package.json';
 import { log } from './log';
 import { win } from './window';
-import type { StatusName, TooltipText } from '../shared/config-schema';
-import MenuItemConstructorOptions = Electron.MenuItemConstructorOptions;
+import { t, onLocaleChange } from './i18n';
+import { openSettings } from './settings';
+import { STATUS_NAMES, TOOLTIP_TEXTS } from '../shared/config-schema';
 
 const iconPath = join(__dirname, '..', 'img', 'tray.png');
 
 export let tray: Tray | null = null;
-export async function init(app: Electron.App, client: import('@xhayper/discord-rpc').Client) {
-  app?.whenReady().then(async () => {
-    tray = new Tray(iconPath);
-    const contextMenu = Menu.buildFromTemplate([
-      { label: 'Breezr', type: 'normal', click: () => win.show() },
-      { label: `Version: ${version}${process.argv0.includes('node') ? ' (debug)' : ''}`, type: 'normal', enabled: false },
-      { label: 'Check for updates', type: 'normal', visible: updatesEnabled, click: () => updater() },
-      { type: 'separator' },
-      {
-        label: 'Status name', type: 'submenu', submenu: await Promise.all([
-          ['Deezer', 'app_name'],
-          ['Song title', 'song_title'],
-          ['Artists song', 'artists_song'],
-          ['Artists song - Song title', 'artists_and_title'],
-          ['Song title - Artists song', 'title_and_artists'],
-        ].map(async (v): Promise<MenuItemConstructorOptions> => ({
-          label: v[0], type: 'radio', id: v[1], checked: Config.get(app, 'status_name') === v[1],
-          click: (menuItem) => Config.set(app, 'status_name', menuItem.id as StatusName),
-        })))
-      },
-      {
-        label: 'Tooltip text', type: 'submenu', submenu: await Promise.all([
-          ['App name', 'app_name'],
-          ['App version', 'app_version'],
-          ['App name and version', 'app_name_and_version'],
-          ['Artists song - Song title', 'artists_and_title'],
-          ['Song title - Artists song', 'title_and_artists'],
-        ].map(async (v): Promise<MenuItemConstructorOptions> => ({
-          label: v[0], type: 'radio', id: v[1], checked: Config.get(app, 'tooltip_text') === v[1],
-          click: (menuItem) => Config.set(app, 'tooltip_text', menuItem.id as TooltipText),
-        })))
-      },
-      {
-        label: 'Don\'t close to tray', type: 'checkbox', checked: Config.get(app, 'dont_close_to_tray'),
-        click: (menuItem) => Config.set(app, 'dont_close_to_tray', menuItem.checked)
-      },
-      {
-        id: 'reconnect',
-        label: 'Reconnect RPC',
-        type: 'normal',
-        visible: false,
-        click: () => {
-          client.login()
-            .then(() => {
-              log('RPC', 'Reconnected');
-            })
-            .catch(console.error);
-        }
-      },
-      { type: 'separator' },
-      {
-        label: 'Quit', type: 'normal', click: async () => {
-          RPC.disconnect().catch(console.error);
-          win.close();
-          app.quit();
-          process.exit(0);
-        }
-      }
-    ]);
+let appRef: Electron.App;
+let clientRef: import('@xhayper/discord-rpc').Client;
 
-    tray.setToolTip('Breezr');
-    tray.setContextMenu(contextMenu);
-    tray.on('click', () => {
-      if (!win.isVisible()) win.show();
-    });
+export async function init(app: Electron.App, client: import('@xhayper/discord-rpc').Client) {
+  appRef = app;
+  clientRef = client;
+  await app.whenReady();
+  tray = new Tray(iconPath);
+  tray.setToolTip('Breezr');
+  tray.on('click', () => {
+    if (!win.isVisible()) win.show();
   });
+  refreshTrayMenu();
+  onLocaleChange(refreshTrayMenu);
+}
+
+/** Rebuilds the menu: labels follow the current language, radios and checkbox follow the config. */
+export function refreshTrayMenu() {
+  if (!tray) return;
+  const app = appRef;
+  const debug = process.argv0.includes('node');
+  const statusName = Config.get(app, 'status_name');
+  const tooltipText = Config.get(app, 'tooltip_text');
+  tray.setContextMenu(Menu.buildFromTemplate([
+    { label: t('tray.open'), type: 'normal', click: () => win.show() },
+    { label: t(debug ? 'tray.versionDebug' : 'tray.version', { version }), type: 'normal', enabled: false },
+    { label: t('tray.checkUpdates'), type: 'normal', visible: updatesEnabled, click: () => updater() },
+    { label: t('tray.settings'), type: 'normal', click: () => openSettings(win) },
+    { type: 'separator' },
+    {
+      label: t('tray.statusName'), type: 'submenu', submenu: STATUS_NAMES.map((id) => ({
+        label: t(`option.statusName.${id}`), type: 'radio' as const, id, checked: statusName === id,
+        click: () => Config.set(app, 'status_name', id),
+      })),
+    },
+    {
+      label: t('tray.tooltipText'), type: 'submenu', submenu: TOOLTIP_TEXTS.map((id) => ({
+        label: t(`option.tooltip.${id}`), type: 'radio' as const, id, checked: tooltipText === id,
+        click: () => Config.set(app, 'tooltip_text', id),
+      })),
+    },
+    {
+      label: t('tray.dontCloseToTray'), type: 'checkbox', checked: Config.get(app, 'dont_close_to_tray'),
+      click: (menuItem) => Config.set(app, 'dont_close_to_tray', menuItem.checked),
+    },
+    {
+      id: 'reconnect', label: t('tray.reconnect'), type: 'normal', visible: false,
+      click: () => {
+        clientRef.login().then(() => log('RPC', 'Reconnected')).catch(console.error);
+      },
+    },
+    { type: 'separator' },
+    {
+      label: t('tray.quit'), type: 'normal', click: async () => {
+        RPC.disconnect().catch(console.error);
+        win.close();
+        app.quit();
+        process.exit(0);
+      },
+    },
+  ]));
 }
