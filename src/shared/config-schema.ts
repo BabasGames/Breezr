@@ -16,6 +16,8 @@ export interface BreezrConfig {
   status_name: StatusName;
   tooltip_text: TooltipText;
   dont_close_to_tray: boolean;
+  /** Slide Deezer's left menu when it folds/unfolds instead of jumping. */
+  animate_sidebar: boolean;
   language: 'auto' | LocaleCode;
   theme: ThemeConfig;
 }
@@ -24,6 +26,7 @@ export const DEFAULT_CONFIG: BreezrConfig = {
   status_name: 'app_name',
   tooltip_text: 'app_name',
   dont_close_to_tray: false,
+  animate_sidebar: true,
   language: 'auto',
   theme: DEFAULT_THEME,
 };
@@ -128,6 +131,7 @@ export function validateConfig(raw: unknown, opts: { home?: string } = {}): { co
     status_name: oneOf(raw.status_name, STATUS_NAMES, DEFAULT_CONFIG.status_name, 'status_name', warnings),
     tooltip_text: oneOf(raw.tooltip_text, TOOLTIP_TEXTS, DEFAULT_CONFIG.tooltip_text, 'tooltip_text', warnings),
     dont_close_to_tray: bool(raw.dont_close_to_tray, DEFAULT_CONFIG.dont_close_to_tray, 'dont_close_to_tray', warnings),
+    animate_sidebar: bool(raw.animate_sidebar, DEFAULT_CONFIG.animate_sidebar, 'animate_sidebar', warnings),
     language: language as BreezrConfig['language'],
     theme: theme(raw.theme, warnings, opts.home ?? ''),
   };

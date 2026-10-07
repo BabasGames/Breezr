@@ -5,6 +5,8 @@
 - Colour sources (opt-in, Settings → Appearance): follow Caelestia's Material You palette, a pywal-format
   `colors.json` (pywal, wallust, matugen templates…) or the system accent colour, live.
 - Dragging a colour picker no longer makes the page stutter: the preview waits until the colour is stable.
+- The left menu slides when it folds or unfolds (Settings → General, on by default; off with reduced motion).
+- No more empty strip along the right edge of the full-screen player and lyrics.
 - Lyrics over a light album cover are readable again with a custom theme.
 - Back/forward buttons moved to the top bar; collapsing the sidebar no longer blanks the page.
 - Crisp tray icon.

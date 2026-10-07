@@ -96,5 +96,7 @@
   "settings.appearance.source.disabledHint": "Ative o tema personalizado para escolher uma origem.",
   "settings.appearance.presets.disabledBySource": "Volte para Manual para aplicar uma predefinição.",
   "settings.appearance.contrastSource": "Contraste baixo vindo da origem ({ratio}:1): corrija no modo Avançado se precisar.",
-  "settings.appearance.contrastAccent": "O destaque aparece pouco sobre o fundo ({ratio}:1). Recomenda-se 3:1 ou mais."
+  "settings.appearance.contrastAccent": "O destaque aparece pouco sobre o fundo ({ratio}:1). Recomenda-se 3:1 ou mais.",
+  "settings.general.animateSidebar": "Animar o menu lateral",
+  "settings.general.animateSidebarHelp": "O menu à esquerda desliza ao recolher ou expandir (desativado se o sistema pedir menos animações)."
 }

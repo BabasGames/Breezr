@@ -96,5 +96,7 @@
   "settings.appearance.source.disabledHint": "Activa el tema personalizado para elegir un origen.",
   "settings.appearance.presets.disabledBySource": "Vuelve a Manual para aplicar un preajuste.",
   "settings.appearance.contrastSource": "Contraste bajo de la fuente ({ratio}:1): corrígelo en Avanzado si hace falta.",
-  "settings.appearance.contrastAccent": "El acento se ve poco sobre el fondo ({ratio}:1). Se recomienda 3:1 o más."
+  "settings.appearance.contrastAccent": "El acento se ve poco sobre el fondo ({ratio}:1). Se recomienda 3:1 o más.",
+  "settings.general.animateSidebar": "Animar el menú lateral",
+  "settings.general.animateSidebarHelp": "El menú izquierdo se desliza al plegarlo o desplegarlo (desactivado si el sistema pide menos animaciones)."
 }

@@ -96,5 +96,7 @@
   "settings.appearance.source.disabledHint": "Activez le thème personnalisé pour choisir une source.",
   "settings.appearance.presets.disabledBySource": "Repassez en Manuelle pour appliquer un préréglage.",
   "settings.appearance.contrastSource": "Contraste faible fourni par la source ({ratio}:1) — corrigeable dans le mode Avancé.",
-  "settings.appearance.contrastAccent": "L'accent se voit mal sur le fond ({ratio}:1). 3:1 ou plus est recommandé."
+  "settings.appearance.contrastAccent": "L'accent se voit mal sur le fond ({ratio}:1). 3:1 ou plus est recommandé.",
+  "settings.general.animateSidebar": "Animer le menu latéral",
+  "settings.general.animateSidebarHelp": "Le menu de gauche glisse quand on le replie ou le déplie (désactivé si le système demande moins d'animations)."
 }

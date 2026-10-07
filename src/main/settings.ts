@@ -12,6 +12,7 @@ import { currentLocale, notifyLocaleChange } from './i18n';
 import { log } from './log';
 import type { ThemeState } from './theme-state';
 import { defaultPathsForDisplay } from './theme-runtime';
+import { applyPageTweaks } from './page-tweaks';
 import { homedir } from 'os';
 
 /** The config as the page may see it: source paths with the home folder shortened to ~ (re-expanded on save). */
@@ -66,6 +67,7 @@ export function registerSettings(app: Electron.App, win: BrowserWindow, state: T
     const { config, warnings } = validateConfig({ ...raw, window_width: current.window_width, window_height: current.window_height }, { home: homedir() });
     for (const warning of warnings) log('Settings', warning);
     Config.setAll(app, config);
+    void applyPageTweaks(win.webContents, { animateSidebar: config.animate_sidebar });
     state.setModalOpen(false);
     // Answer only once the page shows the saved theme, so the modal never closes on stale colors.
     await state.save(config.theme);

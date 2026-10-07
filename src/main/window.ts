@@ -8,6 +8,7 @@ import { BrowserWindow, ipcMain, shell, nativeImage, session } from 'electron';
 import { setActivity } from './rpc/activity';
 import { setDeezerLanguage } from './i18n';
 import { checkTempoVariables, forgetInsertedTheme } from './theme';
+import { applyPageTweaks, forgetPageTweaks } from './page-tweaks';
 import { createThemeState } from './theme-runtime';
 import { withTimeout } from './timeout';
 import type { ThemeState } from './theme-state';
@@ -80,6 +81,8 @@ export async function load(app: Electron.App) {
   // Applied at dom-ready rather than did-finish-load so Deezer's default colors barely flash.
   win.webContents.on('dom-ready', () => {
     forgetInsertedTheme();
+    forgetPageTweaks();
+    if (isDeezerPage()) void applyPageTweaks(win.webContents, { animateSidebar: Config.get(app, 'animate_sidebar') });
     void themeState.documentReady();
     if (isDeezerPage()) {
       const bundle = settingsModalBundle();

@@ -115,3 +115,18 @@ describe('theme sources (v2.1)', () => {
     expect(warnings.length).toBe(2);
   });
 });
+
+describe('animate_sidebar', () => {
+  test('on by default, also for older configs', () => {
+    expect(DEFAULT_CONFIG.animate_sidebar).toBe(true);
+    const { config, warnings } = validateConfig({ status_name: 'song_title' });
+    expect(config.animate_sidebar).toBe(true);
+    expect(warnings).toEqual([]);
+  });
+  test('can be turned off', () => expect(validateConfig({ animate_sidebar: false }).config.animate_sidebar).toBe(false));
+  test('must be a boolean', () => {
+    const { config, warnings } = validateConfig({ animate_sidebar: 'no' });
+    expect(config.animate_sidebar).toBe(true);
+    expect(warnings.length).toBe(1);
+  });
+});

@@ -98,5 +98,7 @@
   "settings.appearance.source.disabledHint": "Włącz własny motyw, aby wybrać źródło.",
   "settings.appearance.presets.disabledBySource": "Wróć do trybu ręcznego, aby zastosować ustawienie wstępne.",
   "settings.appearance.contrastSource": "Niski kontrast ze źródła ({ratio}:1): w razie potrzeby popraw w sekcji Zaawansowane.",
-  "settings.appearance.contrastAccent": "Akcent jest słabo widoczny na tle ({ratio}:1). Zalecane jest 3:1 lub więcej."
+  "settings.appearance.contrastAccent": "Akcent jest słabo widoczny na tle ({ratio}:1). Zalecane jest 3:1 lub więcej.",
+  "settings.general.animateSidebar": "Animuj menu boczne",
+  "settings.general.animateSidebarHelp": "Lewe menu przesuwa się przy zwijaniu i rozwijaniu (wyłączone, gdy system prosi o mniej animacji)."
 }
