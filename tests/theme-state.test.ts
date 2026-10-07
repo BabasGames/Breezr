@@ -9,7 +9,7 @@ const ok = (accent: string): SourceUpdate => ({ palette: pal(accent), status: { 
 const theme = (patch: Partial<ThemeConfig>): ThemeConfig => ({ ...DEFAULT_THEME, enabled: true, ...patch });
 const flush = () => new Promise((r) => setTimeout(r, 0));
 
-type Applied = { source: string; accent: string | undefined; transition: boolean };
+type Applied = { source: string; accent: string | undefined };
 let applied: Applied[];
 let notified: (SourceUpdate & { forSource: string })[];
 let watchers: { source: string; initial: ExternalPalette | null; onUpdate: (u: SourceUpdate) => void; stopped: boolean }[];
@@ -35,7 +35,7 @@ beforeEach(() => {
       watchers.push(w);
       return { stop: () => { w.stopped = true; } };
     },
-    apply: async (t, palette, opts) => { applied.push({ source: t.source, accent: palette?.colors.accent, transition: opts.transition }); },
+    apply: async (t, palette) => { applied.push({ source: t.source, accent: palette?.colors.accent }); },
     notify: (u) => { notified.push(u); },
     loadCache: (key) => cache[key] ?? null,
     saveCache: (key, p) => { cache[key] = p; },
@@ -86,31 +86,15 @@ describe('ThemeState', () => {
     expect(watchers).toEqual([]);
   });
 
-  test('documentReady applies without fade; updates within 2 s do not fade either', async () => {
+  test('documentReady applies the displayed theme; source updates are applied and sent to the modal', async () => {
     const s = new ThemeState(deps);
     await s.start(theme({ source: 'caelestia' }));
     await s.documentReady();
-    expect(applied.at(-1)).toEqual({ source: 'caelestia', accent: '#caeca0', transition: false });
-    clock += 1000;
-    watchers[0].onUpdate(ok('#111111'));
-    await flush();
-    expect(applied.at(-1)).toEqual({ source: 'caelestia', accent: '#111111', transition: false });
-    clock += 1500;
+    expect(applied.at(-1)).toEqual({ source: 'caelestia', accent: '#caeca0' });
     watchers[0].onUpdate(ok('#222222'));
     await flush();
-    expect(applied.at(-1)).toEqual({ source: 'caelestia', accent: '#222222', transition: true });
+    expect(applied.at(-1)).toEqual({ source: 'caelestia', accent: '#222222' });
     expect(notified.at(-1)).toMatchObject({ palette: pal('#222222') });
-  });
-
-  test('no fade while the modal is open', async () => {
-    const s = new ThemeState(deps);
-    await s.start(theme({ source: 'caelestia' }));
-    await s.documentReady();
-    clock += 5000;
-    s.setModalOpen(true);
-    watchers[0].onUpdate(ok('#333333'));
-    await flush();
-    expect(applied.at(-1)?.transition).toBe(false);
   });
 
   test('a saved-source update does not overwrite a preview of another source (Review Focus 3)', async () => {
@@ -120,7 +104,7 @@ describe('ThemeState', () => {
     await s.documentReady();
     s.setModalOpen(true);
     await s.preview(theme({ source: 'pywal' }));
-    expect(applied.at(-1)).toEqual({ source: 'pywal', accent: '#bada55', transition: false });
+    expect(applied.at(-1)).toEqual({ source: 'pywal', accent: '#bada55' });
     expect(notified.at(-1)).toMatchObject({ palette: pal('#bada55') });
     const before = applied.length;
     const notifiedBefore = notified.length;
@@ -129,7 +113,7 @@ describe('ThemeState', () => {
     expect(applied.length).toBe(before);
     expect(notified.length).toBe(notifiedBefore);
     await s.cancel();
-    expect(applied.at(-1)).toEqual({ source: 'caelestia', accent: '#444444', transition: false });
+    expect(applied.at(-1)).toEqual({ source: 'caelestia', accent: '#444444' });
   });
 
   test('previewing the saved source again sends its palette back to the modal', async () => {
@@ -156,7 +140,7 @@ describe('ThemeState', () => {
     await s.preview({ ...saved, overrides: { '--color-divider-main': '#000000' } });
     watchers[0].onUpdate(ok('#555555'));
     await flush();
-    expect(applied.at(-1)).toMatchObject({ accent: '#555555', transition: false });
+    expect(applied.at(-1)).toMatchObject({ accent: '#555555' });
     expect(notified.at(-1)).toMatchObject({ palette: pal('#555555') });
   });
 
@@ -167,7 +151,6 @@ describe('ThemeState', () => {
     await s.save({ ...saved, colors: { ...saved.colors, text: '#ffffff' } });
     expect(watchers).toHaveLength(1);
     expect(watchers[0].stopped).toBe(false);
-    expect(applied.at(-1)?.transition).toBe(true);
   });
 
   test('save with a new source restarts the watcher, seeded with the previewed palette', async () => {
@@ -178,7 +161,7 @@ describe('ThemeState', () => {
     expect(watchers[0].stopped).toBe(true);
     expect(watchers[1]).toMatchObject({ source: 'pywal', initial: pal('#bada55'), stopped: false });
     expect(readCalls).toEqual(['caelestia', 'pywal']);
-    expect(applied.at(-1)).toEqual({ source: 'pywal', accent: '#bada55', transition: true });
+    expect(applied.at(-1)).toEqual({ source: 'pywal', accent: '#bada55' });
   });
 
   test('late updates from a stopped watcher are ignored', async () => {
@@ -226,19 +209,11 @@ describe('ThemeState', () => {
     await s.preview(theme({ source: 'pywal' }));
     // The page reloads: the modal is gone without sending cancel.
     await s.documentReady();
-    expect(applied.at(-1)).toEqual({ source: 'caelestia', accent: '#caeca0', transition: false });
+    expect(applied.at(-1)).toEqual({ source: 'caelestia', accent: '#caeca0' });
     expect(s.displayed().theme.source).toBe('caelestia');
-    clock += 5000;
     watchers[0].onUpdate(ok('#888888'));
     await flush();
-    expect(applied.at(-1)).toEqual({ source: 'caelestia', accent: '#888888', transition: true });
+    expect(applied.at(-1)).toEqual({ source: 'caelestia', accent: '#888888' });
   });
 
-  test('no fade before the first page is ready (review #4)', async () => {
-    const s = new ThemeState(deps);
-    await s.start(theme({ source: 'caelestia' }));
-    watchers[0].onUpdate(ok('#999999'));
-    await flush();
-    expect(applied.every((a) => !a.transition)).toBe(true);
-  });
 });

@@ -96,7 +96,5 @@
   "settings.appearance.source.disabledHint": "Schakel het eigen thema in om een bron te kiezen.",
   "settings.appearance.presets.disabledBySource": "Ga terug naar Handmatig om een voorinstelling toe te passen.",
   "settings.appearance.contrastSource": "Laag contrast uit de bron ({ratio}:1): pas het zo nodig aan onder Geavanceerd.",
-  "settings.appearance.contrastAccent": "Het accent is slecht zichtbaar op de achtergrond ({ratio}:1). 3:1 of meer wordt aanbevolen.",
-  "settings.appearance.smoothTransitions": "Vloeiende overgang",
-  "settings.appearance.smoothTransitionsHelp": "Vervaagt tussen kleuren wanneer ze veranderen; uit als het systeem om minder animaties vraagt."
+  "settings.appearance.contrastAccent": "Het accent is slecht zichtbaar op de achtergrond ({ratio}:1). 3:1 of meer wordt aanbevolen."
 }

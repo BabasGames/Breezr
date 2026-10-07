@@ -51,7 +51,7 @@ export function createThemeState(app: Electron.App, win: BrowserWindow): ThemeSt
       const { path, parse } = fileSource(theme);
       return watchFileSource({ path, parse, home: env.home, onUpdate, initial });
     },
-    apply: (theme, palette, opts) => applyTheme(win.webContents, theme, palette, opts),
+    apply: (theme, palette) => applyTheme(win.webContents, theme, palette),
     notify: (update: SourceUpdate & { forSource: string }) => {
       if (win.isDestroyed()) return;
       // Only a trusted Deezer page gets it (it may be read by the page's own scripts).

@@ -79,17 +79,15 @@ describe('theme sources (v2.1)', () => {
     expect(warnings).toEqual([]);
     expect(config.theme.source).toBe('manual');
     expect(config.theme.sourcePaths).toEqual({ caelestia: '', pywal: '' });
-    expect(config.theme.smoothTransitions).toBe(true);
   });
 
   test('valid values are kept', () => {
     const { config, warnings } = validateConfig({
-      theme: { source: 'caelestia', sourcePaths: { caelestia: '/x/scheme.json', pywal: '' }, smoothTransitions: false },
+      theme: { source: 'caelestia', sourcePaths: { caelestia: '/x/scheme.json', pywal: '' } },
     }, { home: '/home/u' });
     expect(warnings).toEqual([]);
     expect(config.theme.source).toBe('caelestia');
     expect(config.theme.sourcePaths).toEqual({ caelestia: '/x/scheme.json', pywal: '' });
-    expect(config.theme.smoothTransitions).toBe(false);
   });
 
   test('unknown source falls back to manual with a warning', () => {
@@ -115,11 +113,5 @@ describe('theme sources (v2.1)', () => {
     }, { home: '/home/u' });
     expect(config.theme.sourcePaths).toEqual({ caelestia: '', pywal: '' });
     expect(warnings.length).toBe(2);
-  });
-
-  test('smoothTransitions must be a boolean', () => {
-    const { config, warnings } = validateConfig({ theme: { smoothTransitions: 'yes' } });
-    expect(config.theme.smoothTransitions).toBe(true);
-    expect(warnings.length).toBe(1);
   });
 });

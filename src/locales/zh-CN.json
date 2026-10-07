@@ -95,7 +95,5 @@
   "settings.appearance.source.disabledHint": "开启自定义主题后才能选择来源。",
   "settings.appearance.presets.disabledBySource": "切换回“手动”才能应用预设。",
   "settings.appearance.contrastSource": "来源提供的对比度较低（{ratio}:1）：如有需要，可在“高级”中调整。",
-  "settings.appearance.contrastAccent": "强调色在背景上不够明显（{ratio}:1）。建议 3:1 或更高。",
-  "settings.appearance.smoothTransitions": "平滑过渡",
-  "settings.appearance.smoothTransitionsHelp": "颜色变化时淡入淡出；系统要求减少动画时关闭。"
+  "settings.appearance.contrastAccent": "强调色在背景上不够明显（{ratio}:1）。建议 3:1 或更高。"
 }

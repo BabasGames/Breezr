@@ -14,7 +14,6 @@ by Tenshii (MIT). It installs side by side with it and keeps its own settings.
   an Advanced mode lets you override any single color
 - Colour sources (optional): follow your desktop's palette live — [Caelestia](https://github.com/caelestia-dots),
   any pywal-format `colors.json` (pywal, wallust, matugen…), or the system accent colour
-- Smooth cross-fade when colours change
 - Settings window (`Ctrl+,` / `Cmd+,`, tray menu, or the ⚙ button)
 - Available in 14 languages (follows Deezer's language by default)
 

@@ -1,10 +1,7 @@
-import { BrowserWindow, type WebContents } from 'electron';
+import type { WebContents } from 'electron';
 import type { ExternalPalette } from '../shared/palette';
 import { buildThemeVars, themeToCss, type ThemeConfig } from '../shared/theme-model';
 import { log } from './log';
-import { VT_STYLE_CSS, runViewTransition } from './view-transition';
-
-export { runViewTransition, type PageExec } from './view-transition';
 
 let insertedKey: string | undefined;
 let insertedCss = '';
@@ -14,11 +11,9 @@ let queue: Promise<void> = Promise.resolve();
 
 /**
  * Shows `theme` (+ the external palette) in the page. Calls are serialized so fast previews never leave a
- * stale sheet behind; identical CSS is not re-injected. With `transition`, the change cross-fades — unless the
- * theme's own setting says no, or the window is hidden/minimized (nobody would see it, and a hidden page skips
- * View Transitions anyway).
+ * stale sheet behind; identical CSS is not re-injected.
  */
-export function applyTheme(wc: WebContents, theme: ThemeConfig, palette: ExternalPalette | null, opts: { transition: boolean }): Promise<void> {
+export function applyTheme(wc: WebContents, theme: ThemeConfig, palette: ExternalPalette | null): Promise<void> {
   const generation = documentGeneration;
   queue = queue.then(async () => {
     // Queued for a document that is gone: the new document's own apply will show the right colours.
@@ -41,13 +36,7 @@ export function applyTheme(wc: WebContents, theme: ThemeConfig, palette: Externa
       if (oldKey) await wc.removeInsertedCSS(oldKey).catch(() => undefined);
     };
 
-    const win = BrowserWindow.fromWebContents(wc);
-    const visible = !!win && !win.isDestroyed() && win.isVisible() && !win.isMinimized();
-    if (opts.transition && theme.smoothTransitions && visible) {
-      await runViewTransition((js) => wc.executeJavaScript(js), mutate);
-    } else {
-      await mutate();
-    }
+    await mutate();
   }).catch((e) => log('Theme', 'Could not apply the theme:', String(e)));
   return queue;
 }
@@ -57,12 +46,6 @@ export function forgetInsertedTheme() {
   documentGeneration++;
   insertedKey = undefined;
   insertedCss = '';
-}
-
-/** Duration of our cross-fades; a permanent sheet, separate from the theme one (once per document). */
-export async function installTransitionStyle(wc: WebContents): Promise<void> {
-  if (wc.isDestroyed()) return;
-  await wc.insertCSS(VT_STYLE_CSS).catch((e) => log('Theme', 'Could not install the transition style:', String(e)));
 }
 
 export async function checkTempoVariables(wc: WebContents) {

@@ -113,7 +113,6 @@ function theme(value: unknown, warnings: string[], home: string): ThemeConfig {
     presets: Array.isArray(t.presets) ? t.presets.map(userPreset).filter((p): p is Preset => p !== null) : [],
     source: oneOf<SourceKind>(t.source, SOURCE_KINDS, DEFAULT_THEME.source, 'theme.source', warnings),
     sourcePaths: sourcePaths(t.sourcePaths, home, warnings),
-    smoothTransitions: bool(t.smoothTransitions, DEFAULT_THEME.smoothTransitions, 'theme.smoothTransitions', warnings),
   };
 }
 

@@ -24,8 +24,6 @@ export interface ThemeConfig {
   source: SourceKind;
   /** '' = the default path for that source. */
   sourcePaths: { caelestia: string; pywal: string };
-  /** Cross-fade between old and new colours when they change. */
-  smoothTransitions: boolean;
 }
 export type ThemeLook = Pick<ThemeConfig, 'base' | 'derivation' | 'colors' | 'overrides'>;
 
@@ -269,7 +267,6 @@ export const DEFAULT_THEME: ThemeConfig = {
   presets: [],
   source: 'manual',
   sourcePaths: { caelestia: '', pywal: '' },
-  smoothTransitions: true,
 };
 
 /** WCAG AA for body text, and the usual 3:1 for large/non-text elements such as the accent. */

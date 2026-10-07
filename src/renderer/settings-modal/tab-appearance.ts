@@ -145,9 +145,6 @@ export function renderAppearance(ctx: ModalContext): HTMLElement {
     source === 'caelestia' || source === 'pywal' ? pathRow(source) : null,
     status);
 
-  // --- Smooth transition ---
-  const smooth = h('input', { type: 'checkbox', id: 'theme-smooth', checked: theme().smoothTransitions, 'data-focus-id': 'theme-smooth' });
-  smooth.addEventListener('change', () => setTheme({ ...theme(), smoothTransitions: smooth.checked }));
 
   // --- Presets ---
   const allPresets = [
@@ -218,8 +215,6 @@ export function renderAppearance(ctx: ModalContext): HTMLElement {
         [['mix', t('settings.appearance.derivation.mix')], ['hsl', t('settings.appearance.derivation.hsl')]],
         (derivation) => setTheme({ ...theme(), derivation }), palette()?.ladder !== undefined)),
     h('p', { class: 'hint' }, t('settings.appearance.derivation.help')),
-    h('div', { class: 'row' }, h('label', { for: 'theme-smooth' }, t('settings.appearance.smoothTransitions')), smooth),
-    h('p', { class: 'hint' }, t('settings.appearance.smoothTransitionsHelp')),
     h('fieldset', {},
       h('legend', {}, t('settings.appearance.presets')),
       h('div', { class: 'row' },

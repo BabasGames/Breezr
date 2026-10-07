@@ -15,7 +15,7 @@ export interface ThemeStateDeps {
   env: PathEnv;
   readOnce(theme: ThemeConfig): Promise<SourceUpdate>;
   watch(theme: ThemeConfig, initial: ExternalPalette | null, onUpdate: (u: SourceUpdate) => void): SourceHandle;
-  apply(theme: ThemeConfig, palette: ExternalPalette | null, opts: { transition: boolean }): Promise<void>;
+  apply(theme: ThemeConfig, palette: ExternalPalette | null): Promise<void>;
   notify(update: SourceUpdate & { forSource: string }): void;
   loadCache(key: string): ExternalPalette | null;
   saveCache(key: string, palette: ExternalPalette): void;
@@ -23,8 +23,6 @@ export interface ThemeStateDeps {
 }
 
 const MANUAL: SourceUpdate = { palette: null, status: { state: 'ok' } };
-/** No cross-fade right after a page (re)load: there is nothing on screen worth fading from. */
-const NO_FADE_AFTER_LOAD_MS = 2000;
 
 /**
  * The one place that knows what is on screen: the saved theme with its source's palette, or — while the
@@ -43,7 +41,6 @@ export class ThemeState {
   private handle: SourceHandle | null = null;
   private generation = 0;
   private modalOpen = false;
-  private lastDocumentReady = Number.NEGATIVE_INFINITY;
   private stopped = false;
 
   constructor(private readonly deps: ThemeStateDeps) {}
@@ -78,9 +75,8 @@ export class ThemeState {
     this.endPreview();
     this.modalOpen = false;
     this.shownKey = null;
-    this.lastDocumentReady = this.deps.now();
     const { theme, palette } = this.displayed();
-    return this.deps.apply(theme, palette, { transition: false });
+    return this.deps.apply(theme, palette);
   }
 
   async preview(draft: ThemeConfig): Promise<void> {
@@ -97,13 +93,13 @@ export class ThemeState {
       this.shownKey = key;
       this.deps.notify({ ...this.updateFor(key), forSource: key });
     }
-    await this.deps.apply(draft, this.paletteFor(key), { transition: false });
+    await this.deps.apply(draft, this.paletteFor(key));
   }
 
   async cancel(): Promise<void> {
     this.endPreview();
     const { theme, palette } = this.displayed();
-    await this.deps.apply(theme, palette, { transition: false });
+    await this.deps.apply(theme, palette);
   }
 
   async save(saved: ThemeConfig): Promise<void> {
@@ -114,8 +110,7 @@ export class ThemeState {
     this.endPreview();
     if (key !== previous) await this.restartSource(previewed);
     const { theme, palette } = this.displayed();
-    // The modal is closing: this is the moment the user sees the new colours arrive.
-    await this.deps.apply(theme, palette, { transition: true });
+    await this.deps.apply(theme, palette);
   }
 
   stop(): void {
@@ -180,10 +175,6 @@ export class ThemeState {
     if (this.keyOf(theme) !== this.savedKey) return;
     this.shownKey = this.savedKey;
     this.deps.notify({ ...update, forSource: this.savedKey });
-    // A draft means the modal is open: never freeze it under a fade. Before the first page is ready there is
-    // nothing to fade from (lastDocumentReady is -Infinity then, hence the explicit check).
-    const ready = Number.isFinite(this.lastDocumentReady);
-    const transition = ready && !this.modalOpen && !this.draft && this.deps.now() - this.lastDocumentReady >= NO_FADE_AFTER_LOAD_MS;
-    void this.deps.apply(theme, palette, { transition });
+    void this.deps.apply(theme, palette);
   }
 }
