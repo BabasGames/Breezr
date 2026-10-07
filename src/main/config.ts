@@ -4,6 +4,7 @@ import { dialog } from 'electron';
 import { DEFAULT_CONFIG, validateConfig, type BreezrConfig } from '../shared/config-schema';
 import { log } from './log';
 import { win } from './window';
+import { t } from './i18n';
 
 let cache: BreezrConfig | null = null;
 
@@ -46,9 +47,9 @@ export function setAll(app: Electron.App, config: BreezrConfig) {
   } catch (e) {
     dialog.showMessageBox(win, {
       type: 'error',
-      buttons: ['Close'],
-      title: 'Failed to write config file',
-      message: `An error occurred while writing to ${path}`,
+      buttons: [t('config.writeError.close')],
+      title: t('config.writeError.title'),
+      message: t('config.writeError.message', { path }),
       detail: e?.toString(),
       defaultId: 0,
     });
