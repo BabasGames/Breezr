@@ -3,6 +3,7 @@ import { version } from '../../package.json';
 import { app, dialog, shell } from 'electron';
 import { readFileSync } from 'fs';
 import { win } from './Window';
+import { isNewerRelease } from '../shared/version';
 
 /**
  * False when the app was started with --disable-updates, which packagers whose package manager
@@ -45,21 +46,23 @@ export default async function updater(fromStartup: boolean = false) {
   log('Updater', 'Checking for updates...');
   try {
     const release = await getLatestRelease();
-    if (release.tag_name !== version) {
-      log('Updater', 'The version', release.tag_name, 'is available to download!');
+    // No release published yet answers 404 with a body that has no tag_name.
+    const latestTag = release.tag_name ?? '';
+    if (isNewerRelease(latestTag, version)) {
+      log('Updater', 'The version', latestTag, 'is available to download!');
       dialog.showMessageBox({
         type: 'info',
         title: 'Update available',
         buttons: ['Cancel', 'Download'],
-        message: `The version ${release.tag_name} is available to download!`,
+        message: `The version ${latestTag} is available to download!`,
         defaultId: 1,
       }).then(({ response }) => {
         if (response === 1) {
           const { os, arch, ext } = getOsAndArch();
           const file = release.assets.find(f => {
             if (ext)
-              return f.name === `DeezerDiscordRPC-${os}-${arch}.${ext}`;
-            return f.name.startsWith(`DeezerDiscordRPC-${os}-${arch}`);
+              return f.name === `Breezr-${os}-${arch}.${ext}`;
+            return f.name.startsWith(`Breezr-${os}-${arch}`);
           });
           shell.openExternal(file ? file.browser_download_url : release.html_url);
         }
@@ -91,14 +94,14 @@ export default async function updater(fromStartup: boolean = false) {
 }
 
 export async function getLatestRelease(): Promise<{
-  tag_name: string;
+  tag_name?: string;
   assets: {
     name: string;
     browser_download_url: string;
   }[];
   html_url: string;
 }> {
-  const url = 'https://api.github.com/repos/CuteTenshii/deezer-discord-rpc/releases/latest';
+  const url = 'https://api.github.com/repos/BabasGames/Breezr/releases/latest';
   const res = await fetch(url);
   return res.json();
 }

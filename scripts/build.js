@@ -17,8 +17,8 @@ console.log('Building setup...');
  * @type {import('electron-builder').Configuration} Configuration
  */
 const config = {
-  appId: 'com.github.yuuto.deezerdiscordrpc',
-  productName: 'Deezer Discord RPC',
+  appId: 'com.github.babasgames.breezr',
+  productName: 'Breezr',
   mac: {
     category: 'public.app-category.music',
     target: [{ target: 'dmg', arch: ['x64', 'arm64'] }],
@@ -40,7 +40,7 @@ const config = {
     // 1.0.3 ships the static type-2 runtime so the AppImage runs without them.
     appimage: '1.0.3',
   },
-  artifactName: 'DeezerDiscordRPC-${os}-${arch}.${ext}',
+  artifactName: 'Breezr-${os}-${arch}.${ext}',
   files: [
     '!src/*',
     '!src/**/*',

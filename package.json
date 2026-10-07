@@ -1,17 +1,19 @@
 {
-  "name": "deezer-discord-rpc",
-  "version": "1.4.0",
-  "description": "A Discord RPC for Deezer",
-  "desktopName": "deezer-discord-rpc.desktop",
+  "name": "breezr",
+  "productName": "Breezr",
+  "version": "2.0.0",
+  "description": "Deezer desktop client, vanilla+: the real Deezer player with Discord Rich Presence and custom colors",
+  "desktopName": "breezr.desktop",
   "main": "./build/src/index.js",
   "scripts": {
     "start": "electron ./build/src/index.js",
     "run": "tsc && bun run copy-assets && bun run start",
     "build": "tsc && bun run copy-assets && bun scripts/build.js",
     "typecheck": "tsc --noEmit",
-    "postinstall": "electron-builder install-app-deps && bun2nix -o bun.nix",
+    "postinstall": "electron-builder install-app-deps",
     "lint": "eslint",
-    "copy-assets": "cpy --flat ./src/img/* ./build/src/img/ && cpy --flat ./src/offline.html ./build/src/"
+    "copy-assets": "cpy --flat ./src/img/* ./build/src/img/ && cpy --flat ./src/offline.html ./build/src/",
+    "test": "bun test"
   },
   "dependencies": {
     "@xhayper/discord-rpc": "^1.5.1",
@@ -22,7 +24,6 @@
     "@eslint/js": "^10.0.1",
     "@stylistic/eslint-plugin": "^5.10.0",
     "@types/node": "^26.6.3",
-    "bun2nix": "^2.1.2",
     "cpy-cli": "^7.0.0",
     "electron": "^44.5.0",
     "electron-builder": "^26.15.3",
@@ -35,10 +36,15 @@
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.71.0"
   },
-  "repository": "https://github.com/CuteTenshii/deezer-discord-rpc.git",
+  "repository": "https://github.com/BabasGames/Breezr.git",
   "author": {
-    "name": "Tenshii",
-    "email": "tenshii@miwa.lol"
+    "name": "BabasGames"
   },
+  "contributors": [
+    {
+      "name": "Tenshii",
+      "email": "tenshii@miwa.lol"
+    }
+  ],
   "license": "MIT"
 }

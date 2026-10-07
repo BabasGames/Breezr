@@ -15,7 +15,7 @@ export async function init(app: Electron.App, client: import('@xhayper/discord-r
   app?.whenReady().then(async () => {
     tray = new Tray(iconPath);
     const contextMenu = Menu.buildFromTemplate([
-      { label: 'Deezer Discord RPC', type: 'normal', click: () => win.show() },
+      { label: 'Breezr', type: 'normal', click: () => win.show() },
       { label: `Version: ${version}${process.argv0.includes('node') ? ' (debug)' : ''}`, type: 'normal', enabled: false },
       { label: 'Check for updates', type: 'normal', visible: updatesEnabled, click: () => updater() },
       { type: 'separator' },
@@ -71,7 +71,7 @@ export async function init(app: Electron.App, client: import('@xhayper/discord-r
       }
     ]);
 
-    tray.setToolTip('Deezer Discord RPC');
+    tray.setToolTip('Breezr');
     tray.setContextMenu(contextMenu);
     tray.on('click', () => {
       if (!win.isVisible()) win.show();

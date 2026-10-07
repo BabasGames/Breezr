@@ -6,8 +6,13 @@ import * as RPC from './utils/RPC';
 import * as Window from './utils/Window';
 import { version } from '../package.json';
 import { showWindow } from './utils/Window';
+import { join } from 'path';
 
-log('App', 'Deezer Discord RPC version', version, process.argv0.includes('node') ? '(debug)' : '');
+// One config folder in dev (where Electron uses package.json "name") and in packaged builds (productName).
+app.setName('Breezr');
+app.setPath('userData', join(app.getPath('appData'), 'Breezr'));
+
+log('App', 'Breezr version', version, process.argv0.includes('node') ? '(debug)' : '');
 
 app.whenReady().then(async () => {
   const gotTheLock = app.requestSingleInstanceLock();
