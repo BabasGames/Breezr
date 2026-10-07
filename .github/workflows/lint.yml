@@ -21,3 +21,9 @@ jobs:
 
     - name: Run ESLint
       run: bun lint
+
+    - name: Typecheck
+      run: bun run typecheck
+
+    - name: Test
+      run: bun test

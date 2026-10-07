@@ -7,13 +7,14 @@
   "main": "./build/src/main/index.js",
   "scripts": {
     "start": "electron ./build/src/main/index.js",
-    "run": "tsc && bun run copy-assets && bun run start",
-    "build": "tsc && bun run copy-assets && bun scripts/build.js",
+    "run": "tsc && bun run build:modal && bun run copy-assets && bun run start",
+    "build": "tsc && bun run build:modal && bun run copy-assets && bun scripts/build.js",
     "typecheck": "tsc --noEmit",
     "postinstall": "electron-builder install-app-deps",
     "lint": "eslint",
     "copy-assets": "cpy --flat ./src/img/* ./build/src/img/ && cpy --flat ./src/offline.html ./build/src/",
-    "test": "bun test"
+    "test": "bun test",
+    "build:modal": "bun build src/renderer/settings-modal/index.ts --target=browser --format=iife --outfile=build/src/renderer/settings-modal.bundle.js"
   },
   "dependencies": {
     "@xhayper/discord-rpc": "^1.5.1",

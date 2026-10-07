@@ -33,6 +33,14 @@ describe.each(files)('%s', (file) => {
     }
   });
 
+  test('is actually translated (not a copy of en.json)', () => {
+    if (file === 'en.json') return;
+    const keys = Object.keys(en).filter((k) => !pluralBase(k));
+    const same = keys.filter((k) => messages[k] === en[k]);
+    // Brand names and short shared words (Deezer, Breezr, auto, Neon…) may stay identical; most text may not.
+    expect({ file, sameRatio: same.length / keys.length < 0.25 }).toEqual({ file, sameRatio: true });
+  });
+
   test('has no empty strings', () => {
     for (const [key, text] of Object.entries(messages)) expect({ key, empty: text.trim() === '' }).toEqual({ key, empty: false });
   });
