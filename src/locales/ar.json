@@ -81,5 +81,7 @@
   "settings.about.source": "الشيفرة المصدرية",
   "settings.about.upstream": "مبني على deezer-discord-rpc من Tenshii",
   "settings.about.license": "رخصة MIT",
-  "settings.about.translations": "تم إنشاء الترجمات آليًا. نرحب بالتصحيحات على GitHub."
+  "settings.about.translations": "تم إنشاء الترجمات آليًا. نرحب بالتصحيحات على GitHub.",
+  "nav.back": "رجوع",
+  "nav.forward": "تقدّم"
 }

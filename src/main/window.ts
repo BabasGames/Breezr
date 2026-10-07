@@ -129,21 +129,6 @@ export async function load(app: Electron.App) {
     return { action: 'deny' };
   });
 
-  win.webContents.once('did-stop-loading', async () => {
-    if (await runJs('typeof backButton !== \'undefined\'')) {
-      if (win.webContents.navigationHistory.canGoBack()) {
-        runJs('backButton.style.opacity = \'100%\';');
-      } else {
-        runJs('backButton.style.opacity = \'30%\';');
-      }
-      if (win.webContents.navigationHistory.canGoForward()) {
-        runJs('forwardButton.style.opacity = \'100%\';');
-      } else {
-        runJs('forwardButton.style.opacity = \'30%\';');
-      }
-    }
-  });
-
   win.webContents.on('did-fail-load', (_event, errorCode, errorDescription, validatedURL, isMainFrame) => {
     if (!isMainFrame || errorCode === ERR_ABORTED || validatedURL.startsWith('file:')) return;
     log('Window', 'Could not load', validatedURL, `(${errorDescription}), showing the offline page`);
@@ -243,24 +228,6 @@ function injectPlayerHooks() {
          const playObserver = new MutationObserver(() => ipcRenderer.send('update_activity', false));
          playObserver.observe(document.querySelector('.chakra-button__group > button[data-testid^="play_button_"]'), { attributes: true, childList: false, subtree: false });
          document.querySelector('.chakra-button__group > button[data-testid^="play_button_"]').addEventListener('click', () => ipcRenderer.send('update_activity', false));`);
-  runJs(`const chakraStack = document.querySelector('#dzr-app > .naboo > div[class*="css-"] > div[class*="css-"] a.chakra-link');
-         const navContainer = document.createElement('div');
-         navContainer.id = 'breezr-nav';
-         navContainer.style.display = 'flex';
-         navContainer.style.justifyContent = 'space-around';
-         const backButton = document.createElement('button');
-         backButton.addEventListener('click', () => ipcRenderer.send('nav_back'));
-         backButton.textContent = '<';
-         backButton.style.transform = 'scale(2, 4)';
-         backButton.style.opacity = '30%';
-         const forwardButton = document.createElement('button');
-         forwardButton.addEventListener('click', () => ipcRenderer.send('nav_forward'));
-         forwardButton.textContent = '>';
-         forwardButton.style.transform = 'scale(2, 4)';
-         forwardButton.style.opacity = '30%';
-         navContainer.appendChild(backButton);
-         navContainer.appendChild(forwardButton);
-         chakraStack.replaceWith(navContainer);`);
   setThumbarButtons();
 }
 

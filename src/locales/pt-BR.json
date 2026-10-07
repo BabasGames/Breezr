@@ -77,5 +77,7 @@
   "settings.about.source": "Código-fonte",
   "settings.about.upstream": "Baseado no deezer-discord-rpc de Tenshii",
   "settings.about.license": "Licença MIT",
-  "settings.about.translations": "As traduções foram geradas automaticamente. Correções são bem-vindas no GitHub."
+  "settings.about.translations": "As traduções foram geradas automaticamente. Correções são bem-vindas no GitHub.",
+  "nav.back": "Voltar",
+  "nav.forward": "Avançar"
 }

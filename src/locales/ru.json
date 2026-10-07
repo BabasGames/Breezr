@@ -79,5 +79,7 @@
   "settings.about.source": "Исходный код",
   "settings.about.upstream": "Основан на deezer-discord-rpc от Tenshii",
   "settings.about.license": "Лицензия MIT",
-  "settings.about.translations": "Переводы созданы автоматически. Исправления приветствуются на GitHub."
+  "settings.about.translations": "Переводы созданы автоматически. Исправления приветствуются на GitHub.",
+  "nav.back": "Назад",
+  "nav.forward": "Вперёд"
 }

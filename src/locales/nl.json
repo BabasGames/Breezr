@@ -77,5 +77,7 @@
   "settings.about.source": "Broncode",
   "settings.about.upstream": "Gebaseerd op deezer-discord-rpc van Tenshii",
   "settings.about.license": "MIT-licentie",
-  "settings.about.translations": "De vertalingen zijn automatisch gegenereerd. Correcties zijn welkom op GitHub."
+  "settings.about.translations": "De vertalingen zijn automatisch gegenereerd. Correcties zijn welkom op GitHub.",
+  "nav.back": "Terug",
+  "nav.forward": "Vooruit"
 }
