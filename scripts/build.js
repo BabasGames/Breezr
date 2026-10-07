@@ -32,6 +32,8 @@ const config = {
     category: 'Audio;AudioVideo',
     syncDesktopName: true,
     target: ['snap', 'deb', 'AppImage', 'rpm'],
+    // .deb/.rpm need a maintainer; package.json's author has no email on purpose.
+    maintainer: 'BabasGames (https://github.com/BabasGames/Breezr)',
     publish: null,
     icon: join(__dirname, '..', 'src', 'img', 'app.png'),
   },
