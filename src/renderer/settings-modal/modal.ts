@@ -5,6 +5,8 @@ import { createTranslator, type Translate } from '../../shared/i18n';
 import type { BreezrConfig } from '../../shared/config-schema';
 import type { SettingsSnapshot } from '../../shared/settings-types';
 import { renderAppearance } from './tab-appearance';
+import { renderAbout } from './tab-about';
+import { renderGeneral } from './tab-general';
 
 type TabId = 'appearance' | 'general' | 'about';
 
@@ -19,8 +21,8 @@ export interface ModalContext {
 type TabRenderer = (ctx: ModalContext) => HTMLElement;
 const TABS: Record<TabId, TabRenderer> = {
   appearance: renderAppearance,
-  general: () => h('div'),   // Task 13
-  about: () => h('div'),     // Task 13
+  general: renderGeneral,
+  about: renderAbout,
 };
 
 const FOCUSABLE = 'button, input, select, summary, a[href], [tabindex]:not([tabindex="-1"])';
