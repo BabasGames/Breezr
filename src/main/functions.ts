@@ -1,4 +1,4 @@
-import { win } from './utils/Window';
+import { win } from './window';
 
 export const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 

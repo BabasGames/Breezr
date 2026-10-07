@@ -1,11 +1,11 @@
 import { app, BrowserWindow } from 'electron';
-import { log } from './utils/Log';
-import * as Tray from './utils/Tray';
-import updater, { updatesEnabled } from './utils/Updater';
-import * as RPC from './utils/RPC';
-import * as Window from './utils/Window';
-import { version } from '../package.json';
-import { showWindow } from './utils/Window';
+import { log } from './log';
+import * as Tray from './tray';
+import updater, { updatesEnabled } from './updater';
+import * as RPC from './rpc/client';
+import * as Window from './window';
+import { version } from '../../package.json';
+import { showWindow } from './window';
 import { join } from 'path';
 
 // One config folder in dev (where Electron uses package.json "name") and in packaged builds (productName).

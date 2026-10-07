@@ -1,6 +1,6 @@
-import * as Config from './Config';
-import { tray } from './Tray';
-import { version } from '../../package.json';
+import * as Config from '../config';
+import { tray } from '../tray';
+import { version } from '../../../package.json';
 import { ActivityType } from 'discord-api-types/v10';
 
 export async function setActivity({

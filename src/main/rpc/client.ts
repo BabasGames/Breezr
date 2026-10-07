@@ -1,5 +1,5 @@
 import * as RPC from '@xhayper/discord-rpc';
-import { log } from './Log';
+import { log } from '../log';
 import { clientId } from '../variables';
 
 export const client = new RPC.Client({

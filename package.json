@@ -4,9 +4,9 @@
   "version": "2.0.0",
   "description": "Deezer desktop client, vanilla+: the real Deezer player with Discord Rich Presence and custom colors",
   "desktopName": "breezr.desktop",
-  "main": "./build/src/index.js",
+  "main": "./build/src/main/index.js",
   "scripts": {
-    "start": "electron ./build/src/index.js",
+    "start": "electron ./build/src/main/index.js",
     "run": "tsc && bun run copy-assets && bun run start",
     "build": "tsc && bun run copy-assets && bun scripts/build.js",
     "typecheck": "tsc --noEmit",

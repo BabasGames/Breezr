@@ -9,6 +9,6 @@
     "allowJs": true,
     "skipLibCheck": true
   },
-  "include": ["src/*", "src/activity/*"],
+  "include": ["src/**/*"],
   "exclude": ["node_modules/*"]
 }
