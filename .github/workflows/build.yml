@@ -3,6 +3,8 @@ name: Build
 on:
   push:
     branches: [main]
+    # A version tag (e.g. 2.1.0, no "v": the updater compares it with package.json) also drafts a release.
+    tags: ['[0-9]+.[0-9]+.[0-9]+']
   pull_request:
     branches: [main]
 
@@ -61,3 +63,34 @@ jobs:
           path: ${{ matrix.artifacts }}
           name: ${{ runner.os }}-artifacts
           if-no-files-found: error
+
+  release:
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Check that the tag matches package.json
+        run: test "$(jq -r .version package.json)" = "$GITHUB_REF_NAME"
+
+      - name: Download the installers of every OS
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true
+
+      - name: Release notes from the changelog
+        run: |
+          awk -v heading="## $GITHUB_REF_NAME" '$0 == heading { keep = 1; next } /^## / { keep = 0 } keep' CHANGELOG.md > notes.md
+          test -s notes.md || echo "Breezr $GITHUB_REF_NAME" > notes.md
+
+      # A draft: nothing is public until it is reviewed and published on GitHub.
+      - name: Create a draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" artifacts/* --draft --title "Breezr $GITHUB_REF_NAME" --notes-file notes.md
