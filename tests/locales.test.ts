@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'bun:test';
 import { readdirSync, readFileSync } from 'fs';
 import { join } from 'path';
-import { pluralBase } from '../src/shared/i18n';
+import { LOCALES, pluralBase } from '../src/shared/i18n';
 
 const dir = join(import.meta.dir, '..', 'src', 'locales');
 const load = (file: string): Record<string, string> => JSON.parse(readFileSync(join(dir, file), 'utf-8'));
@@ -36,4 +36,8 @@ describe.each(files)('%s', (file) => {
   test('has no empty strings', () => {
     for (const [key, text] of Object.entries(messages)) expect({ key, empty: text.trim() === '' }).toEqual({ key, empty: false });
   });
+});
+
+test('there is exactly one file per supported locale', () => {
+  expect(files.map((f) => f.replace(/\.json$/, '')).sort()).toEqual([...LOCALES].sort());
 });
