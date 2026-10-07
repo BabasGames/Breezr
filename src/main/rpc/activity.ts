@@ -8,10 +8,10 @@ export async function setActivity({
   firstArtistId,
 }: ActivityOptions) {
   if (!client?.user || !client.isConnected) throw new Error('Not connected to Discord');
-  const statusName = Config.get<string>(app, 'status_name');
+  const statusName = Config.get(app, 'status_name');
 
   if (tray) {
-    const tooltipText = Config.get<string>(app, 'tooltip_text');
+    const tooltipText = Config.get(app, 'tooltip_text');
     switch (tooltipText) {
       case 'app_name':
         tray.setToolTip('Breezr');

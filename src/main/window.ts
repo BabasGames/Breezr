@@ -37,8 +37,8 @@ let rateTokens = RATE_CAPACITY;
 let rateLastRefill = Date.now();
 
 export async function load(app: Electron.App) {
-  const width = parseInt(await Config.get(app, 'window_width')) || 1920;
-  const height = parseInt(await Config.get(app, 'window_height')) || 1080;
+  const width = Config.get(app, 'window_width') ?? 1920;
+  const height = Config.get(app, 'window_height') ?? 1080;
   win = new BrowserWindow({
     width, height,
     minimizable: true,
@@ -136,7 +136,7 @@ export async function load(app: Electron.App) {
   // Must stay synchronous: Electron ignores preventDefault() once the handler has yielded.
   win.on('close', (e) => {
     if (isQuitting) return;
-    if (Config.get<boolean>(app, 'dont_close_to_tray')) {
+    if (Config.get(app, 'dont_close_to_tray')) {
       stopActivityPoll();
       RPC.disconnect().catch(console.error);
       return;
