@@ -66,10 +66,18 @@ export class ThemeState {
   setModalOpen(open: boolean): void {
     this.modalOpen = open;
     // The modal starts from the saved source's palette (it is in the snapshot).
-    if (open) this.shownKey = this.savedKey;
+    if (open) {
+      // A fresh modal starts from the saved theme: drop any preview left by a page that died mid-preview.
+      this.endPreview();
+      this.shownKey = this.savedKey;
+    }
   }
 
   documentReady(): Promise<void> {
+    // A new document means the modal (and its unsaved preview) is gone, even if it never sent cancel.
+    this.endPreview();
+    this.modalOpen = false;
+    this.shownKey = null;
     this.lastDocumentReady = this.deps.now();
     const { theme, palette } = this.displayed();
     return this.deps.apply(theme, palette, { transition: false });
@@ -172,8 +180,10 @@ export class ThemeState {
     if (this.keyOf(theme) !== this.savedKey) return;
     this.shownKey = this.savedKey;
     this.deps.notify({ ...update, forSource: this.savedKey });
-    // A draft means the modal is open: never freeze it under a fade.
-    const transition = !this.modalOpen && !this.draft && this.deps.now() - this.lastDocumentReady >= NO_FADE_AFTER_LOAD_MS;
+    // A draft means the modal is open: never freeze it under a fade. Before the first page is ready there is
+    // nothing to fade from (lastDocumentReady is -Infinity then, hence the explicit check).
+    const ready = Number.isFinite(this.lastDocumentReady);
+    const transition = ready && !this.modalOpen && !this.draft && this.deps.now() - this.lastDocumentReady >= NO_FADE_AFTER_LOAD_MS;
     void this.deps.apply(theme, palette, { transition });
   }
 }

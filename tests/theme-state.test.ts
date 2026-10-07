@@ -217,4 +217,28 @@ describe('ThemeState', () => {
     expect(s.displayed().theme.source).toBe('manual');
     expect(applied.at(-1)?.source).toBe('manual');
   });
+
+  test('a page reload during a preview drops the unsaved draft (review #1)', async () => {
+    const s = new ThemeState(deps);
+    await s.start(theme({ source: 'caelestia' }));
+    await s.documentReady();
+    s.setModalOpen(true);
+    await s.preview(theme({ source: 'pywal' }));
+    // The page reloads: the modal is gone without sending cancel.
+    await s.documentReady();
+    expect(applied.at(-1)).toEqual({ source: 'caelestia', accent: '#caeca0', transition: false });
+    expect(s.displayed().theme.source).toBe('caelestia');
+    clock += 5000;
+    watchers[0].onUpdate(ok('#888888'));
+    await flush();
+    expect(applied.at(-1)).toEqual({ source: 'caelestia', accent: '#888888', transition: true });
+  });
+
+  test('no fade before the first page is ready (review #4)', async () => {
+    const s = new ThemeState(deps);
+    await s.start(theme({ source: 'caelestia' }));
+    watchers[0].onUpdate(ok('#999999'));
+    await flush();
+    expect(applied.every((a) => !a.transition)).toBe(true);
+  });
 });
