@@ -39,7 +39,7 @@ export function registerSettings(app: Electron.App, win: BrowserWindow) {
   ipcMain.on('breezr:settings:preview', (event, theme: ThemeConfig) => {
     if (!trusted(event)) return reject('preview', event);
     const { config } = validateConfig({ ...Config.getAll(app), theme });
-    applyTheme(win.webContents, config.theme);
+    applyTheme(win.webContents, config.theme, null, { transition: false });
   });
 
   ipcMain.handle('breezr:settings:save', async (event, raw: BreezrConfig) => {
@@ -50,14 +50,14 @@ export function registerSettings(app: Electron.App, win: BrowserWindow) {
     for (const warning of warnings) log('Settings', warning);
     Config.setAll(app, config);
     // Answer only once the page shows the saved theme, so the modal never closes on stale colors.
-    await applyTheme(win.webContents, config.theme);
+    await applyTheme(win.webContents, config.theme, null, { transition: config.theme.smoothTransitions });
     notifyLocaleChange();
     return snapshot(app);
   });
 
   ipcMain.on('breezr:settings:cancel', (event) => {
     if (!trusted(event)) return reject('cancel', event);
-    applyTheme(win.webContents, Config.get(app, 'theme'));
+    applyTheme(win.webContents, Config.get(app, 'theme'), null, { transition: false });
   });
 }
 

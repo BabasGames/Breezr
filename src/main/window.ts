@@ -76,7 +76,7 @@ export async function load(app: Electron.App) {
   // Applied at dom-ready rather than did-finish-load so Deezer's default colors barely flash.
   win.webContents.on('dom-ready', () => {
     forgetInsertedTheme();
-    applyTheme(win.webContents, Config.get(app, 'theme'));
+    applyTheme(win.webContents, Config.get(app, 'theme'), null, { transition: false });
     if (isDeezerPage()) {
       const bundle = settingsModalBundle();
       if (bundle) runJs(bundle).catch((e) => log('Window', 'Could not inject the settings modal', String(e)));
