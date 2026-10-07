@@ -3,7 +3,7 @@ import { version } from '../../package.json';
 import { app, dialog, shell } from 'electron';
 import { readFileSync } from 'fs';
 import { win } from './window';
-import { isNewerRelease } from '../shared/version';
+import { isNewerRelease, latestReleaseTag } from '../shared/version';
 import { t } from './i18n';
 
 /**
@@ -104,5 +104,7 @@ export async function getLatestRelease(): Promise<{
 }> {
   const url = 'https://api.github.com/repos/BabasGames/Breezr/releases/latest';
   const res = await fetch(url);
-  return res.json();
+  const body = await res.json().catch(() => ({}));
+  // Throws on rate limits and server errors; 404 (nothing published yet) yields an empty tag.
+  return { ...body, tag_name: latestReleaseTag(res.status, body) };
 }

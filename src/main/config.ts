@@ -1,7 +1,8 @@
 import { join } from 'path';
-import { existsSync, readFileSync, renameSync, writeFileSync } from 'fs';
+import { writeFileSync } from 'fs';
 import { dialog } from 'electron';
-import { DEFAULT_CONFIG, validateConfig, type BreezrConfig } from '../shared/config-schema';
+import type { BreezrConfig } from '../shared/config-schema';
+import { readConfigFile } from './config-file';
 import { log } from './log';
 import { win } from './window';
 import { t } from './i18n';
@@ -13,19 +14,7 @@ function getConfigPath(app: Electron.App) {
 }
 
 function load(app: Electron.App): BreezrConfig {
-  const path = getConfigPath(app);
-  if (!existsSync(path)) return structuredClone(DEFAULT_CONFIG);
-  let raw: unknown;
-  try {
-    raw = JSON.parse(readFileSync(path, 'utf-8'));
-  } catch (e) {
-    // Keep the broken file for the user instead of silently overwriting it.
-    const backup = `${path}.bak-${new Date().toISOString().replace(/[:.]/g, '-')}`;
-    renameSync(path, backup);
-    log('Config', 'Unreadable config moved to', backup, String(e));
-    return structuredClone(DEFAULT_CONFIG);
-  }
-  const { config, warnings } = validateConfig(raw);
+  const { config, warnings } = readConfigFile(getConfigPath(app));
   for (const warning of warnings) log('Config', warning);
   return config;
 }
