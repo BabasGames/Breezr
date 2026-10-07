@@ -112,12 +112,27 @@ describe('buildThemeVars', () => {
 });
 
 describe('themeToCss', () => {
-  test('marks every variable !important on :root and [data-theme], sorted, once each', () => {
-    const css = themeToCss({ '--color-b': '#000000', '--color-a': '#ffffff' });
-    expect(css.startsWith(':root, [data-theme] {')).toBe(true);
+  const css = themeToCss({ '--color-b': '#000000', '--color-a': '#ffffff' });
+  const selectors = css.slice(0, css.indexOf('{')).split(',').map((x) => x.trim());
+
+  test('marks every variable !important, sorted, once each', () => {
     expect(css).toContain('  --color-a: #ffffff !important;');
     expect(css.indexOf('--color-a')).toBeLessThan(css.indexOf('--color-b'));
     expect(css.match(/--color-a/g)?.length).toBe(1);
+  });
+
+  test('themes the page and the parts that share its theme', () => {
+    expect(selectors).toContain(':root:not([data-theme])');
+    expect(selectors).toContain(':root[data-theme="dark"]');
+    expect(selectors).toContain(':root[data-theme="dark"] [data-theme="dark"]');
+    expect(selectors).toContain(':root[data-theme="light"]');
+    expect(selectors).toContain(':root[data-theme="light"] [data-theme="light"]');
+  });
+
+  test('leaves alone the parts Deezer deliberately inverts (lyrics over a light cover)', () => {
+    // A bare [data-theme] would also hit a data-theme="light" lyrics panel inside a dark page.
+    expect(selectors).not.toContain('[data-theme]');
+    expect(selectors.some((x) => x.includes('"dark"') && x.includes('"light"'))).toBe(false);
   });
 });
 
