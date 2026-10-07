@@ -134,6 +134,9 @@ describe('defaultSourcePath', () => {
   test('PYWAL_CACHE_DIR wins over XDG_CACHE_HOME', () => {
     expect(defaultSourcePath('pywal', { home, XDG_CACHE_HOME: '/x/cache', PYWAL_CACHE_DIR: '/p' })).toBe('/p/colors.json');
   });
+  test('network (UNC) environment values are ignored', () => {
+    expect(defaultSourcePath('pywal', { home, PYWAL_CACHE_DIR: '//attacker/share' })).toBe('/home/u/.cache/wal/colors.json');
+  });
   test('relative environment values are ignored', () => {
     expect(defaultSourcePath('caelestia', { home, XDG_STATE_HOME: 'rel/state' })).toBe('/home/u/.local/state/caelestia/scheme.json');
   });
