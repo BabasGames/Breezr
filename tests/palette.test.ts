@@ -143,8 +143,17 @@ describe('normalizeSourcePath', () => {
   const home = '/home/u';
   test('absolute path kept, trimmed', () => expect(normalizeSourcePath('  /a/b.json ', home)).toBe('/a/b.json'));
   test('~/ is expanded', () => expect(normalizeSourcePath('~/x/colors.json', home)).toBe('/home/u/x/colors.json'));
-  test('bare ~ is the home folder', () => expect(normalizeSourcePath('~', home)).toBe('/home/u'));
+  test('bare ~ is not a .json file', () => expect(normalizeSourcePath('~', home)).toBe(''));
   test('~ without a home gives empty', () => expect(normalizeSourcePath('~/x', '')).toBe(''));
+  test.each([['//attacker/share/colors.json'], ['\\\\attacker\\share\\colors.json'], ['/\\attacker/x.json']])(
+    'network (UNC) path %p is rejected — opening it would leak Windows credentials', (v) => {
+      expect(normalizeSourcePath(v, home)).toBe('');
+    });
+  test.each([['/etc/passwd'], ['/home/u/.ssh/id_ed25519'], ['/x/colors.json.bak']])('non-.json path %p is rejected', (v) => {
+    expect(normalizeSourcePath(v, home)).toBe('');
+  });
+  test('.JSON in upper case is fine', () => expect(normalizeSourcePath('/x/Colors.JSON', home)).toBe('/x/Colors.JSON'));
+  test('Windows drive path is fine', () => expect(normalizeSourcePath('C:\\Users\\u\\colors.json', home)).toBe('C:\\Users\\u\\colors.json'));
   test.each(['', '   ', 'relative/path', './x', 42, null, undefined, '/a\u0000b', `/${'x'.repeat(4096)}`])('%p is rejected', (v) => {
     expect(normalizeSourcePath(v, home)).toBe('');
   });
