@@ -9,7 +9,7 @@ import { setActivity } from './rpc/activity';
 import { setDeezerLanguage } from './i18n';
 import { applyTheme, checkTempoVariables, forgetInsertedTheme } from './theme';
 import { openSettings, registerSettings } from './settings';
-import { isDeezerUrl } from '../shared/origin';
+import { classifyWindowOpen, isDeezerUrl } from '../shared/origin';
 import { readFileSync } from 'fs';
 
 const modalBundlePath = join(__dirname, '..', 'renderer', 'settings-modal.bundle.js');
@@ -107,7 +107,9 @@ export async function load(app: Electron.App) {
   });
 
   win.webContents.setWindowOpenHandler((details) => {
-    if (details.url.includes('facebook.com') || details.url.includes('apple.com') || details.url.includes('accounts.google.com')) {
+    // Parsed, exact-host checks: the old substring test let any URL containing "facebook.com" open an in-app window.
+    const kind = classifyWindowOpen(details.url);
+    if (kind === 'popup') {
       return {
         action: 'allow',
         overrideBrowserWindowOptions: {
@@ -122,10 +124,9 @@ export async function load(app: Electron.App) {
           icon: join(__dirname, '..', 'img', 'app.ico'),
         }
       };
-    } else {
-      shell.openExternal(details.url);
-      return { action: 'deny' };
     }
+    if (kind === 'external') shell.openExternal(details.url);
+    return { action: 'deny' };
   });
 
   win.webContents.once('did-stop-loading', async () => {
