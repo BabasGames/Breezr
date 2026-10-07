@@ -45,13 +45,17 @@ export function pluralBase(key: string): string | null {
   return dot > 0 && PLURAL_CATEGORIES.has(key.slice(dot + 1)) ? key.slice(0, dot) : null;
 }
 
+const hasOwn = (source: object, key: string) => Object.prototype.hasOwnProperty.call(source, key);
+
 function interpolate(text: string, params?: Params): string {
-  return text.replace(/\{(\w+)\}/g, (match, name: string) => (params && name in params ? String(params[name]) : match));
+  return text.replace(/\{(\w+)\}/g, (match, name: string) => (params && hasOwn(params, name) ? String(params[name]) : match));
 }
 
 export function createTranslator(locale: LocaleCode, messages: Messages, fallback: Messages): Translate {
   const rules = new Intl.PluralRules(locale);
-  const lookup = (key: string): string | undefined => messages[key] ?? fallback[key];
+  // Own keys only: `messages.constructor` would otherwise return Object and crash interpolation.
+  const own = (source: Messages, key: string) => (hasOwn(source, key) ? source[key] : undefined);
+  const lookup = (key: string): string | undefined => own(messages, key) ?? own(fallback, key);
   return (key, params) => {
     let text: string | undefined;
     if (params && typeof params.count === 'number') {

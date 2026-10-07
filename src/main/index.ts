@@ -10,7 +10,8 @@ import { join } from 'path';
 
 // One config folder in dev (where Electron uses package.json "name") and in packaged builds (productName).
 app.setName('Breezr');
-app.setPath('userData', join(app.getPath('appData'), 'Breezr'));
+// --user-data-dir still wins, so a second profile can run for testing.
+if (!app.commandLine.hasSwitch('user-data-dir')) app.setPath('userData', join(app.getPath('appData'), 'Breezr'));
 
 log('App', 'Breezr version', version, process.argv0.includes('node') ? '(debug)' : '');
 

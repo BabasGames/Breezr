@@ -48,4 +48,11 @@ describe('createTranslator', () => {
   test('missing plural category falls back to .other', () => {
     expect(createTranslator('ja', { 'items.other': '{count} 件' }, en)('items', { count: 1 })).toBe('1 件');
   });
+  test('ignores inherited Object.prototype keys instead of crashing', () => {
+    const t = createTranslator('en', {}, {});
+    expect(t('constructor')).toBe('constructor');
+    expect(t('toString')).toBe('toString');
+    expect(t('__proto__')).toBe('__proto__');
+    expect(t('constructor', { count: 1 })).toBe('constructor');
+  });
 });

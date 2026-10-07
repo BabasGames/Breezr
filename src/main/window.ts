@@ -7,6 +7,8 @@ import { runJs, wait } from './functions';
 import { BrowserWindow, ipcMain, shell, nativeImage, session } from 'electron';
 import { setActivity } from './rpc/activity';
 import { setDeezerLanguage } from './i18n';
+import { applyTheme, checkTempoVariables, forgetInsertedTheme } from './theme';
+import { openSettings, registerSettings } from './settings';
 
 const deezerUrl = 'https://account.deezer.com/login/';
 const offlinePagePath = join(__dirname, '..', 'offline.html');
@@ -57,6 +59,21 @@ export async function load(app: Electron.App) {
   win.focus();
   win.show();
   win.setMenuBarVisibility(process.platform === 'darwin');
+
+  // Applied at dom-ready rather than did-finish-load so Deezer's default colors barely flash.
+  win.webContents.on('dom-ready', () => {
+    forgetInsertedTheme();
+    applyTheme(win.webContents, Config.get(app, 'theme'));
+  });
+
+  win.webContents.on('before-input-event', (event, input) => {
+    if (input.type === 'keyDown' && input.key === ',' && (input.control || input.meta) && !input.alt && !input.shift) {
+      event.preventDefault();
+      openSettings(win);
+    }
+  });
+
+  registerSettings(app, win);
 
   session.defaultSession.webRequest.onBeforeSendHeaders((details, callback) => {
     if (details.url.includes('deezer.com'))
@@ -120,7 +137,7 @@ export async function load(app: Electron.App) {
   win.webContents.on('did-finish-load', () => {
     playerWatchId++;
     stopActivityPoll();
-    if (new URL(win.webContents.getURL()).hostname.endsWith('deezer.com')) {
+    if (isDeezerPage()) {
       watchForPlayer(app, playerWatchId);
       runJs('document.documentElement.lang')
         .then((lang: unknown) => setDeezerLanguage(typeof lang === 'string' ? lang : undefined))
@@ -178,6 +195,8 @@ async function watchForPlayer(app: Electron.App, watchId: number) {
     // Rejects while the page is navigating; the next tick simply tries again.
     const element = await runJs('document.querySelector(\'[data-testid="item_title"]\')').catch(() => null);
     if (element) {
+      // Deezer's stylesheets are loaded by now; checking at dom-ready gave false alarms.
+      checkTempoVariables(win.webContents);
       injectPlayerHooks();
       startActivityPoll(app);
       return;
@@ -208,6 +227,7 @@ function injectPlayerHooks() {
          document.querySelector('.chakra-button__group > button[data-testid^="play_button_"]').addEventListener('click', () => ipcRenderer.send('update_activity', false));`);
   runJs(`const chakraStack = document.querySelector('#dzr-app > .naboo > div[class*="css-"] > div[class*="css-"] a.chakra-link');
          const navContainer = document.createElement('div');
+         navContainer.id = 'breezr-nav';
          navContainer.style.display = 'flex';
          navContainer.style.justifyContent = 'space-around';
          const backButton = document.createElement('button');
@@ -383,4 +403,12 @@ interface JSResult {
   mediaType: string,
   trackId: string,
   firstArtistId: string;
+}
+
+function isDeezerPage() {
+  try {
+    return new URL(win.webContents.getURL()).hostname.endsWith('deezer.com');
+  } catch {
+    return false;
+  }
 }
