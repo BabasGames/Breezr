@@ -14,13 +14,13 @@ export async function setActivity({
     const tooltipText = Config.get<string>(app, 'tooltip_text');
     switch (tooltipText) {
       case 'app_name':
-        tray.setToolTip('Deezer Discord RPC');
+        tray.setToolTip('Breezr');
         break;
       case 'app_version':
         tray.setToolTip(`Version ${version}`);
         break;
       case 'app_name_and_version':
-        tray.setToolTip(`Deezer Discord RPC version ${version}`);
+        tray.setToolTip(`Breezr version ${version}`);
         break;
       case 'artists_and_title':
         tray.setToolTip(`${trackArtists} - ${trackTitle}`);

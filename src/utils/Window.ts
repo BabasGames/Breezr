@@ -46,7 +46,7 @@ export async function load(app: Electron.App) {
     closable: true,
     resizable: true,
     center: true,
-    title: 'Deezer Discord RPC',
+    title: 'Breezr',
     icon: join(__dirname, '..', 'img', 'app.png'),
     webPreferences: {
       preload: resolve(__dirname, '..', 'preload.js')
@@ -83,7 +83,7 @@ export async function load(app: Electron.App) {
           autoHideMenuBar: true,
           fullscreenable: false,
           resizable: true,
-          title: 'Deezer Discord RPC',
+          title: 'Breezr',
           icon: join(__dirname, '..', 'img', 'app.ico'),
         }
       };

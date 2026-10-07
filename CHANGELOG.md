@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.0.0
+
+- Breezr: hard fork of deezer-discord-rpc 1.4.0 under a new name, app id and config folder.
+- Updater points to BabasGames/Breezr releases and ignores missing releases.
+- AUR and Nix packaging removed.
+
 ## 1.4.0
 
 * The Discord status now stays in sync with Deezer: it no longer shows a previous track or stays stuck on pause, and it comes back after Discord reconnects (https://github.com/CuteTenshii/deezer-discord-rpc/pull/186)
