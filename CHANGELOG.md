@@ -5,6 +5,8 @@
 - Breezr: hard fork of deezer-discord-rpc 1.4.0 under a new name, app id and config folder.
 - Updater points to BabasGames/Breezr releases and ignores missing releases.
 - AUR and Nix packaging removed.
+- Crisp tray icon: 16 to 64 px variants (tray@2x/3x/4x.png) rendered from `assets/tray.svg`.
+- Back/forward buttons moved to the top bar; collapsing the sidebar no longer blanks the page.
 
 ## 1.4.0
 
