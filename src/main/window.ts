@@ -7,7 +7,9 @@ import { runJs, wait } from './functions';
 import { BrowserWindow, ipcMain, shell, nativeImage, session } from 'electron';
 import { setActivity } from './rpc/activity';
 import { setDeezerLanguage } from './i18n';
-import { applyTheme, checkTempoVariables, forgetInsertedTheme } from './theme';
+import { checkTempoVariables, forgetInsertedTheme, installTransitionStyle } from './theme';
+import { createThemeState } from './theme-runtime';
+import type { ThemeState } from './theme-state';
 import { openSettings, registerSettings } from './settings';
 import { classifyWindowOpen, isDeezerUrl } from '../shared/origin';
 import { readFileSync } from 'fs';
@@ -37,6 +39,7 @@ const RATE_REFILL_MS = 5000;
 const CLEARED_ACTIVITY = 'cleared';
 
 export let win: BrowserWindow;
+let themeState: ThemeState;
 let isQuitting = false;
 // Incremented on every page load so a watch started for an earlier page stops polling.
 let playerWatchId = 0;
@@ -76,7 +79,8 @@ export async function load(app: Electron.App) {
   // Applied at dom-ready rather than did-finish-load so Deezer's default colors barely flash.
   win.webContents.on('dom-ready', () => {
     forgetInsertedTheme();
-    applyTheme(win.webContents, Config.get(app, 'theme'), null, { transition: false });
+    if (isDeezerPage()) void installTransitionStyle(win.webContents);
+    void themeState.documentReady();
     if (isDeezerPage()) {
       const bundle = settingsModalBundle();
       if (bundle) runJs(bundle).catch((e) => log('Window', 'Could not inject the settings modal', String(e)));
@@ -90,7 +94,9 @@ export async function load(app: Electron.App) {
     }
   });
 
-  registerSettings(app, win);
+  themeState = createThemeState(app, win);
+  registerSettings(app, win, themeState);
+  win.on('closed', () => themeState.stop());
 
   session.defaultSession.webRequest.onBeforeSendHeaders((details, callback) => {
     if (details.url.includes('deezer.com'))
@@ -156,6 +162,7 @@ export async function load(app: Electron.App) {
 
   // Without this, closing to tray would also veto quits coming from the OS (logout, macOS Cmd+Q).
   app.on('before-quit', () => {
+    themeState.stop();
     isQuitting = true;
   });
 
@@ -178,6 +185,8 @@ export async function load(app: Electron.App) {
   ipcMain.on('nav_forward', () => win.webContents.navigationHistory.goForward());
   ipcMain.on('retry_load', () => loadDeezer());
 
+  // Read the saved source before Deezer loads: the first paint already has the source's colours.
+  await themeState.start(Config.get(app, 'theme'));
   await loadDeezer();
 }
 

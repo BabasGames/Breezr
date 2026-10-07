@@ -2,7 +2,7 @@ import { describe, expect, test } from 'bun:test';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import {
-  SOURCE_KINDS, defaultSourcePath, displayPath, normalizeSourcePath, paletteFingerprint, parseAccentColor,
+  SOURCE_KINDS, defaultSourcePath, displayPath, normalizeSourcePath, paletteFingerprint, parseAccentColor, publicSourceKey,
   parseCaelestiaScheme, parsePywal,
 } from '../src/shared/palette';
 
@@ -154,4 +154,16 @@ describe('displayPath', () => {
   test('home becomes ~', () => expect(displayPath('/home/u/.cache/wal/colors.json', '/home/u')).toBe('~/.cache/wal/colors.json'));
   test('other paths unchanged', () => expect(displayPath('/etc/x', '/home/u')).toBe('/etc/x'));
   test('a sibling folder sharing the prefix is not shortened', () => expect(displayPath('/home/user2/x', '/home/u')).toBe('/home/user2/x'));
+});
+
+describe('publicSourceKey', () => {
+  test('shortens the home folder in a file source key', () => {
+    expect(publicSourceKey('caelestia:/home/u/.local/state/caelestia/scheme.json', '/home/u')).toBe('caelestia:~/.local/state/caelestia/scheme.json');
+  });
+  test('other keys unchanged', () => {
+    expect(publicSourceKey('manual', '/home/u')).toBe('manual');
+    expect(publicSourceKey('system', '/home/u')).toBe('system');
+    expect(publicSourceKey('pywal:/etc/colors.json', '/home/u')).toBe('pywal:/etc/colors.json');
+    expect(publicSourceKey('pywal:/home/user2/c.json', '/home/u')).toBe('pywal:/home/user2/c.json');
+  });
 });

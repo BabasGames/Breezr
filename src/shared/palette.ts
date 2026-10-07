@@ -124,3 +124,9 @@ export function displayPath(path: string, home: string): string {
   if (home && (path === home || path.startsWith(`${home}/`))) return `~${path.slice(home.length)}`;
   return path;
 }
+
+/** A source key as the page may see it ('caelestia:/home/x/…' → 'caelestia:~/…'). */
+export function publicSourceKey(key: string, home: string): string {
+  const colon = key.indexOf(':');
+  return colon < 0 ? key : `${key.slice(0, colon + 1)}${displayPath(key.slice(colon + 1), home)}`;
+}
