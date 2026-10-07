@@ -13,3 +13,14 @@ export function isNewerRelease(tag: string | undefined | null, current: string):
   }
   return false;
 }
+
+/**
+ * Tag of the latest GitHub release from the API answer. 404 means nothing is published yet (''); any other
+ * failure (rate limit, 5xx) throws, so a manual check reports an error instead of "you are up to date".
+ */
+export function latestReleaseTag(status: number, body: unknown): string {
+  if (status === 404) return '';
+  if (status < 200 || status >= 300) throw new Error(`GitHub answered HTTP ${status}`);
+  const tag = typeof body === 'object' && body !== null ? (body as { tag_name?: unknown }).tag_name : undefined;
+  return typeof tag === 'string' ? tag : '';
+}

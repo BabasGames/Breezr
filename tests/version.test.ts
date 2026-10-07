@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import { isNewerRelease, parseVersion } from '../src/shared/version';
+import { isNewerRelease, latestReleaseTag, parseVersion } from '../src/shared/version';
 
 describe('parseVersion', () => {
   test('parses plain and v-prefixed versions', () => {
@@ -26,5 +26,14 @@ describe('isNewerRelease', () => {
   test('no release yet (404 body) is not newer', () => {
     expect(isNewerRelease(undefined, '2.0.0')).toBe(false);
     expect(isNewerRelease(null, '2.0.0')).toBe(false);
+  });
+});
+
+describe('latestReleaseTag', () => {
+  test('reads tag_name from a successful answer', () => expect(latestReleaseTag(200, { tag_name: '2.1.0' })).toBe('2.1.0'));
+  test('404 means no release published yet: nothing to offer', () => expect(latestReleaseTag(404, { message: 'Not Found' })).toBe(''));
+  test('a successful answer without a tag gives nothing', () => expect(latestReleaseTag(200, {})).toBe(''));
+  test.each([403, 429, 500, 503])('HTTP %p is an error, not "up to date"', (status) => {
+    expect(() => latestReleaseTag(status, { message: 'API rate limit exceeded' })).toThrow(String(status));
   });
 });
