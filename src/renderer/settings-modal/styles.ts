@@ -21,6 +21,13 @@ export const STYLES = `
   font: 14px/1.45 Inter, system-ui, sans-serif;
   color: var(--bz-text);
 }
+/* The previewed palette is unreadable: keep the settings themselves legible (Deezer's own dark colours),
+   so the user can always read their way back. The page behind still shows the preview. */
+.backdrop.safe-colors {
+  --bz-bg: #0f0d13; --bz-bg-2: #1b191f; --bz-bg-3: #29282d; --bz-bg-3-hover: #3a393d; --bz-divider: #555257;
+  --bz-text: #fdfcfe; --bz-text-2: #a9a6aa; --bz-accent: #a238ff; --bz-on-accent: #ffffff; --bz-accent-text: #c17aff;
+  --bz-error: #ff6e84;
+}
 .panel {
   display: grid; grid-template-columns: 180px 1fr; grid-template-rows: auto 1fr auto;
   inline-size: min(820px, calc(100vw - 32px)); block-size: min(660px, calc(100vh - 32px));
@@ -41,6 +48,8 @@ button {
 button:hover { background: var(--bz-bg-3-hover); }
 button.primary { background: var(--bz-accent); color: var(--bz-on-accent); }
 button:disabled { opacity: 0.4; cursor: default; }
+/* Provided by the colour source (or unavailable): visibly read-only. */
+input:disabled, select:disabled { opacity: 0.5; cursor: not-allowed; }
 button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-visible, a:focus-visible {
   outline: 2px solid var(--bz-accent); outline-offset: 2px;
 }

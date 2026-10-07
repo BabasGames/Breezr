@@ -4,7 +4,7 @@ import { validateConfig, type BreezrConfig } from '../shared/config-schema';
 import { isRtl } from '../shared/i18n';
 import type { SettingsSnapshot } from '../shared/settings-types';
 import { isDeezerUrl } from '../shared/origin';
-import { publicSourceKey } from '../shared/palette';
+import { displayPath, publicSourceKey } from '../shared/palette';
 import type { ThemeConfig } from '../shared/theme-model';
 import { EN, MESSAGES } from '../locales';
 import * as Config from './config';
@@ -14,10 +14,21 @@ import type { ThemeState } from './theme-state';
 import { defaultPathsForDisplay } from './theme-runtime';
 import { homedir } from 'os';
 
+/** The config as the page may see it: source paths with the home folder shortened to ~ (re-expanded on save). */
+function pageConfig(app: Electron.App): BreezrConfig {
+  const config = Config.getAll(app);
+  const home = homedir();
+  config.theme.sourcePaths = {
+    caelestia: config.theme.sourcePaths.caelestia && displayPath(config.theme.sourcePaths.caelestia, home),
+    pywal: config.theme.sourcePaths.pywal && displayPath(config.theme.sourcePaths.pywal, home),
+  };
+  return config;
+}
+
 function snapshot(app: Electron.App, state: ThemeState): SettingsSnapshot {
   const locale = currentLocale();
   return {
-    config: Config.getAll(app),
+    config: pageConfig(app),
     locale,
     dir: isRtl(locale) ? 'rtl' : 'ltr',
     messages: MESSAGES[locale],

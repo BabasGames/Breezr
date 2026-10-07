@@ -3,7 +3,8 @@ import { STYLES } from './styles';
 import { bridge } from './bridge';
 import { createTranslator, type Translate } from '../../shared/i18n';
 import type { BreezrConfig } from '../../shared/config-schema';
-import type { SettingsSnapshot } from '../../shared/settings-types';
+import type { SettingsSnapshot, SourceMessage } from '../../shared/settings-types';
+import type { ExternalPalette } from '../../shared/palette';
 import { renderAppearance } from './tab-appearance';
 import { renderAbout } from './tab-about';
 import { renderGeneral } from './tab-general';
@@ -23,6 +24,10 @@ export interface ModalContext {
   update(next: BreezrConfig, options?: { rerender?: boolean }): void;
   /** Sends a pending (debounced) preview now — e.g. when a colour picker closes. */
   flushPreview(): void;
+  /** Palette and status of the source the page currently shows (saved or previewed). */
+  source(): SourceMessage;
+  /** The tab's light refresh, called when the source sends new colours (no DOM rebuild, focus untouched). */
+  onSourceRefresh(refresh: () => void): void;
 }
 
 type TabRenderer = (ctx: ModalContext) => HTMLElement;
@@ -43,6 +48,20 @@ export function createModal(host: HTMLElement) {
   let tab: TabId = 'appearance';
   let container: HTMLElement | null = null;
   let returnFocus: HTMLElement | null = null;
+  let sourceMessage: SourceMessage | null = null;
+  let sourceRefresh: (() => void) | null = null;
+
+  // Which fields a palette provides: when that set changes, greyed/enabled controls change too → full render.
+  const provides = (palette: ExternalPalette | null) =>
+    palette ? [...Object.keys(palette.colors).sort(), palette.base ? 'base' : '', palette.ladder ? 'ladder' : ''].join(',') : '';
+
+  bridge().settings.onSource((update) => {
+    if (!container) return;
+    const before = provides(sourceMessage?.palette ?? null);
+    sourceMessage = update;
+    if (sourceRefresh && provides(update.palette) === before) sourceRefresh();
+    else render();
+  });
 
   // Every preview re-injects the theme into the whole Deezer page; doing it on each mouse move while a
   // colour picker is dragged made the page stutter. Continuous edits wait until the value is stable.
@@ -58,6 +77,8 @@ export function createModal(host: HTMLElement) {
   const close = () => {
     container?.remove();
     container = null;
+    sourceMessage = null;
+    sourceRefresh = null;
     snapshot = null;
     draft = null;
     returnFocus?.focus?.();
@@ -80,6 +101,7 @@ export function createModal(host: HTMLElement) {
   function render() {
     if (!snapshot || !draft) return;
     const focusId = (root.activeElement as HTMLElement | null)?.dataset?.focusId;
+    sourceRefresh = null;
     const t = createTranslator(snapshot.locale, snapshot.messages, snapshot.fallback);
     const ctx: ModalContext = {
       draft,
@@ -96,6 +118,8 @@ export function createModal(host: HTMLElement) {
         render();
       },
       flushPreview: () => previewDebouncer.flush(),
+      source: () => sourceMessage ?? snapshot!.source,
+      onSourceRefresh: (refresh) => { sourceRefresh = refresh; },
     };
     const tabs: [TabId, string][] = [
       ['appearance', t('settings.tabs.appearance')],
@@ -121,6 +145,9 @@ export function createModal(host: HTMLElement) {
     container?.remove();
     container = backdrop;
     root.append(backdrop);
+    // Now that the tab is mounted, let it style the panel (e.g. legible fallback colours).
+    // Set by the tab during TABS[tab](ctx) above (TypeScript cannot see assignments made through callbacks).
+    (sourceRefresh as (() => void) | null)?.();
     const target = focusId ? root.querySelector<HTMLElement>(`[data-focus-id="${focusId}"]`) : null;
     (target ?? root.querySelector<HTMLElement>('[role="tab"][aria-selected="true"]'))?.focus();
   }
@@ -154,6 +181,7 @@ export function createModal(host: HTMLElement) {
       returnFocus = document.activeElement as HTMLElement | null;
       snapshot = await bridge().settings.get();
       draft = structuredClone(snapshot.config);
+      sourceMessage = snapshot.source;
       tab = 'appearance';
       render();
     },
