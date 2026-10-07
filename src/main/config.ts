@@ -1,4 +1,5 @@
 import { join } from 'path';
+import { homedir } from 'os';
 import { writeFileSync } from 'fs';
 import { dialog } from 'electron';
 import type { BreezrConfig } from '../shared/config-schema';
@@ -14,7 +15,7 @@ function getConfigPath(app: Electron.App) {
 }
 
 function load(app: Electron.App): BreezrConfig {
-  const { config, warnings } = readConfigFile(getConfigPath(app));
+  const { config, warnings } = readConfigFile(getConfigPath(app), homedir());
   for (const warning of warnings) log('Config', warning);
   return config;
 }

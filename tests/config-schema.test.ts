@@ -72,3 +72,54 @@ describe('validateConfig', () => {
     expect(DEFAULT_CONFIG.theme.colors.accent).not.toBe('#000000');
   });
 });
+
+describe('theme sources (v2.1)', () => {
+  test('a v2.0 config without the new fields reads without warnings', () => {
+    const { config, warnings } = validateConfig({ theme: { enabled: true, base: 'dark', colors: { accent: '#a238ff' } } });
+    expect(warnings).toEqual([]);
+    expect(config.theme.source).toBe('manual');
+    expect(config.theme.sourcePaths).toEqual({ caelestia: '', pywal: '' });
+    expect(config.theme.smoothTransitions).toBe(true);
+  });
+
+  test('valid values are kept', () => {
+    const { config, warnings } = validateConfig({
+      theme: { source: 'caelestia', sourcePaths: { caelestia: '/x/scheme.json', pywal: '' }, smoothTransitions: false },
+    }, { home: '/home/u' });
+    expect(warnings).toEqual([]);
+    expect(config.theme.source).toBe('caelestia');
+    expect(config.theme.sourcePaths).toEqual({ caelestia: '/x/scheme.json', pywal: '' });
+    expect(config.theme.smoothTransitions).toBe(false);
+  });
+
+  test('unknown source falls back to manual with a warning', () => {
+    const { config, warnings } = validateConfig({ theme: { source: 'spotify' } });
+    expect(config.theme.source).toBe('manual');
+    expect(warnings.length).toBe(1);
+  });
+
+  test('~/ paths are expanded with the given home', () => {
+    const { config } = validateConfig({ theme: { sourcePaths: { pywal: '~/.cache/wal/colors.json' } } }, { home: '/home/u' });
+    expect(config.theme.sourcePaths.pywal).toBe('/home/u/.cache/wal/colors.json');
+  });
+
+  test('without a home, a ~/ path becomes the default with a warning', () => {
+    const { config, warnings } = validateConfig({ theme: { sourcePaths: { pywal: '~/x.json' } } });
+    expect(config.theme.sourcePaths.pywal).toBe('');
+    expect(warnings.length).toBe(1);
+  });
+
+  test('invalid paths are replaced by the default with a warning; unknown keys are dropped', () => {
+    const { config, warnings } = validateConfig({
+      theme: { sourcePaths: { caelestia: 'relative/scheme.json', pywal: 42, matugen: '/x' } },
+    }, { home: '/home/u' });
+    expect(config.theme.sourcePaths).toEqual({ caelestia: '', pywal: '' });
+    expect(warnings.length).toBe(2);
+  });
+
+  test('smoothTransitions must be a boolean', () => {
+    const { config, warnings } = validateConfig({ theme: { smoothTransitions: 'yes' } });
+    expect(config.theme.smoothTransitions).toBe(true);
+    expect(warnings.length).toBe(1);
+  });
+});

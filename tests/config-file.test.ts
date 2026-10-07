@@ -42,3 +42,8 @@ test('unreadable file does not throw, even when it cannot be moved aside', () =>
   expect(result!.config).toEqual(DEFAULT_CONFIG);
   expect(result!.warnings.length).toBeGreaterThan(0);
 });
+
+test('home is passed through to the validation (~ paths)', () => {
+  writeFileSync(path, JSON.stringify({ theme: { sourcePaths: { pywal: '~/.cache/wal/colors.json' } } }));
+  expect(readConfigFile(path, '/home/u').config.theme.sourcePaths.pywal).toBe('/home/u/.cache/wal/colors.json');
+});

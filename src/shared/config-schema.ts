@@ -1,4 +1,5 @@
 import { normalizeHex } from './color';
+import { SOURCE_KINDS, normalizeSourcePath, type SourceKind } from './palette';
 import { isLocale, type LocaleCode } from './i18n';
 import {
   DEFAULT_THEME, isManagedVar, type Base, type Derivation, type Preset, type ThemeColors, type ThemeConfig,
@@ -88,7 +89,19 @@ function userPreset(value: unknown): Preset | null {
   };
 }
 
-function theme(value: unknown, warnings: string[]): ThemeConfig {
+function sourcePaths(value: unknown, home: string, warnings: string[]): ThemeConfig['sourcePaths'] {
+  const source = isObj(value) ? value : {};
+  const pick = (key: 'caelestia' | 'pywal') => {
+    const raw = source[key];
+    if (raw === undefined || raw === '') return '';
+    const path = normalizeSourcePath(raw, home);
+    if (!path) warnings.push(`theme.sourcePaths.${key}: not an absolute path, using the default`);
+    return path;
+  };
+  return { caelestia: pick('caelestia'), pywal: pick('pywal') };
+}
+
+function theme(value: unknown, warnings: string[], home: string): ThemeConfig {
   if (value !== undefined && !isObj(value)) warnings.push('theme: not an object, using defaults');
   const t = isObj(value) ? value : {};
   return {
@@ -98,10 +111,14 @@ function theme(value: unknown, warnings: string[]): ThemeConfig {
     colors: colors(t.colors, DEFAULT_THEME.colors, 'theme.colors', warnings),
     overrides: overrides(t.overrides),
     presets: Array.isArray(t.presets) ? t.presets.map(userPreset).filter((p): p is Preset => p !== null) : [],
+    source: oneOf<SourceKind>(t.source, SOURCE_KINDS, DEFAULT_THEME.source, 'theme.source', warnings),
+    sourcePaths: sourcePaths(t.sourcePaths, home, warnings),
+    smoothTransitions: bool(t.smoothTransitions, DEFAULT_THEME.smoothTransitions, 'theme.smoothTransitions', warnings),
   };
 }
 
-export function validateConfig(raw: unknown): { config: BreezrConfig; warnings: string[] } {
+/** `home` expands '~/' in user-typed source paths (none in the browser: such paths then fall back to the default). */
+export function validateConfig(raw: unknown, opts: { home?: string } = {}): { config: BreezrConfig; warnings: string[] } {
   const warnings: string[] = [];
   if (!isObj(raw)) {
     warnings.push('config: not an object, using defaults');
@@ -113,7 +130,7 @@ export function validateConfig(raw: unknown): { config: BreezrConfig; warnings: 
     tooltip_text: oneOf(raw.tooltip_text, TOOLTIP_TEXTS, DEFAULT_CONFIG.tooltip_text, 'tooltip_text', warnings),
     dont_close_to_tray: bool(raw.dont_close_to_tray, DEFAULT_CONFIG.dont_close_to_tray, 'dont_close_to_tray', warnings),
     language: language as BreezrConfig['language'],
-    theme: theme(raw.theme, warnings),
+    theme: theme(raw.theme, warnings, opts.home ?? ''),
   };
   const width = positiveInt(raw.window_width);
   const height = positiveInt(raw.window_height);
