@@ -1,5 +1,6 @@
 import { h } from './dom';
 import type { ModalContext } from './modal';
+import { createUi } from './ui';
 import { normalizeHex } from '../../shared/color';
 import { SOURCE_KINDS, type SourceKind } from '../../shared/palette';
 import {
@@ -14,6 +15,7 @@ let selectedPresetId = 'deezer';
 
 export function renderAppearance(ctx: ModalContext): HTMLElement {
   const { t } = ctx;
+  const { section, setting, toggle, help } = createUi(t);
   const theme = () => ctx.draft.theme;
   const setTheme = (next: ThemeConfig, rerender = true) => ctx.update({ ...ctx.draft, theme: next }, { rerender });
   // The source's palette only counts when the draft actually uses a source.
@@ -23,7 +25,7 @@ export function renderAppearance(ctx: ModalContext): HTMLElement {
 
   // --- Live elements: refreshed without a re-render (colour dragging, source updates) ---
   const contrast = h('p', { class: 'warning', role: 'status' });
-  const status = h('p', { class: 'hint', role: 'status' });
+  const status = h('p', { class: 'status', role: 'status' });
   const varRows = new Map<string, { swatch: HTMLElement; picker: HTMLInputElement }>();
   const baseFields = new Map<keyof ThemeColors, { picker: HTMLInputElement; text: HTMLInputElement }>();
 
@@ -34,9 +36,7 @@ export function renderAppearance(ctx: ModalContext): HTMLElement {
       : '';
     switch (s.state) {
       case 'ok':
-        return theme().source === 'system'
-          ? t('settings.appearance.source.status.systemOk', { time })
-          : t('settings.appearance.source.status.ok', { file: s.displayPath ?? '', time });
+        return t('settings.appearance.source.status.live', { time });
       case 'missing':
         return t(s.kept ? 'settings.appearance.source.status.missingKept' : 'settings.appearance.source.status.missing');
       case 'invalid':
@@ -59,6 +59,7 @@ export function renderAppearance(ctx: ModalContext): HTMLElement {
     const backdrop = (contrast.getRootNode() as ShadowRoot | Document).querySelector?.('.backdrop');
     backdrop?.classList.toggle('safe-colors', ratios.text < CONTRAST_TEXT_MIN);
     status.textContent = theme().enabled && theme().source !== 'manual' ? statusText() : '';
+    status.classList.toggle('problem', ctx.source().status.state !== 'ok');
     const look = effectiveLook(theme(), palette());
     for (const [key, field] of baseFields) {
       // Colours provided by the source are shown as received; never fight a field being edited.
@@ -110,7 +111,7 @@ export function renderAppearance(ctx: ModalContext): HTMLElement {
       setTheme(setColor(theme(), key, hex), false);
       refreshLive();
     });
-    return h('div', { class: 'row' }, h('label', { for: id }, t(`settings.appearance.color.${key}`)), picker, text, error);
+    return setting({ label: t(`settings.appearance.color.${key}`), id, message: error }, picker, text);
   };
 
   const select = <T extends string>(id: string, value: T, options: [T, string][], onChange: (v: T) => void, disabled = false) => {
@@ -118,10 +119,6 @@ export function renderAppearance(ctx: ModalContext): HTMLElement {
     el.addEventListener('change', () => onChange(el.value as T));
     return el;
   };
-
-  // --- Enable switch (outside the disabled fieldset) ---
-  const enabled = h('input', { type: 'checkbox', id: 'theme-enabled', checked: theme().enabled, 'data-focus-id': 'theme-enabled' });
-  enabled.addEventListener('change', () => setTheme({ ...theme(), enabled: enabled.checked }));
 
   // --- Colour source ---
   const source = theme().source;
@@ -131,19 +128,18 @@ export function renderAppearance(ctx: ModalContext): HTMLElement {
   const pathRow = (kind: 'caelestia' | 'pywal') => {
     const input = h('input', {
       type: 'text', id: 'source-path', dir: 'ltr', value: theme().sourcePaths[kind],
-      placeholder: t('settings.appearance.source.pathDefault', { path: ctx.snapshot.defaultPaths[kind] }),
+      placeholder: ctx.snapshot.defaultPaths[kind],
       'data-focus-id': 'source-path',
     });
     input.spellcheck = false;
     input.style.minInlineSize = '32ch';
     // Committed on change (blur / Enter), not on each keystroke: every new path means a new file read.
     input.addEventListener('change', () => setTheme({ ...theme(), sourcePaths: { ...theme().sourcePaths, [kind]: input.value.trim() } }));
-    return h('div', { class: 'row' }, h('label', { for: 'source-path' }, t('settings.appearance.source.path')), input);
+    return setting({
+      label: t('settings.appearance.source.path'), id: 'source-path',
+      help: t('settings.appearance.source.pathDefault', { path: ctx.snapshot.defaultPaths[kind] }),
+    }, input);
   };
-  const sourceBlock = h('fieldset', {},
-    h('div', { class: 'row' }, h('label', { for: 'theme-source' }, t('settings.appearance.source')), sourceSelect),
-    source === 'caelestia' || source === 'pywal' ? pathRow(source) : null,
-    status);
 
 
   // --- Presets ---
@@ -160,7 +156,7 @@ export function renderAppearance(ctx: ModalContext): HTMLElement {
   // A preset is a manual palette: Breezr never switches the source back to Manual on the user's behalf.
   const presetsBlocked = source !== 'manual';
   const presetName = h('input', { type: 'text', placeholder: t('settings.appearance.presets.namePlaceholder'), 'data-focus-id': 'preset-name' });
-  const saveAs = h('button', { type: 'button', 'data-focus-id': 'preset-save' }, t('settings.appearance.presets.saveAs'));
+  const saveAs = h('button', { type: 'button', 'data-focus-id': 'preset-save' }, t('settings.appearance.presets.add'));
   saveAs.addEventListener('click', () => {
     const next = savePreset(theme(), presetName.value, Date.now(), palette());
     if (next === theme()) return;
@@ -175,8 +171,8 @@ export function renderAppearance(ctx: ModalContext): HTMLElement {
   const advanced = h('details', { open: advancedOpen },
     h('summary', { 'data-focus-id': 'advanced' },
       t('settings.appearance.advanced'),
-      overriddenCount > 0 ? ` — ${t('settings.appearance.advanced.overridden', { count: overriddenCount })}` : ''),
-    h('p', { class: 'hint' }, t('settings.appearance.advanced.help')),
+      overriddenCount > 0 ? h('span', { class: 'auto' }, t('settings.appearance.advanced.overridden', { count: overriddenCount })) : null,
+      help(t('settings.appearance.advanced.help'))),
     ...MANAGED_VARS.map((name) => {
       const overridden = name in theme().overrides;
       const swatch = h('span', { class: 'swatch' });
@@ -198,45 +194,42 @@ export function renderAppearance(ctx: ModalContext): HTMLElement {
     }));
   advanced.addEventListener('toggle', () => { advancedOpen = advanced.open; });
 
-  const look = effectiveLook(theme(), palette());
-  const fields = h('fieldset', { disabled: !theme().enabled },
-    sourceBlock,
-    h('div', { class: 'row' },
-      h('label', { for: 'theme-base' }, t('settings.appearance.base')),
-      select<Base>('theme-base', look.base, [['dark', t('settings.appearance.base.dark')], ['light', t('settings.appearance.base.light')]],
-        (base) => setTheme({ ...theme(), base }), palette()?.base !== undefined)),
-    h('fieldset', {},
-      h('legend', {}, t('settings.appearance.colors')),
-      colorField('accent'), colorField('background'), colorField('text'),
-      contrast),
-    h('div', { class: 'row' },
-      h('label', { for: 'theme-derivation' }, t('settings.appearance.derivation')),
-      select<Derivation>('theme-derivation', theme().derivation,
-        [['mix', t('settings.appearance.derivation.mix')], ['hsl', t('settings.appearance.derivation.hsl')]],
-        (derivation) => setTheme({ ...theme(), derivation }), palette()?.ladder !== undefined)),
-    h('p', { class: 'hint' }, t('settings.appearance.derivation.help')),
-    h('fieldset', {},
-      h('legend', {}, t('settings.appearance.presets')),
-      h('div', { class: 'row' },
-        presetSelect,
-        h('button', {
-          type: 'button', 'data-focus-id': 'preset-apply', disabled: presetsBlocked,
-          onclick: () => { if (selected && !presetsBlocked) setTheme(applyPreset(theme(), selected)); },
-        }, t('settings.appearance.presets.apply')),
-        h('button', {
-          type: 'button', 'data-focus-id': 'preset-delete', disabled: !selected || selected.builtin === true,
-          onclick: () => { if (selected && !selected.builtin) { selectedPresetId = 'deezer'; setTheme(deletePreset(theme(), selected.id)); } },
-        }, t('settings.appearance.presets.delete'))),
-      presetsBlocked ? h('p', { class: 'hint' }, t('settings.appearance.presets.disabledBySource')) : null,
-      h('div', { class: 'row' }, presetName, saveAs)),
-    advanced,
-  );
+  const presetsHelp = presetsBlocked ? t('settings.appearance.presets.disabledBySource') : undefined;
+  const applyButton = h('button', {
+    type: 'button', 'data-focus-id': 'preset-apply', disabled: presetsBlocked,
+    onclick: () => { if (selected && !presetsBlocked) setTheme(applyPreset(theme(), selected)); },
+  }, t('settings.appearance.presets.apply'));
+  const deleteButton = h('button', {
+    type: 'button', 'data-focus-id': 'preset-delete', disabled: !selected || selected.builtin === true,
+    onclick: () => { if (selected && !selected.builtin) { selectedPresetId = 'deezer'; setTheme(deletePreset(theme(), selected.id)); } },
+  }, t('settings.appearance.presets.delete'));
 
-  const section = h('div', {},
-    h('div', { class: 'row' }, h('label', { for: 'theme-enabled' }, t('settings.appearance.enabled')), enabled),
-    h('p', { class: 'hint' }, t('settings.appearance.enabledHelp')),
-    theme().enabled ? null : h('p', { class: 'hint' }, t('settings.appearance.source.disabledHint')),
-    fields);
+  const look = effectiveLook(theme(), palette());
+  const disabled = !theme().enabled;
+  const view = h('div', {},
+    section(t('settings.appearance.theme'),
+      setting({ label: t('settings.appearance.enabled'), id: 'theme-enabled', help: t('settings.appearance.enabledHelp') },
+        toggle('theme-enabled', theme().enabled, (on) => setTheme({ ...theme(), enabled: on }))),
+      h('fieldset', { disabled },
+        setting({ label: t('settings.appearance.source'), id: 'theme-source', help: t('settings.appearance.source.help') }, sourceSelect),
+        source === 'caelestia' || source === 'pywal' ? pathRow(source) : null,
+        status,
+        setting({ label: t('settings.appearance.base'), id: 'theme-base' },
+          select<Base>('theme-base', look.base, [['dark', t('settings.appearance.base.dark')], ['light', t('settings.appearance.base.light')]],
+            (base) => setTheme({ ...theme(), base }), palette()?.base !== undefined)))),
+    h('fieldset', { disabled },
+      section(t('settings.appearance.colors'),
+        colorField('accent'), colorField('background'), colorField('text'),
+        contrast,
+        setting({ label: t('settings.appearance.derivation'), id: 'theme-derivation', help: t('settings.appearance.derivation.help') },
+          select<Derivation>('theme-derivation', theme().derivation,
+            [['mix', t('settings.appearance.derivation.mix')], ['hsl', t('settings.appearance.derivation.hsl')]],
+            (derivation) => setTheme({ ...theme(), derivation }), palette()?.ladder !== undefined))),
+      section(t('settings.appearance.presets'),
+        setting({ label: t('settings.appearance.presets.choose'), id: 'preset', help: presetsHelp }, presetSelect, applyButton, deleteButton),
+        setting({ label: t('settings.appearance.presets.new') }, presetName, saveAs)),
+      section(null, advanced)),
+  );
   refreshLive();
-  return section;
+  return view;
 }
