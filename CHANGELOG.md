@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 2.2.0
 
 - Cleaner settings: one aligned line per setting, grouped in small sections, switches instead of checkboxes,
   explanations moved into a "?" bubble, themed scrollbar.
