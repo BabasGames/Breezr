@@ -1,7 +1,7 @@
 # Breezr
 
 The real Deezer web player in a desktop window, **vanilla+**: Discord Rich Presence
-plus a few personal touches the official app doesn't offer — starting with fully
+plus a few personal touches the official app doesn't offer, starting with fully
 custom colors.
 
 Breezr is a hard fork of [deezer-discord-rpc](https://github.com/CuteTenshii/deezer-discord-rpc)
