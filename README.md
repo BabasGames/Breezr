@@ -25,7 +25,7 @@ Breezr tells you when a new version is out.
 - Discord Rich Presence for tracks, albums, podcasts and radios
 - Custom theme: pick an accent, background and text color, everything else is derived;
   an Advanced mode lets you override any single color
-- Colour sources (optional): follow your desktop's palette live — [Caelestia](https://github.com/caelestia-dots),
+- Colour sources (optional): follow your desktop's palette live: [Caelestia](https://github.com/caelestia-dots),
   any pywal-format `colors.json` (pywal, wallust, matugen…), or the system accent colour
 - The left menu slides when you fold it (can be turned off)
 - Settings window (`Ctrl+,` / `Cmd+,`, tray menu, or the ⚙ button), with a "?" next to anything that needs explaining
@@ -57,8 +57,8 @@ bun test
 ## Translations
 
 Initial translations were machine-generated. Corrections from native speakers are
-very welcome — edit `src/locales/<code>.json` and open a pull request.
+very welcome. Edit `src/locales/<code>.json` and open a pull request.
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+MIT, see [LICENSE](LICENSE).
