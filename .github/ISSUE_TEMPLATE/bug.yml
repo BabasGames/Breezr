@@ -1,0 +1,32 @@
+name: Bug
+description: Something doesn't work as it should
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: And what you expected instead. A screenshot helps a lot.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: How to make it happen
+      placeholder: |
+        1. Open Settings
+        2. …
+  - type: input
+    id: version
+    attributes:
+      label: Breezr version
+      description: Settings → About
+    validations:
+      required: true
+  - type: dropdown
+    id: os
+    attributes:
+      label: System
+      options: [Windows, macOS, Linux]
+    validations:
+      required: true

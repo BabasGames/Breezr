@@ -8,6 +8,7 @@ import type { ExternalPalette } from '../../shared/palette';
 import { renderAppearance } from './tab-appearance';
 import { renderAbout } from './tab-about';
 import { renderGeneral } from './tab-general';
+import { hideTips } from './ui';
 import { createDebouncer, PREVIEW_DEBOUNCE_MS } from '../../shared/debounce';
 
 type TabId = 'appearance' | 'general' | 'about';
@@ -133,7 +134,7 @@ export function createModal(host: HTMLElement) {
           type: 'button', role: 'tab', 'aria-selected': String(id === tab), 'data-focus-id': `tab-${id}`,
           onclick: () => { tab = id; render(); },
         }, label))),
-      h('main', { role: 'tabpanel' }, TABS[tab](ctx)),
+      h('main', { role: 'tabpanel', onscroll: () => hideTips(root) }, TABS[tab](ctx)),
       h('footer', {},
         h('button', { type: 'button', onclick: cancel }, t('settings.cancel')),
         h('button', { type: 'button', class: 'primary', onclick: () => { void save(); } }, t('settings.save'))),

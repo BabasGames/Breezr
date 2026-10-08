@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- Cleaner settings: one aligned line per setting, grouped in small sections, switches instead of checkboxes,
+  explanations moved into a "?" bubble, themed scrollbar.
+- About: links to suggest an idea or report a bug (GitHub forms, version prefilled).
+
 ## 2.1.0
 
 - Colour sources (opt-in, Settings → Appearance): follow Caelestia's Material You palette, a pywal-format

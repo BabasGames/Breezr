@@ -1,0 +1,11 @@
+name: Idea
+description: A feature you'd like to see in Breezr
+labels: [enhancement]
+body:
+  - type: textarea
+    id: idea
+    attributes:
+      label: Your idea
+      description: What would you like Breezr to do, and why would it help you?
+    validations:
+      required: true
