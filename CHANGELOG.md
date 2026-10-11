@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- The Discord status comes back on its own when Discord is closed and reopened, or started after Breezr.
+
 ## 2.2.0
 
 - Cleaner settings: one aligned line per setting, grouped in small sections, switches instead of checkboxes,
