@@ -1,9 +1,10 @@
 import { ID_PATTERN, isStale, lineIndexAt, positionAt, type LiveState, type LyricsResult } from '../../src/shared/live';
-import { audio } from './audio';
+import { createAudio } from './audio';
 import { loadI18n } from './i18n';
 import { createClock } from './sync';
 import { openLiveStream } from './stream';
 import { createView } from './view';
+import { loadYouTubePlayer } from './youtube-player';
 
 type Message =
   | { status: 'live'; state: LiveState; receivedAt: number; serverNow: number; viewers?: number }
@@ -23,6 +24,27 @@ async function start() {
   let clock = createClock(Date.now(), Date.now());
   let trackId: string | null = null;
   let lyrics: LyricsResult | null = null;
+
+  // Only asked once the viewer turned music on; 503 (no key, no quota left) reads as "no video".
+  async function trackVideo(forTrack: string): Promise<{ videoId: string } | null> {
+    try {
+      const res = await fetch(`/api/live/${id}/video?track=${encodeURIComponent(forTrack)}`);
+      if (!res.ok) return null;
+      const body = (await res.json()) as { videoId?: unknown };
+      return typeof body.videoId === 'string' ? { videoId: body.videoId } : null;
+    } catch {
+      return null;
+    }
+  }
+  const audio = createAudio({
+    trackVideo,
+    player: (first) => loadYouTubePlayer(document.getElementById('video') as HTMLElement, first, {
+      error: (code) => audio.reportError(code),
+      blocked: () => audio.reportBlocked(),
+    }),
+    onUnavailable: () => undefined,
+    onMuted: () => undefined,
+  });
 
   async function loadLyrics(forTrack: string) {
     let result: LyricsResult = { kind: 'none' };
