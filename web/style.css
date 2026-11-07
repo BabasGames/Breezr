@@ -75,7 +75,9 @@ body {
 .credits a { color: inherit; }
 
 @media (max-width: 720px) {
-  .stage { grid-template-columns: 1fr; gap: 20px; align-items: start; padding-block-start: 0; }
+  /* The badge sits centred above the cover, with room to breathe, instead of over its corner. */
+  .top { justify-content: center; padding: 14px 16px 0; }
+  .stage { grid-template-columns: 1fr; gap: 20px; align-items: start; padding-block-start: 14px; }
   .cover { inline-size: min(56vw, 240px); }
   .lyrics { max-block-size: none; block-size: 46dvh; padding-block: 18dvh; }
   /* The big cover is right above: a second, small one in the bar would only repeat it. */
