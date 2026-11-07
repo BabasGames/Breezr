@@ -105,6 +105,11 @@ export function registerSettings(app: Electron.App, win: BrowserWindow, state: T
     return { url };
   });
 
+  ipcMain.handle('breezr:live:viewers', async (event) => {
+    if (!trusted(event)) throw new Error('Untrusted sender');
+    return { viewers: Config.get(app, 'live_link') ? await liveLink(app).viewers() : null };
+  });
+
   ipcMain.handle('breezr:live:renew', async (event) => {
     if (!trusted(event)) throw new Error('Untrusted sender');
     if (!Config.get(app, 'live_link')) throw new Error('Live link is off');

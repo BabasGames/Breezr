@@ -13,6 +13,7 @@ import { createThemeState } from './theme-runtime';
 import { withTimeout } from './timeout';
 import { buildLiveState } from './live-link';
 import { liveLink } from './live-runtime';
+import { updateTrayPlayback } from './tray';
 import type { ThemeState } from './theme-state';
 import { openSettings, registerSettings } from './settings';
 import { classifyWindowOpen, isDeezerUrl } from '../shared/origin';
@@ -345,6 +346,7 @@ async function updateActivity(app: Electron.App, currentTimeChanged: boolean) {
   const r = await runJs(code).catch(() => null);
   if (!r || seq !== updateSeq) return;
   const result: JSResult = JSON.parse(r);
+  void updateTrayPlayback();
 
   // The live link does not depend on Discord: publish before Discord's deduplication and connection checks.
   if (Config.get(app, 'live_link')) {

@@ -35,6 +35,8 @@ export interface BreezrBridge {
     share(): Promise<{ url: string }>;
     /** Turns the live link on or off right away (off deletes it); returns the link, or null when off. */
     set(on: boolean): Promise<{ url: string | null }>;
+    /** How many pages follow the link right now; null when the link is off or the server unreachable. */
+    viewers(): Promise<{ viewers: number | null }>;
     /** Replaces the link: the old one stops working. */
     renew(): Promise<{ url: string }>;
   };

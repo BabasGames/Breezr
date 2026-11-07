@@ -1,24 +1,20 @@
 import { join } from 'path';
 import updater, { updatesEnabled } from './updater';
-import * as Config from './config';
 import * as RPC from './rpc/client';
 import { Menu, Tray } from 'electron';
 import { version } from '../../package.json';
-import { log } from './log';
 import { win } from './window';
 import { t, onLocaleChange } from './i18n';
 import { openSettings } from './settings';
-import { STATUS_NAMES, TOOLTIP_TEXTS } from '../shared/config-schema';
+import { buildTrayTemplate, type PlaybackState } from './tray-menu';
+import { playbackControls, readPlayback } from './playback';
 
 const iconPath = join(__dirname, '..', 'img', 'tray.png');
 
 export let tray: Tray | null = null;
 let appRef: Electron.App;
-let clientRef: import('@xhayper/discord-rpc').Client;
-
-export async function init(app: Electron.App, client: import('@xhayper/discord-rpc').Client) {
+export async function init(app: Electron.App) {
   appRef = app;
-  clientRef = client;
   await app.whenReady();
   tray = new Tray(iconPath);
   tray.setToolTip('Breezr');
@@ -29,49 +25,45 @@ export async function init(app: Electron.App, client: import('@xhayper/discord-r
   onLocaleChange(refreshTrayMenu);
 }
 
-/** Rebuilds the menu: labels follow the current language, radios and checkbox follow the config. */
+let playback: PlaybackState | null = null;
+let shownKey = '';
+
+/** Rebuilds the menu: labels follow the current language, playback items follow the player. */
 export function refreshTrayMenu() {
   if (!tray) return;
   const app = appRef;
   const debug = process.argv0.includes('node');
-  const statusName = Config.get(app, 'status_name');
-  const tooltipText = Config.get(app, 'tooltip_text');
-  tray.setContextMenu(Menu.buildFromTemplate([
-    { label: t('tray.open'), type: 'normal', click: () => win.show() },
-    { label: t(debug ? 'tray.versionDebug' : 'tray.version', { version }), type: 'normal', enabled: false },
-    { label: t('tray.checkUpdates'), type: 'normal', visible: updatesEnabled, click: () => updater() },
-    { label: t('tray.settings'), type: 'normal', click: () => openSettings(win) },
-    { type: 'separator' },
-    {
-      label: t('tray.statusName'), type: 'submenu', submenu: STATUS_NAMES.map((id) => ({
-        label: t(`option.statusName.${id}`), type: 'radio' as const, id, checked: statusName === id,
-        click: () => Config.set(app, 'status_name', id),
-      })),
+  // A control changes the player a moment later: read it again to show the new state.
+  const thenRefresh = (action: () => unknown) => () => {
+    void Promise.resolve(action()).then(() => setTimeout(() => void updateTrayPlayback(), 400));
+  };
+  const items = buildTrayTemplate(playback, (key) => t(key), {
+    previous: thenRefresh(playbackControls.previous),
+    togglePause: thenRefresh(playbackControls.togglePause),
+    next: thenRefresh(playbackControls.next),
+    setShuffle: (on) => thenRefresh(() => playbackControls.setShuffle(on))(),
+    setRepeat: (mode) => thenRefresh(() => playbackControls.setRepeat(mode))(),
+    toggleLike: thenRefresh(playbackControls.toggleLike),
+    open: () => win.show(),
+    settings: () => openSettings(win),
+    checkUpdates: () => void updater(),
+    quit: () => {
+      RPC.disconnect().catch(console.error);
+      win.close();
+      app.quit();
+      process.exit(0);
     },
-    {
-      label: t('tray.tooltipText'), type: 'submenu', submenu: TOOLTIP_TEXTS.map((id) => ({
-        label: t(`option.tooltip.${id}`), type: 'radio' as const, id, checked: tooltipText === id,
-        click: () => Config.set(app, 'tooltip_text', id),
-      })),
-    },
-    {
-      label: t('tray.dontCloseToTray'), type: 'checkbox', checked: Config.get(app, 'dont_close_to_tray'),
-      click: (menuItem) => Config.set(app, 'dont_close_to_tray', menuItem.checked),
-    },
-    {
-      id: 'reconnect', label: t('tray.reconnect'), type: 'normal', visible: false,
-      click: () => {
-        clientRef.login().then(() => log('RPC', 'Reconnected')).catch(console.error);
-      },
-    },
-    { type: 'separator' },
-    {
-      label: t('tray.quit'), type: 'normal', click: async () => {
-        RPC.disconnect().catch(console.error);
-        win.close();
-        app.quit();
-        process.exit(0);
-      },
-    },
-  ]));
+  }, { updates: updatesEnabled, version: t(debug ? 'tray.versionDebug' : 'tray.version', { version }) });
+  tray.setContextMenu(Menu.buildFromTemplate(items as Electron.MenuItemConstructorOptions[]));
+}
+
+/** Reads the player and rebuilds the menu only when something shown changed (no flicker every poll). */
+export async function updateTrayPlayback() {
+  if (!tray) return;
+  const next = await readPlayback();
+  const key = JSON.stringify(next);
+  if (key === shownKey) return;
+  shownKey = key;
+  playback = next;
+  refreshTrayMenu();
 }

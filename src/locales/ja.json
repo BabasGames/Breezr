@@ -8,7 +8,6 @@
   "tray.statusName": "Discord ステータス名",
   "tray.tooltipText": "トレイアイコンのツールチップ",
   "tray.dontCloseToTray": "ウィンドウを閉じたら終了",
-  "tray.reconnect": "Discord に再接続",
   "tray.quit": "終了",
   "option.statusName.app_name": "Deezer",
   "option.statusName.song_title": "曲名",
@@ -137,5 +136,19 @@
   "web.themeLight": "ライト",
   "web.themeDark": "ダーク",
   "web.playing": "再生中",
-  "web.themeCoverDark": "ジャケットの色（ダーク）"
+  "web.themeCoverDark": "ジャケットの色（ダーク）",
+  "settings.general.liveViewersNone": "今このリンクを見ている人はいません",
+  "settings.general.liveViewers.other": "{count}人がこのリンクを見ています",
+  "tray.nothingPlaying": "再生中の曲はありません",
+  "tray.previous": "前へ",
+  "tray.next": "次へ",
+  "tray.play": "再生",
+  "tray.pause": "一時停止",
+  "tray.shuffle": "シャッフル",
+  "tray.repeat": "リピート",
+  "tray.repeatOff": "オフ",
+  "tray.repeatAll": "リスト全体",
+  "tray.repeatOne": "この曲",
+  "tray.like": "お気に入りに追加",
+  "tray.unlike": "お気に入りから削除"
 }

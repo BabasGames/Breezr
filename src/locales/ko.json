@@ -8,7 +8,6 @@
   "tray.statusName": "Discord 상태 이름",
   "tray.tooltipText": "트레이 아이콘 툴팁",
   "tray.dontCloseToTray": "창을 닫으면 종료",
-  "tray.reconnect": "Discord에 다시 연결",
   "tray.quit": "종료",
   "option.statusName.app_name": "Deezer",
   "option.statusName.song_title": "곡 제목",
@@ -137,5 +136,19 @@
   "web.themeLight": "라이트",
   "web.themeDark": "다크",
   "web.playing": "재생 중",
-  "web.themeCoverDark": "어두운 앨범 커버 색상"
+  "web.themeCoverDark": "어두운 앨범 커버 색상",
+  "settings.general.liveViewersNone": "지금 링크를 보고 있는 사람이 없어요",
+  "settings.general.liveViewers.other": "{count}명이 지금 링크를 보고 있어요",
+  "tray.nothingPlaying": "재생 중인 곡 없음",
+  "tray.previous": "이전",
+  "tray.next": "다음",
+  "tray.play": "재생",
+  "tray.pause": "일시정지",
+  "tray.shuffle": "셔플",
+  "tray.repeat": "반복",
+  "tray.repeatOff": "끄기",
+  "tray.repeatAll": "전체 목록",
+  "tray.repeatOne": "이 곡",
+  "tray.like": "좋아요 표시한 곡에 추가",
+  "tray.unlike": "좋아요 표시한 곡에서 삭제"
 }

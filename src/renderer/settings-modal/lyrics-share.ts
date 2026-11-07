@@ -46,7 +46,16 @@ function toast(text: string) {
  * A share button in Deezer's full-screen lyrics view, next to its own buttons. Optional: if Deezer changes
  * that view the button simply does not appear, and the link stays available in the settings.
  */
-export function startLyricsShareButton(share: () => Promise<{ url: string }>, labels: { share: string; copied: string }) {
+const BADGE_STYLE = [
+  'display:inline-flex', 'align-items:center', 'gap:4px', 'font:600 13px/1 Inter, system-ui, sans-serif',
+  'color:var(--tempo-colors-text-neutral-secondary-default, currentColor)', '-webkit-app-region:no-drag',
+].join(';');
+
+export function startLyricsShareButton(
+  share: () => Promise<{ url: string }>,
+  labels: { share: string; copied: string },
+  viewers?: { count: () => Promise<number | null>; describe: (count: number) => string },
+) {
   const ensure = () => {
     const view = document.querySelector('.player-lyrics-full');
     if (!view || view.querySelector('.breezr-lyrics-share')) return;
@@ -67,6 +76,7 @@ export function startLyricsShareButton(share: () => Promise<{ url: string }>, la
     const group = headerButtonGroup(view);
     if (group) {
       group.prepend(button);
+      if (viewers) group.prepend(viewerBadge(viewers));
     } else {
       // Unknown layout: keep it reachable anyway, top right of the view.
       button.style.cssText += `;${FALLBACK_STYLE}`;
@@ -75,4 +85,25 @@ export function startLyricsShareButton(share: () => Promise<{ url: string }>, la
   };
   ensure();
   setInterval(ensure, 1000);
+}
+
+/** "👁 3": how many people follow the live link, shown only when someone does; refreshed while the view is open. */
+function viewerBadge(viewers: { count: () => Promise<number | null>; describe: (count: number) => string }): HTMLElement {
+  const badge = document.createElement('span');
+  badge.className = 'breezr-lyrics-viewers';
+  badge.style.cssText = BADGE_STYLE;
+  badge.hidden = true;
+  const refresh = () => {
+    if (!badge.isConnected && badge.dataset.started) return clearInterval(timer);
+    badge.dataset.started = '1';
+    void viewers.count().then((count) => {
+      badge.hidden = !count;
+      if (!count) return;
+      badge.textContent = `👁 ${count}`;
+      badge.title = viewers.describe(count);
+    }).catch(() => undefined);
+  };
+  const timer = setInterval(refresh, 30_000);
+  setTimeout(refresh, 0);
+  return badge;
 }

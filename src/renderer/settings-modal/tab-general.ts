@@ -46,6 +46,21 @@ export function renderGeneral(ctx: ModalContext): HTMLElement {
     return h('div', { class: 'setting url-row' }, field, h('div', { class: 'setting-control' }, copy, renew));
   };
 
+  /** "3 people are following your link right now", refreshed while the settings stay open. */
+  const viewersLine = () => {
+    const line = h('p', { class: 'status viewers', role: 'status' });
+    const refresh = () => {
+      if (!line.isConnected && line.dataset.started) return clearInterval(timer);
+      line.dataset.started = '1';
+      void bridge().live.viewers().then(({ viewers }) => {
+        line.textContent = viewers === null ? '' : viewers === 0 ? t('settings.general.liveViewersNone') : t('settings.general.liveViewers', { count: viewers });
+      }).catch(() => undefined);
+    };
+    const timer = setInterval(refresh, 30_000);
+    refresh();
+    return line;
+  };
+
   return h('div', {},
     section(t('settings.general.section.interface'),
       setting({ label: t('settings.general.language'), id: 'language', help: t('settings.general.languageHelp') },
@@ -65,6 +80,7 @@ export function renderGeneral(ctx: ModalContext): HTMLElement {
           });
         })),
       ctx.snapshot.liveUrl ? liveUrlRow(ctx.snapshot.liveUrl) : null,
+      ctx.snapshot.liveUrl ? viewersLine() : null,
       setting({ label: t('settings.general.liveLinkDiscord'), id: 'live-link-discord', help: t('settings.general.liveLinkDiscordHelp') },
         liveDiscord)),
     section(t('settings.general.section.tray'),

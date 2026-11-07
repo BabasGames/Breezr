@@ -41,6 +41,9 @@ import { startLyricsShareButton } from './lyrics-share';
     startTopbarButtons(() => { void modal.open(); }, {
       back: t('nav.back'), forward: t('nav.forward'), settings: t('settings.openButton'),
     });
-    startLyricsShareButton(() => bridge().live.share(), { share: t('lyrics.share'), copied: t('lyrics.shareCopied') });
+    startLyricsShareButton(() => bridge().live.share(), { share: t('lyrics.share'), copied: t('lyrics.shareCopied') }, {
+      count: async () => (await bridge().live.viewers()).viewers,
+      describe: (count) => t('settings.general.liveViewers', { count }),
+    });
   });
 })();

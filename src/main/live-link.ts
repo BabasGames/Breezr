@@ -7,6 +7,7 @@ interface LinkFile extends Partial<Credentials> { pendingDelete?: Credentials[] 
 
 const REQUEST_TIMEOUT_MS = 5000;
 const POSITION_TOLERANCE_MS = 2000;
+const VIEWERS_CACHE_MS = 20_000;
 
 /** Where the state would be now, extrapolated from when it was read in the player. */
 function caughtUp(state: LiveState, now: number): LiveState {
@@ -45,6 +46,7 @@ export function createLiveLink(opts: {
   let lastSent: LiveState | null = null;
   let lastSentAt = 0;
   let pending: ReturnType<typeof setTimeout> | undefined;
+  let viewersCache: { at: number; id: string; count: number } | null = null;
   // PUTs and DELETEs go out one at a time, in order: a send still in flight must never land after the
   // DELETE that turned the link off.
   let queue: Promise<unknown> = Promise.resolve();
@@ -143,6 +145,24 @@ export function createLiveLink(opts: {
     async renew(): Promise<string> {
       await disable();
       return enable();
+    },
+    /** How many pages follow the link now (owner-only on the server); null when off or unreachable. */
+    async viewers(): Promise<number | null> {
+      const creds = credentials();
+      if (!creds) return null;
+      if (viewersCache && viewersCache.id === creds.id && now() - viewersCache.at <= VIEWERS_CACHE_MS) return viewersCache.count;
+      try {
+        const res = await doFetch(`${endpoint(creds.id)}/viewers`, {
+          headers: { Authorization: `Bearer ${creds.secret}` }, signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+        });
+        if (!res.ok) return null;
+        const body = (await res.json()) as { viewers?: unknown };
+        if (typeof body.viewers !== 'number') return null;
+        viewersCache = { at: now(), id: creds.id, count: body.viewers };
+        return body.viewers;
+      } catch {
+        return null;
+      }
     },
     publish(state: LiveState) {
       latest = state;

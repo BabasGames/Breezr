@@ -176,5 +176,28 @@ describe('live link', () => {
     await link.disable();
     expect(events).toEqual(['PUT start', 'PUT end', 'DELETE start', 'DELETE end']);
   });
+
+  test('viewer count: read with the key, cached for a while, null when off or unreachable', async () => {
+    setup();
+    const calls: string[] = [];
+    let fail = false;
+    const fn = (async (input: string | URL | Request, init?: RequestInit) => {
+      calls.push(`${init?.method ?? 'GET'} ${String(input).split('/').pop()} ${new Headers(init?.headers).get('authorization') ? 'auth' : 'anon'}`);
+      if (fail) throw new Error('offline');
+      return new Response(JSON.stringify({ viewers: 3 }), { status: 200 });
+    }) as typeof fetch;
+    let now = 1000;
+    const link = createLiveLink({ file: join(dir, 'live-link.json'), fetch: fn, now: () => now, log: () => undefined });
+    links.push(link);
+    expect(await link.viewers()).toBeNull();
+    expect(calls).toEqual([]);
+    await link.enable();
+    expect(await link.viewers()).toBe(3);
+    expect(await link.viewers()).toBe(3);
+    expect(calls).toEqual(['GET viewers auth']);
+    now += 20_001;
+    fail = true;
+    expect(await link.viewers()).toBeNull();
+  });
 });
 

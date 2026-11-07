@@ -8,7 +8,6 @@
   "tray.statusName": "Discord 状态名称",
   "tray.tooltipText": "托盘图标提示",
   "tray.dontCloseToTray": "关闭窗口时退出",
-  "tray.reconnect": "重新连接 Discord",
   "tray.quit": "退出",
   "option.statusName.app_name": "Deezer",
   "option.statusName.song_title": "歌曲名",
@@ -137,5 +136,19 @@
   "web.themeLight": "浅色",
   "web.themeDark": "深色",
   "web.playing": "正在播放",
-  "web.themeCoverDark": "深色封面颜色"
+  "web.themeCoverDark": "深色封面颜色",
+  "settings.general.liveViewersNone": "现在没有人在关注你的链接",
+  "settings.general.liveViewers.other": "{count} 人正在关注你的链接",
+  "tray.nothingPlaying": "没有正在播放",
+  "tray.previous": "上一首",
+  "tray.next": "下一首",
+  "tray.play": "播放",
+  "tray.pause": "暂停",
+  "tray.shuffle": "随机播放",
+  "tray.repeat": "重复",
+  "tray.repeatOff": "关闭",
+  "tray.repeatAll": "整个列表",
+  "tray.repeatOne": "这首歌",
+  "tray.like": "添加到我喜欢的",
+  "tray.unlike": "从我喜欢的移除"
 }
