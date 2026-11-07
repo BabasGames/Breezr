@@ -113,5 +113,16 @@
   "settings.about.feedback": "Ваше мнение важно",
   "settings.about.feedbackText": "Есть идея, ошибка или замечание? Расскажите на GitHub: ваши отзывы определяют будущее Breezr.",
   "settings.about.reportBug": "Сообщить об ошибке",
-  "settings.about.suggestIdea": "Предложить идею"
+  "settings.about.suggestIdea": "Предложить идею",
+  "web.pageTitle": "Breezr · в эфире",
+  "web.loading": "Загрузка…",
+  "web.live": "В эфире",
+  "web.paused": "На паузе",
+  "web.idle": "Сейчас ничего не слушает",
+  "web.inactive": "Эта ссылка больше не активна",
+  "web.noLyrics": "Для этого трека нет текста",
+  "web.unsynced": "Текст не синхронизирован",
+  "web.lyricsBy": "Текст: LRCLIB",
+  "web.madeWith": "Сделано с Breezr",
+  "web.reconnecting": "Переподключение…"
 }

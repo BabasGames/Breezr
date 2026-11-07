@@ -110,5 +110,16 @@
   "settings.about.feedback": "Görüşün önemli",
   "settings.about.feedbackText": "Bir fikir, bir hata, bir yorum mu? GitHub'da söyle: geri bildirimlerin Breezr'ın geleceğini belirliyor.",
   "settings.about.reportBug": "Hata bildir",
-  "settings.about.suggestIdea": "Fikir öner"
+  "settings.about.suggestIdea": "Fikir öner",
+  "web.pageTitle": "Breezr · canlı",
+  "web.loading": "Yükleniyor…",
+  "web.live": "Canlı",
+  "web.paused": "Duraklatıldı",
+  "web.idle": "Şu anda bir şey dinlemiyor",
+  "web.inactive": "Bu bağlantı artık etkin değil",
+  "web.noLyrics": "Bu parça için şarkı sözü yok",
+  "web.unsynced": "Şarkı sözleri senkronize değil",
+  "web.lyricsBy": "Şarkı sözleri: LRCLIB",
+  "web.madeWith": "Breezr ile yapıldı",
+  "web.reconnecting": "Yeniden bağlanıyor…"
 }

@@ -169,9 +169,13 @@ export function createApp(opts: { store: LiveStore; lyrics: LyricsSource; public
    * Lyrics of the track a live link is playing, and only that: the server never relays free-form lookups to
    * LRCLIB. Throttled per IP and capped in flight.
    */
-  async function lyricsRoute(req: IncomingMessage, res: ServerResponse, id: string) {
+  async function lyricsRoute(req: IncomingMessage, res: ServerResponse, id: string, url: URL) {
+    // The track id is part of the URL so a cached answer never belongs to another track.
+    const wanted = url.searchParams.get('track');
+    if (!wanted) return send(res, 400, { error: 'track needed' });
     const snap = store.get(id);
     if (snap.status !== 'live') return send(res, 404, snapshotBody(snap));
+    if (snap.state.track.id !== wanted) return send(res, 409, { error: 'not the current track' });
     if (!lyricsLookups.take(clientIp(req))) return send(res, 429, { error: 'slow down' });
     if (lookupsInFlight >= MAX_LOOKUPS_IN_FLIGHT) return send(res, 503, { error: 'busy' });
     const { track } = snap.state;
@@ -198,7 +202,7 @@ export function createApp(opts: { store: LiveStore; lyrics: LyricsSource; public
         if (!ID_PATTERN.test(id)) return send(res, 404, { status: 'unknown' });
         if (sub && method !== 'GET') return send(res, 405, { error: 'method' });
         if (sub === '/events') return stream(req, res, id);
-        if (sub === '/lyrics') return lyricsRoute(req, res, id);
+        if (sub === '/lyrics') return lyricsRoute(req, res, id, url);
         if (method === 'PUT') return putLive(req, res, id);
         if (method === 'DELETE') return deleteLive(req, res, id);
         if (method !== 'GET') return send(res, 405, { error: 'method' });

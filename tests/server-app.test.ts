@@ -128,11 +128,19 @@ describe('page and lyrics', () => {
 
   test('lyrics only for the track a live link is playing', async () => {
     const id = 'EEEEEEEEEE';
-    expect((await fetch(`${base}/api/live/${id}/lyrics`)).status).toBe(404);
+    expect((await fetch(`${base}/api/live/${id}/lyrics?track=1`)).status).toBe(404);
     await put(id, state('Get Lucky'));
-    const res = await fetch(`${base}/api/live/${id}/lyrics`);
+    const res = await fetch(`${base}/api/live/${id}/lyrics?track=1`);
     expect(await res.json()).toEqual({ kind: 'plain', text: 'La la' });
     expect(lookups.at(-1)).toEqual({ title: 'Get Lucky', artist: 'Daft Punk', album: 'RAM', durationSec: 248 });
+  });
+
+  test('lyrics are asked for one track: the URL names it, and a stale one is refused', async () => {
+    const id = 'HHHHHHHHHH';
+    await put(id, state('Get Lucky'));
+    expect((await fetch(`${base}/api/live/${id}/lyrics?track=1`)).status).toBe(200);
+    expect((await fetch(`${base}/api/live/${id}/lyrics?track=999`)).status).toBe(409);
+    expect((await fetch(`${base}/api/live/${id}/lyrics`)).status).toBe(400);
   });
 
   test('there is no free-form lyrics lookup', async () => {
@@ -174,7 +182,7 @@ describe('abuse', () => {
     const id = 'GGGGGGGGGG';
     await put2(id, SECRET);
     const codes = [];
-    for (let i = 0; i < 30; i++) codes.push((await fetch(`${base2}/api/live/${id}/lyrics`)).status);
+    for (let i = 0; i < 30; i++) codes.push((await fetch(`${base2}/api/live/${id}/lyrics?track=1`)).status);
     expect(codes).toContain(200);
     expect(codes).toContain(429);
   });

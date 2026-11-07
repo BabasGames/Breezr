@@ -110,5 +110,16 @@
   "settings.about.feedback": "ご意見をお聞かせください",
   "settings.about.feedbackText": "アイデア、バグ、ご意見はありますか？GitHub でお知らせください。皆さんの声が Breezr の今後を決めます。",
   "settings.about.reportBug": "バグを報告",
-  "settings.about.suggestIdea": "アイデアを提案"
+  "settings.about.suggestIdea": "アイデアを提案",
+  "web.pageTitle": "Breezr · ライブ",
+  "web.loading": "読み込み中…",
+  "web.live": "ライブ",
+  "web.paused": "一時停止中",
+  "web.idle": "今は何も聴いていません",
+  "web.inactive": "このリンクは無効になりました",
+  "web.noLyrics": "この曲の歌詞はありません",
+  "web.unsynced": "歌詞は同期されていません",
+  "web.lyricsBy": "歌詞: LRCLIB",
+  "web.madeWith": "Breezr で作成",
+  "web.reconnecting": "再接続中…"
 }

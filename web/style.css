@@ -1,0 +1,87 @@
+:root {
+  --bg: #1b1622;
+  --fg: #fbf8ff;
+  --dim: color-mix(in srgb, var(--fg) 38%, transparent);
+  --past: color-mix(in srgb, var(--fg) 60%, transparent);
+  --bar: color-mix(in srgb, var(--bg) 80%, black);
+  color-scheme: dark;
+}
+:root.light { --fg: #141117; color-scheme: light; --bar: color-mix(in srgb, var(--bg) 88%, black); }
+
+* { box-sizing: border-box; }
+html, body { margin: 0; block-size: 100%; }
+body {
+  background: var(--bg); color: var(--fg);
+  font: 16px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", "Noto Sans Arabic", "Noto Sans CJK JP", sans-serif;
+  transition: background-color 0.8s ease, color 0.8s ease;
+}
+[hidden] { display: none !important; }
+
+.page { display: grid; grid-template-rows: auto 1fr auto auto; block-size: 100dvh; }
+.top { display: flex; justify-content: flex-end; padding: 20px 28px 0; min-block-size: 44px; }
+.status {
+  display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 999px;
+  font-size: 13px; font-weight: 600; background: color-mix(in srgb, var(--fg) 12%, transparent);
+}
+.status::before { content: ""; inline-size: 8px; block-size: 8px; border-radius: 50%; background: currentColor; }
+.status.live::before { background: #ff4d6d; animation: pulse 1.6s ease-in-out infinite; }
+@keyframes pulse { 50% { opacity: 0.35; } }
+
+.stage {
+  display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); gap: 48px; align-items: center;
+  padding: 16px clamp(24px, 5vw, 80px); min-block-size: 0;
+}
+.cover-col { display: flex; justify-content: center; }
+.cover {
+  inline-size: min(100%, 460px); block-size: auto; aspect-ratio: 1; object-fit: cover; border-radius: 16px;
+  box-shadow: 0 24px 60px rgb(0 0 0 / 0.35);
+}
+.lyrics {
+  block-size: 100%; max-block-size: calc(100dvh - 220px); overflow-y: auto; scrollbar-width: none;
+  padding-block: 35vh; text-align: center;
+  mask-image: linear-gradient(transparent, black 18%, black 82%, transparent);
+}
+.lyrics::-webkit-scrollbar { display: none; }
+.line {
+  margin: 0 0 22px; font-size: clamp(22px, 2.6vw, 34px); font-weight: 800; line-height: 1.2; color: var(--dim);
+  transition: color 0.3s ease, transform 0.3s ease;
+}
+.line.past { color: var(--past); }
+.line.current { color: var(--fg); transform: scale(1.03); }
+.lyrics.plain { padding-block: 24px; }
+.lyrics.plain .line { font-size: clamp(18px, 2vw, 24px); font-weight: 700; color: var(--fg); margin-block-end: 10px; }
+.hint { margin: 0 0 18px; font-size: 13px; color: var(--past); }
+
+.notice { margin: 0; align-self: center; justify-self: center; padding: 24px; text-align: center; font-size: 20px; font-weight: 700; color: var(--past); }
+.notice:empty { display: none; }
+.stage:not([hidden]) + .notice { display: none; }
+
+.bar {
+  display: grid; grid-template-columns: auto minmax(0, 1fr) minmax(0, 1.4fr); gap: 16px; align-items: center;
+  padding: 14px 24px; background: var(--bar);
+}
+.mini-cover { inline-size: 48px; block-size: 48px; border-radius: 8px; object-fit: cover; }
+.meta { min-inline-size: 0; }
+.title, .artists { margin: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.title { font-weight: 700; }
+.artists { font-size: 14px; color: var(--past); }
+.progress { display: flex; align-items: center; gap: 12px; }
+.time { font-size: 12px; font-variant-numeric: tabular-nums; color: var(--past); min-inline-size: 4ch; }
+.track { flex: 1; block-size: 4px; border-radius: 2px; background: color-mix(in srgb, var(--fg) 20%, transparent); overflow: hidden; }
+.fill { block-size: 100%; inline-size: 0; background: var(--fg); border-radius: 2px; }
+[dir="rtl"] .track { transform: scaleX(-1); }
+
+.credits { margin: 0; padding: 8px 24px 12px; display: flex; gap: 8px; justify-content: center; font-size: 12px; background: var(--bar); color: var(--past); }
+.credits a { color: inherit; }
+
+@media (max-width: 720px) {
+  .stage { grid-template-columns: 1fr; gap: 20px; align-items: start; padding-block-start: 0; }
+  .cover { inline-size: min(56vw, 240px); }
+  .lyrics { max-block-size: none; block-size: 46dvh; padding-block: 18dvh; }
+  .bar { grid-template-columns: auto minmax(0, 1fr); }
+  .progress { grid-column: 1 / -1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  body, .line { transition: none; }
+  .status.live::before { animation: none; }
+}

@@ -111,5 +111,16 @@
   "settings.about.feedback": "Jouw mening telt",
   "settings.about.feedbackText": "Een idee, een bug, een opmerking? Laat het weten op GitHub: jouw feedback bepaalt hoe Breezr verdergaat.",
   "settings.about.reportBug": "Bug melden",
-  "settings.about.suggestIdea": "Idee voorstellen"
+  "settings.about.suggestIdea": "Idee voorstellen",
+  "web.pageTitle": "Breezr · live",
+  "web.loading": "Laden…",
+  "web.live": "Live",
+  "web.paused": "Gepauzeerd",
+  "web.idle": "Luistert nu nergens naar",
+  "web.inactive": "Deze link is niet meer actief",
+  "web.noLyrics": "Geen songtekst beschikbaar voor dit nummer",
+  "web.unsynced": "Songtekst niet gesynchroniseerd",
+  "web.lyricsBy": "Songtekst: LRCLIB",
+  "web.madeWith": "Gemaakt met Breezr",
+  "web.reconnecting": "Opnieuw verbinden…"
 }

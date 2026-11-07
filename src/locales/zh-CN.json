@@ -110,5 +110,16 @@
   "settings.about.feedback": "你的意见很重要",
   "settings.about.feedbackText": "有想法、发现 bug 或有建议？请在 GitHub 上告诉我们：你的反馈决定 Breezr 的下一步。",
   "settings.about.reportBug": "报告 bug",
-  "settings.about.suggestIdea": "提出想法"
+  "settings.about.suggestIdea": "提出想法",
+  "web.pageTitle": "Breezr · 实时",
+  "web.loading": "加载中…",
+  "web.live": "实时",
+  "web.paused": "已暂停",
+  "web.idle": "现在没有在听",
+  "web.inactive": "此链接已失效",
+  "web.noLyrics": "这首歌暂无歌词",
+  "web.unsynced": "歌词未同步",
+  "web.lyricsBy": "歌词：LRCLIB",
+  "web.madeWith": "由 Breezr 制作",
+  "web.reconnecting": "正在重新连接…"
 }

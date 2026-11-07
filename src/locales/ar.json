@@ -115,5 +115,16 @@
   "settings.about.feedback": "رأيك يهمنا",
   "settings.about.feedbackText": "فكرة، خلل، ملاحظة؟ أخبرنا على GitHub: آراؤك تحدد مستقبل Breezr.",
   "settings.about.reportBug": "الإبلاغ عن خلل",
-  "settings.about.suggestIdea": "اقتراح فكرة"
+  "settings.about.suggestIdea": "اقتراح فكرة",
+  "web.pageTitle": "Breezr · مباشر",
+  "web.loading": "جارٍ التحميل…",
+  "web.live": "مباشر",
+  "web.paused": "متوقف مؤقتًا",
+  "web.idle": "لا يستمع إلى شيء الآن",
+  "web.inactive": "هذا الرابط لم يعد نشطًا",
+  "web.noLyrics": "لا تتوفر كلمات لهذه الأغنية",
+  "web.unsynced": "الكلمات غير متزامنة",
+  "web.lyricsBy": "الكلمات: LRCLIB",
+  "web.madeWith": "صُنع باستخدام Breezr",
+  "web.reconnecting": "جارٍ إعادة الاتصال…"
 }

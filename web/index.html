@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <meta name="color-scheme" content="dark light">
+  <title>Breezr</title>
+  <link rel="stylesheet" href="/assets/style.css">
+  <script type="module" src="/assets/app.js"></script>
+</head>
+<body>
+  <div class="page">
+    <header class="top">
+      <span id="status" class="status" hidden></span>
+    </header>
+    <main class="stage" id="stage" hidden>
+      <div class="cover-col"><img id="cover" class="cover" alt="" width="480" height="480"></div>
+      <section class="lyrics" id="lyrics" aria-live="off"></section>
+    </main>
+    <p class="notice" id="notice"></p>
+    <footer class="bar" id="bar" hidden>
+      <img id="mini-cover" class="mini-cover" alt="" width="48" height="48">
+      <div class="meta">
+        <p id="title" class="title" dir="auto"></p>
+        <p id="artists" class="artists" dir="auto"></p>
+      </div>
+      <div class="progress" id="progress">
+        <span id="elapsed" class="time"></span>
+        <div class="track"><div id="fill" class="fill"></div></div>
+        <span id="total" class="time"></span>
+      </div>
+    </footer>
+    <p class="credits">
+      <a id="made-with" href="https://github.com/BabasGames/Breezr" target="_blank" rel="noopener noreferrer"></a>
+      <span aria-hidden="true">·</span>
+      <a id="lyrics-by" href="https://lrclib.net" target="_blank" rel="noopener noreferrer"></a>
+    </p>
+  </div>
+</body>
+</html>

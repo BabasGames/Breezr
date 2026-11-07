@@ -9,13 +9,14 @@
     "start": "electron ./build/src/main/index.js",
     "run": "tsc && bun run build:modal && bun run copy-assets && bun run start",
     "build": "tsc && bun run build:modal && bun run copy-assets && bun scripts/build.js",
-    "typecheck": "tsc --noEmit && tsc --noEmit -p server/tsconfig.json",
+    "typecheck": "tsc --noEmit && tsc --noEmit -p server/tsconfig.json && tsc --noEmit -p web/tsconfig.json",
     "postinstall": "electron-builder install-app-deps",
     "lint": "eslint",
     "copy-assets": "cpy --flat ./src/img/* ./build/src/img/ && cpy --flat ./src/offline.html ./build/src/",
     "test": "bun test",
     "build:modal": "bun build src/renderer/settings-modal/index.ts --target=browser --format=iife --outfile=build/src/renderer/settings-modal.bundle.js",
-    "build:server": "bun build server/src/main.ts --target=node --format=cjs --outfile=server/dist/server.js"
+    "build:server": "bun build server/src/main.ts --target=node --format=cjs --outfile=server/dist/server.js",
+    "build:web": "bun scripts/build-web.ts"
   },
   "dependencies": {
     "@xhayper/discord-rpc": "^1.5.1",

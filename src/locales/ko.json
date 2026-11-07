@@ -110,5 +110,16 @@
   "settings.about.feedback": "의견을 들려주세요",
   "settings.about.feedbackText": "아이디어, 버그, 의견이 있나요? GitHub에 알려 주세요. 여러분의 의견이 Breezr의 다음 방향을 정합니다.",
   "settings.about.reportBug": "버그 신고",
-  "settings.about.suggestIdea": "아이디어 제안"
+  "settings.about.suggestIdea": "아이디어 제안",
+  "web.pageTitle": "Breezr · 실시간",
+  "web.loading": "불러오는 중…",
+  "web.live": "실시간",
+  "web.paused": "일시정지됨",
+  "web.idle": "지금은 아무것도 듣고 있지 않아요",
+  "web.inactive": "이 링크는 더 이상 유효하지 않아요",
+  "web.noLyrics": "이 곡의 가사가 없어요",
+  "web.unsynced": "동기화되지 않은 가사",
+  "web.lyricsBy": "가사: LRCLIB",
+  "web.madeWith": "Breezr로 만듦",
+  "web.reconnecting": "다시 연결 중…"
 }

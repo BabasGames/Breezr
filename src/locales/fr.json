@@ -111,5 +111,16 @@
   "settings.about.feedback": "Votre avis compte",
   "settings.about.feedbackText": "Une idée de fonction, un bug, une remarque ? Dites-le sur GitHub : vos retours décident de la suite de Breezr.",
   "settings.about.reportBug": "Signaler un bug",
-  "settings.about.suggestIdea": "Proposer une idée"
+  "settings.about.suggestIdea": "Proposer une idée",
+  "web.pageTitle": "Breezr · en direct",
+  "web.loading": "Chargement…",
+  "web.live": "En direct",
+  "web.paused": "En pause",
+  "web.idle": "N'écoute rien en ce moment",
+  "web.inactive": "Ce lien n'est plus actif",
+  "web.noLyrics": "Paroles indisponibles pour ce titre",
+  "web.unsynced": "Paroles non synchronisées",
+  "web.lyricsBy": "Paroles : LRCLIB",
+  "web.madeWith": "Fait avec Breezr",
+  "web.reconnecting": "Reconnexion…"
 }
