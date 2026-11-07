@@ -18,7 +18,7 @@ const REPO_URL = 'https://github.com/BabasGames/Breezr';
 
 const SECURITY_HEADERS: Record<string, string> = {
   'Content-Security-Policy':
-    'default-src \'self\'; img-src https://*.dzcdn.net data:; style-src \'self\'; script-src \'self\'; connect-src \'self\'; frame-ancestors \'none\'; base-uri \'none\'',
+    'default-src \'self\'; img-src \'self\' https://*.dzcdn.net data:; style-src \'self\'; script-src \'self\'; connect-src \'self\'; frame-ancestors \'none\'; base-uri \'none\'',
   'Referrer-Policy': 'no-referrer',
   'X-Content-Type-Options': 'nosniff',
 };
@@ -142,13 +142,18 @@ export function createApp(opts: { store: LiveStore; lyrics: LyricsSource; public
       : snap.status === 'idle' ? { status: 'idle', serverNow: now() }
         : { status: 'unknown' };
 
-  async function serveFile(res: ServerResponse, relative: string) {
+  /**
+   * The page itself is always revalidated (it names the current script and stylesheet with ?v=<hash>);
+   * a file asked for with its version can be kept for a year, anything else a few minutes.
+   */
+  async function serveFile(res: ServerResponse, relative: string, versioned = false) {
     const root = join(publicDir, sep);
     const path = normalize(join(publicDir, relative));
     if (!path.startsWith(root) || !MIME[extname(path)]) return send(res, 404, { error: 'not found' });
     try {
       const data = await readFile(path);
-      res.writeHead(200, { ...SECURITY_HEADERS, 'Content-Type': MIME[extname(path)], 'Cache-Control': 'public, max-age=300' });
+      const cache = relative === 'index.html' ? 'no-cache' : versioned ? 'public, max-age=31536000, immutable' : 'public, max-age=300';
+      res.writeHead(200, { ...SECURITY_HEADERS, 'Content-Type': MIME[extname(path)], 'Cache-Control': cache });
       res.end(data);
     } catch {
       send(res, 404, { error: 'not found' });
@@ -288,7 +293,7 @@ export function createApp(opts: { store: LiveStore; lyrics: LyricsSource; public
         } catch {
           return send(res, 404, { error: 'not found' });
         }
-        return serveFile(res, relative);
+        return serveFile(res, relative, url.searchParams.has('v'));
       }
       if (path === '/') return send(res, 302, undefined, { Location: REPO_URL });
       send(res, 404, { error: 'not found' });

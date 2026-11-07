@@ -113,15 +113,20 @@ describe('page and lyrics', () => {
     expect(res.status).toBe(200);
     expect(await res.text()).toContain('<title>page</title>');
     expect(res.headers.get('content-security-policy')).toBe(
-      "default-src 'self'; img-src https://*.dzcdn.net data:; style-src 'self'; script-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'",
+      "default-src 'self'; img-src 'self' https://*.dzcdn.net data:; style-src 'self'; script-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'",
     );
     expect(res.headers.get('referrer-policy')).toBe('no-referrer');
+    // Always revalidated: it names the current script and stylesheet (?v=…), which can be cached for long.
+    expect(res.headers.get('cache-control')).toBe('no-cache');
     expect(res.headers.get('x-content-type-options')).toBe('nosniff');
   });
 
   test('assets are served, nothing outside them', async () => {
     const js = await fetch(`${base}/assets/app.js`);
     expect(js.headers.get('content-type')).toContain('javascript');
+    // Kept for a year only when the URL names its version; otherwise a few minutes.
+    expect(js.headers.get('cache-control')).toBe('public, max-age=300');
+    expect((await fetch(`${base}/assets/app.js?v=0123456789ab`)).headers.get('cache-control')).toBe('public, max-age=31536000, immutable');
     expect((await fetch(`${base}/assets/../../etc/passwd`)).status).toBe(404);
     expect((await fetch(`${base}/assets/%2e%2e/%2e%2e/etc/passwd`)).status).toBe(404);
     expect((await fetch(`${base}/assets/%E0%A4%A`)).status).toBe(404);

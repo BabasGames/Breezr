@@ -13,6 +13,14 @@ test('page, script and stylesheet are built', () => {
   for (const file of ['index.html', 'assets/app.js', 'assets/style.css']) expect(existsSync(join(dist, file))).toBe(true);
 });
 
+test('the page names its script and stylesheet with a content hash, so caches never mix versions', () => {
+  const html = readFileSync(join(dist, 'index.html'), 'utf-8');
+  expect(html).toMatch(/\/assets\/app\.js\?v=[0-9a-f]{12}"/);
+  expect(html).toMatch(/\/assets\/style\.css\?v=[0-9a-f]{12}"/);
+  expect(html).toContain('<link rel="icon" href="/assets/icon.png"');
+  expect(existsSync(join(dist, 'assets', 'icon.png'))).toBe(true);
+});
+
 test('each language gets only the page texts, without the web. prefix', () => {
   const ar = JSON.parse(readFileSync(join(dist, 'assets', 'i18n', 'ar.json'), 'utf-8'));
   expect(typeof ar.idle).toBe('string');

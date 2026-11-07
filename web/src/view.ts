@@ -8,6 +8,16 @@ export type Status = 'loading' | 'live' | 'paused' | 'idle' | 'inactive';
 
 const byId = <E extends HTMLElement>(id: string) => document.getElementById(id) as E;
 
+/** The span that carries (and scrolls) a title; created if the page markup is older than this script. */
+function textSpan(box: HTMLElement): HTMLElement {
+  let span = box.firstElementChild as HTMLElement | null;
+  if (!span) {
+    span = document.createElement('span');
+    box.replaceChildren(span);
+  }
+  return span;
+}
+
 /** Average colour of the cover, or null when the CDN does not allow reading its pixels. */
 function averageColor(img: HTMLImageElement): [number, number, number] | null {
   try {
@@ -150,8 +160,8 @@ export function createView(t: T) {
       cover.alt = track.album;
       const title = byId('title');
       const artists = byId('artists');
-      title.firstElementChild!.textContent = track.title;
-      artists.firstElementChild!.textContent = track.artists;
+      textSpan(title).textContent = track.title;
+      textSpan(artists).textContent = track.artists;
       // After layout, once the new text has a width.
       requestAnimationFrame(() => { applyMarquee(title); applyMarquee(artists); });
       document.title = `${track.title} · ${track.artists}`;
