@@ -130,3 +130,18 @@ describe('animate_sidebar', () => {
     expect(warnings.length).toBe(1);
   });
 });
+
+describe.each([['live_link'], ['live_link_discord']] as const)('%s', (key) => {
+  test('off by default, also for older configs', () => {
+    expect(DEFAULT_CONFIG[key]).toBe(false);
+    const { config, warnings } = validateConfig({ status_name: 'song_title' });
+    expect(config[key]).toBe(false);
+    expect(warnings).toEqual([]);
+  });
+  test('can be turned on', () => expect(validateConfig({ [key]: true }).config[key]).toBe(true));
+  test('must be a boolean', () => {
+    const { config, warnings } = validateConfig({ [key]: 'yes' });
+    expect(config[key]).toBe(false);
+    expect(warnings.length).toBe(1);
+  });
+});

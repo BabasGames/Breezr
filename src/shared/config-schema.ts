@@ -18,6 +18,10 @@ export interface BreezrConfig {
   dont_close_to_tray: boolean;
   /** Slide Deezer's left menu when it folds/unfolds instead of jumping. */
   animate_sidebar: boolean;
+  /** Publish what is playing to the live link (breezr.babas.app). */
+  live_link: boolean;
+  /** Show the live link as a button in the Discord status. */
+  live_link_discord: boolean;
   language: 'auto' | LocaleCode;
   theme: ThemeConfig;
 }
@@ -27,6 +31,8 @@ export const DEFAULT_CONFIG: BreezrConfig = {
   tooltip_text: 'app_name',
   dont_close_to_tray: false,
   animate_sidebar: true,
+  live_link: false,
+  live_link_discord: false,
   language: 'auto',
   theme: DEFAULT_THEME,
 };
@@ -132,6 +138,8 @@ export function validateConfig(raw: unknown, opts: { home?: string } = {}): { co
     tooltip_text: oneOf(raw.tooltip_text, TOOLTIP_TEXTS, DEFAULT_CONFIG.tooltip_text, 'tooltip_text', warnings),
     dont_close_to_tray: bool(raw.dont_close_to_tray, DEFAULT_CONFIG.dont_close_to_tray, 'dont_close_to_tray', warnings),
     animate_sidebar: bool(raw.animate_sidebar, DEFAULT_CONFIG.animate_sidebar, 'animate_sidebar', warnings),
+    live_link: bool(raw.live_link, DEFAULT_CONFIG.live_link, 'live_link', warnings),
+    live_link_discord: bool(raw.live_link_discord, DEFAULT_CONFIG.live_link_discord, 'live_link_discord', warnings),
     language: language as BreezrConfig['language'],
     theme: theme(raw.theme, warnings, opts.home ?? ''),
   };
