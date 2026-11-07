@@ -310,9 +310,10 @@ export function createApp(opts: { store: LiveStore; lyrics: LyricsSource; videos
     lookupsInFlight++;
     try {
       const ip = creationKey(clientIp(req));
+      // The requester's own budget is taken first: one that is spent must not use up the link's.
       const answer = await videos.lookup({
         trackId: track.id, artist: mainArtist(track.artists), title: bareTitle(track.title), durationSec: Math.round(track.duration / 1000),
-      }, () => paidPerLink.take(id) && paidPerIp.take(ip));
+      }, () => paidPerIp.take(ip) && paidPerLink.take(id));
       if (answer.status === 'found') return send(res, 200, { videoId: answer.videoId, kind: answer.kind });
       if (answer.status === 'none') return send(res, 200, { none: true });
       send(res, 503, { unavailable: true });

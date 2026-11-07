@@ -448,3 +448,58 @@ describe('viewer count on the page', () => {
     expect('viewers' in (await (await fetch(`${base5}/api/live/${id}`)).json())).toBe(false);
   });
 });
+
+describe('paid video searches', () => {
+  let dir6 = '';
+  let server6: Server;
+  let base6 = '';
+  const clock = { now: Date.now() };
+  beforeAll(async () => {
+    dir6 = mkdtempSync(join(tmpdir(), 'breezr-paid-'));
+    const store = new LiveStore({ file: join(dir6, 'ids.json') });
+    server6 = createServer(createApp({ store, lyrics: { lookup: async () => ({ result: { kind: 'none' as const }, ok: true }) }, videos, publicDir: dir6, now: () => clock.now }));
+    await new Promise<void>((r) => server6.listen(0, '127.0.0.1', r));
+    base6 = `http://127.0.0.1:${(server6.address() as AddressInfo).port}`;
+  });
+  afterAll(() => {
+    server6.closeAllConnections();
+    server6.close();
+    rmSync(dir6, { recursive: true, force: true });
+  });
+  // Requests come through Caddy on the server: the viewer's address is in X-Forwarded-For.
+  const playOn = (link: string, track: number) => fetch(`${base6}/api/live/${link}`, {
+    method: 'PUT',
+    headers: { 'content-type': 'application/json', authorization: `Bearer ${SECRET}`, 'x-forwarded-for': `10.0.${track % 250}.1` },
+    body: JSON.stringify({ ...state('x'), track: { ...state().track, id: String(track) } }),
+  });
+  const ask = (link: string, track: number, ip: string) => fetch(`${base6}/api/live/${link}/video?track=${track}`, { headers: { 'x-forwarded-for': ip } });
+
+  test('a viewer out of paid searches cannot spend the link\'s', async () => {
+    // Viewer 203.0.113.9 uses up its 20 paid searches on four other links (5 each).
+    let track = 1000;
+    for (const link of ['Pa00000001', 'Pa00000002', 'Pa00000003', 'Pa00000004']) {
+      for (let i = 0; i < 5; i++) {
+        clock.now += 2000;
+        await playOn(link, ++track);
+        await ask(link, track, '203.0.113.9');
+      }
+    }
+    // Now it hammers a victim link: refused every time.
+    const victim = 'Victim0001';
+    const refused = [];
+    for (let i = 0; i < 5; i++) {
+      clock.now += 2000;
+      await playOn(victim, ++track);
+      refused.push((await ask(victim, track, '203.0.113.9')).status);
+    }
+    expect(refused).toEqual([503, 503, 503, 503, 503]);
+    // The link's own budget is intact: another viewer still gets five new tracks.
+    const fine = [];
+    for (let i = 0; i < 5; i++) {
+      clock.now += 2000;
+      await playOn(victim, ++track);
+      fine.push((await ask(victim, track, '198.51.100.7')).status);
+    }
+    expect(fine).toEqual([200, 200, 200, 200, 200]);
+  });
+});
