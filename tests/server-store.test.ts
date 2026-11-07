@@ -104,3 +104,55 @@ describe('LiveStore', () => {
     expect(seen).toEqual(['One', 'Two', 'unknown']);
   });
 });
+
+describe('LiveStore hardening', () => {
+  let dir = '';
+  afterEach(() => rmSync(dir, { recursive: true, force: true }));
+  const SECRET2 = 't'.repeat(43);
+
+  test('a deleted link stays dead: nobody can claim it again, it reads as unknown, even after a restart', async () => {
+    dir = mkdtempSync(join(tmpdir(), 'breezr-tomb-'));
+    const file = join(dir, 'ids.json');
+    const store = new LiveStore({ file });
+    await store.put(ID, SECRET, state());
+    await store.remove(ID, SECRET);
+    expect(await store.put(ID, SECRET2, state('Hijack'))).toBe('gone');
+    expect(await store.put(ID, SECRET, state('Late write'))).toBe('gone');
+    expect(store.get(ID).status).toBe('unknown');
+    const again = new LiveStore({ file });
+    await again.load();
+    expect(await again.put(ID, SECRET2, state())).toBe('gone');
+  });
+
+  test('a failed disk write does not break later saves', async () => {
+    dir = mkdtempSync(join(tmpdir(), 'breezr-disk-'));
+    const sub = join(dir, 'missing');
+    const store = new LiveStore({ file: join(sub, 'ids.json') });
+    await store.put('AAAAAAAAAA', SECRET, state());
+    const { mkdirSync } = await import('fs');
+    mkdirSync(sub);
+    expect(await store.put('BBBBBBBBBB', SECRET, state())).toBe('created');
+    const saved = JSON.parse(readFileSync(join(sub, 'ids.json'), 'utf-8'));
+    expect(Object.keys(saved).sort()).toEqual(['AAAAAAAAAA', 'BBBBBBBBBB']);
+  });
+
+  test('links unused for 90 days expire and free their place', async () => {
+    dir = mkdtempSync(join(tmpdir(), 'breezr-expiry-'));
+    let now = 0;
+    const store = new LiveStore({ file: join(dir, 'ids.json'), now: () => now, maxIds: 1 });
+    await store.put('AAAAAAAAAA', SECRET, state());
+    expect(await store.put('BBBBBBBBBB', SECRET, state())).toBe('full');
+    now = 91 * 86_400_000;
+    expect(await store.put('BBBBBBBBBB', SECRET, state())).toBe('created');
+    expect(store.get('AAAAAAAAAA').status).toBe('unknown');
+  });
+
+  test('a burst of new links is saved completely', async () => {
+    dir = mkdtempSync(join(tmpdir(), 'breezr-burst-'));
+    const store = new LiveStore({ file: join(dir, 'ids.json') });
+    const ids = Array.from({ length: 30 }, (_, i) => `ID${String(i).padStart(8, '0')}`);
+    await Promise.all(ids.map((id) => store.put(id, SECRET, state())));
+    await store.put('ZZZZZZZZZZ', SECRET, state());
+    expect(Object.keys(JSON.parse(readFileSync(join(dir, 'ids.json'), 'utf-8'))).length).toBe(31);
+  });
+});

@@ -2,6 +2,8 @@
 
 export const LIVE_BASE_URL = 'https://breezr.babas.app';
 export const ID_PATTERN = /^[0-9A-Za-z]{10}$/;
+/** Without news from Breezr for this long, a link reads as "not listening right now". */
+export const IDLE_MS = 600_000;
 
 /** What Breezr publishes about the track being played. Times in ms; duration 0 = unknown (live radio). */
 export interface LiveTrack {
@@ -93,6 +95,11 @@ export function validateLiveState(raw: unknown): LiveState | null {
   };
   if (t.isrc !== undefined) track.isrc = t.isrc;
   return { track, playing: raw.playing, position: raw.position as number, at: raw.at as number };
+}
+
+/** The page's own check: a stream that stays open does not hear that Breezr went silent. */
+export function isStale(receivedAt: number, serverNow: number): boolean {
+  return serverNow - receivedAt > IDLE_MS;
 }
 
 /** Position now, measured on the server's clock (`receivedAt`: when the server got the state). */

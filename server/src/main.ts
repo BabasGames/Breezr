@@ -1,7 +1,6 @@
-import { createServer } from 'node:http';
 import { join } from 'node:path';
 import { mkdirSync } from 'node:fs';
-import { createApp } from './app';
+import { createLiveServer } from './app';
 import { createLyricsService } from './lyrics';
 import { LiveStore } from './store';
 
@@ -15,7 +14,7 @@ async function main() {
   const store = new LiveStore({ file: join(dataDir, 'ids.json') });
   await store.load();
   const lyrics = createLyricsService({ fetch });
-  const server = createServer(createApp({ store, lyrics, publicDir }));
+  const server = createLiveServer({ store, lyrics, publicDir });
   server.listen(port, host, () => console.log(`breezr-live listening on http://${host}:${port}`));
   const stop = () => {
     server.closeAllConnections();

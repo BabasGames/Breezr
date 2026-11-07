@@ -64,3 +64,23 @@ describe('lyrics service', () => {
     expect(await createLyricsService({ fetch: fn }).get(Q)).toEqual({ kind: 'none' });
   });
 });
+
+describe('lyrics service under load', () => {
+  test('viewers asking for the same track at once share one LRCLIB request', async () => {
+    let release: () => void = () => undefined;
+    const gate = new Promise<void>((r) => { release = r; });
+    const { fn, calls } = fakeFetch(async () => { await gate; return json({ plainLyrics: 'La', duration: 248 }); });
+    const service = createLyricsService({ fetch: fn });
+    const both = Promise.all([service.get(Q), service.get(Q)]);
+    release();
+    expect(await both).toEqual([{ kind: 'plain', text: 'La' }, { kind: 'plain', text: 'La' }]);
+    expect(calls.length).toBe(1);
+  });
+
+  test('a failure is reported as such, so it is not cached downstream', async () => {
+    const { fn } = fakeFetch(() => { throw new Error('offline'); });
+    expect(await createLyricsService({ fetch: fn }).lookup(Q)).toEqual({ result: { kind: 'none' }, ok: false });
+    const fine = fakeFetch(() => json({ plainLyrics: 'La', duration: 248 }));
+    expect(await createLyricsService({ fetch: fine.fn }).lookup(Q)).toEqual({ result: { kind: 'plain', text: 'La' }, ok: true });
+  });
+});

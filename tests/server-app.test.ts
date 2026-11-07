@@ -4,7 +4,8 @@ import { createServer, type Server } from 'http';
 import type { AddressInfo } from 'net';
 import { tmpdir } from 'os';
 import { join } from 'path';
-import { createApp } from '../server/src/app';
+import { creationKey, createApp, createLiveServer, writeOrDrop } from '../server/src/app';
+import { connect } from 'net';
 import { LiveStore } from '../server/src/store';
 import type { LiveState } from '../src/shared/live';
 
@@ -32,7 +33,7 @@ beforeAll(async () => {
   writeFileSync(join(publicDir, 'index.html'), '<!doctype html><title>page</title>');
   writeFileSync(join(publicDir, 'assets', 'app.js'), 'console.log(1)');
   const store = new LiveStore({ file: join(dir, 'ids.json') });
-  const lyrics = { get: async (q: (typeof lookups)[number]) => { lookups.push(q); return { kind: 'plain' as const, text: 'La la' }; } };
+  const lyrics = { lookup: async (q: (typeof lookups)[number]) => { lookups.push(q); return { result: { kind: 'plain' as const, text: 'La la' }, ok: true }; } };
   server = createServer(createApp({ store, lyrics, publicDir }));
   await new Promise<void>((r) => server.listen(0, '127.0.0.1', r));
   base = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
@@ -155,7 +156,7 @@ describe('abuse', () => {
   beforeAll(async () => {
     dir2 = mkdtempSync(join(tmpdir(), 'breezr-abuse-'));
     const store = new LiveStore({ file: join(dir2, 'ids.json') });
-    server2 = createServer(createApp({ store, lyrics: { get: async () => ({ kind: 'none' as const }) }, publicDir: dir2 }));
+    server2 = createServer(createApp({ store, lyrics: { lookup: async () => ({ result: { kind: 'none' as const }, ok: false }) }, publicDir: dir2 }));
     await new Promise<void>((r) => server2.listen(0, '127.0.0.1', r));
     base2 = `http://127.0.0.1:${(server2.address() as AddressInfo).port}`;
   });
@@ -185,5 +186,89 @@ describe('abuse', () => {
     for (let i = 0; i < 30; i++) codes.push((await fetch(`${base2}/api/live/${id}/lyrics?track=1`)).status);
     expect(codes).toContain(200);
     expect(codes).toContain(429);
+  });
+});
+
+describe('hardening', () => {
+  let dir3 = '';
+  let server3: Server;
+  let base3 = '';
+  let port3 = 0;
+  beforeAll(async () => {
+    dir3 = mkdtempSync(join(tmpdir(), 'breezr-hard-'));
+    const store = new LiveStore({ file: join(dir3, 'ids.json') });
+    server3 = createLiveServer({ store, lyrics: { lookup: async () => ({ result: { kind: 'none' as const }, ok: false }) }, publicDir: dir3 });
+    await new Promise<void>((r) => server3.listen(0, '127.0.0.1', r));
+    port3 = (server3.address() as AddressInfo).port;
+    base3 = `http://127.0.0.1:${port3}`;
+  });
+  afterAll(() => {
+    server3.closeAllConnections();
+    server3.close();
+    rmSync(dir3, { recursive: true, force: true });
+  });
+
+  test('a malformed request line gets a 400 and the server keeps running', async () => {
+    const reply = await new Promise<string>((resolve) => {
+      const socket = connect(port3, '127.0.0.1', () => socket.write('GET //[ HTTP/1.1\r\nHost: x\r\nConnection: close\r\n\r\n'));
+      let data = '';
+      socket.on('data', (d) => { data += d; });
+      socket.on('close', () => resolve(data));
+      socket.on('error', () => resolve(data));
+    });
+    expect(reply.startsWith('HTTP/1.1 400')).toBe(true);
+    expect((await fetch(`${base3}/api/live/AAAAAAAAAA`)).status).toBe(404);
+  });
+
+  test('requests must arrive quickly', () => {
+    expect(server3.requestTimeout).toBeLessThanOrEqual(10_000);
+    expect(server3.headersTimeout).toBeLessThanOrEqual(10_000);
+  });
+
+  test('one IP cannot hold more than 20 live streams', async () => {
+    const opened: Response[] = [];
+    for (let i = 0; i < 20; i++) {
+      const res = await fetch(`${base3}/api/live/AAAAAAAAAA/events`);
+      expect(res.status).toBe(200);
+      opened.push(res);
+    }
+    expect((await fetch(`${base3}/api/live/AAAAAAAAAA/events`)).status).toBe(429);
+    await Promise.all(opened.map((r) => r.body!.cancel()));
+  });
+
+  test('a failed lyrics lookup is not cached by browsers', async () => {
+    const id = 'IIIIIIIIII';
+    await fetch(`${base3}/api/live/${id}`, { method: 'PUT', headers: { authorization: `Bearer ${SECRET}` }, body: JSON.stringify(state()) });
+    const res = await fetch(`${base3}/api/live/${id}/lyrics?track=1`);
+    expect(res.headers.get('cache-control')).toBe('no-store');
+  });
+
+  test('a deleted link answers 410 to any further write', async () => {
+    const id = 'JJJJJJJJJJ';
+    const put3 = (secret: string) => fetch(`${base3}/api/live/${id}`, { method: 'PUT', headers: { authorization: `Bearer ${secret}` }, body: JSON.stringify(state()) });
+    expect((await put3(SECRET)).status).toBe(204);
+    await fetch(`${base3}/api/live/${id}`, { method: 'DELETE', headers: { authorization: `Bearer ${SECRET}` } });
+    expect((await put3('t'.repeat(43))).status).toBe(410);
+    expect((await fetch(`${base3}/api/live/${id}`)).status).toBe(404);
+  });
+});
+
+describe('helpers', () => {
+  test('new links are counted per IPv6 /64 and per IPv4 address', () => {
+    expect(creationKey('2001:db8:1:2:3:4:5:6')).toBe(creationKey('2001:db8:1:2:ffff::1'));
+    expect(creationKey('2001:db8:1:3::1')).not.toBe(creationKey('2001:db8:1:2::1'));
+    expect(creationKey('::ffff:1.2.3.4')).toBe('1.2.3.4');
+    expect(creationKey('1.2.3.4')).toBe('1.2.3.4');
+  });
+
+  test('a stream that stops reading is dropped instead of buffering forever', () => {
+    let destroyed = false;
+    const writes: string[] = [];
+    const res = { writableLength: 70_000, write: (c: string) => writes.push(c), destroy: () => { destroyed = true; } };
+    expect(writeOrDrop(res as never, 'x')).toBe(false);
+    expect(destroyed).toBe(true);
+    expect(writes).toEqual([]);
+    const ok = { writableLength: 10, write: (c: string) => writes.push(c), destroy: () => undefined };
+    expect(writeOrDrop(ok as never, 'y')).toBe(true);
   });
 });

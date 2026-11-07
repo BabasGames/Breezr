@@ -44,6 +44,8 @@ export function createLyricsService(opts: {
   const max = opts.max ?? 5000;
   const timeoutMs = opts.timeoutMs ?? 5000;
   const cache = new Map<string, { at: number; result: LyricsResult }>();
+  // A track change reaches every viewer at once: concurrent misses share one LRCLIB request.
+  const inFlight = new Map<string, Promise<{ result: LyricsResult; ok: boolean }>>();
 
   async function call(path: string, params: Record<string, string>): Promise<Response> {
     const url = new URL(path, base);
@@ -76,21 +78,36 @@ export function createLyricsService(opts: {
     return toResult(match);
   }
 
+  /** `ok: false` = the lookup failed (network, timeout, bad answer): not cached here, and not to be cached by callers. */
+  async function lookupOnce(q: LyricsQuery, key: string): Promise<{ result: LyricsResult; ok: boolean }> {
+    try {
+      const result = await lookup(q);
+      cache.delete(key);
+      cache.set(key, { at: now(), result });
+      // Maps keep insertion order: the first key is the oldest entry.
+      if (cache.size > max) cache.delete(cache.keys().next().value as string);
+      return { result, ok: true };
+    } catch {
+      return { result: { kind: 'none' }, ok: false };
+    }
+  }
+
+  async function lookupCached(q: LyricsQuery): Promise<{ result: LyricsResult; ok: boolean }> {
+    const key = [q.artist, q.title, q.album, q.durationSec].join('\u0000').toLowerCase();
+    const hit = cache.get(key);
+    if (hit && now() - hit.at <= ttlMs) return { result: hit.result, ok: true };
+    let pending = inFlight.get(key);
+    if (!pending) {
+      pending = lookupOnce(q, key).finally(() => inFlight.delete(key));
+      inFlight.set(key, pending);
+    }
+    return pending;
+  }
+
   return {
+    lookup: lookupCached,
     async get(q: LyricsQuery): Promise<LyricsResult> {
-      const key = [q.artist, q.title, q.album, q.durationSec].join('\u0000').toLowerCase();
-      const hit = cache.get(key);
-      if (hit && now() - hit.at <= ttlMs) return hit.result;
-      try {
-        const result = await lookup(q);
-        cache.delete(key);
-        cache.set(key, { at: now(), result });
-        // Maps keep insertion order: the first key is the oldest entry.
-        if (cache.size > max) cache.delete(cache.keys().next().value as string);
-        return result;
-      } catch {
-        return { kind: 'none' };
-      }
+      return (await lookupCached(q)).result;
     },
   };
 }
