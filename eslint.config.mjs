@@ -45,7 +45,7 @@ export default defineConfig([
     },
   },
   {
-    files: ['src/renderer/**/*.ts'],
+    files: ['src/renderer/**/*.ts', 'web/**/*.ts'],
     languageOptions: {
       globals: { ...globals.browser },
     },

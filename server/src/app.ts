@@ -10,6 +10,7 @@ const MAX_BODY = 4096;
 const SECRET_PATTERN = /^[A-Za-z0-9_-]{43}$/;
 const PING_MS = 25_000;
 const MAX_STREAMS = 10_000;
+const MAX_LOOKUPS_IN_FLIGHT = 20;
 const REPO_URL = 'https://github.com/BabasGames/Breezr';
 
 const SECURITY_HEADERS: Record<string, string> = {
@@ -76,9 +77,29 @@ function bearer(req: IncomingMessage): string | null {
 export function createApp(opts: { store: LiveStore; lyrics: LyricsSource; publicDir: string; now?: () => number }): RequestListener {
   const { store, lyrics, publicDir } = opts;
   const now = opts.now ?? Date.now;
+  // Writes are charged to the link only once its owner is proven: a stranger who knows the (public) id cannot
+  // use up the owner's budget. Wrong keys are charged to the caller's IP instead.
   const writes = new RateLimiter(5, 1, now);
+  const wrongKeys = new RateLimiter(10, 10 / 60, now);
   const creations = new RateLimiter(10, 10 / 3600, now);
+  const lyricsLookups = new RateLimiter(10, 0.5, now);
   let streams = 0;
+  let lookupsInFlight = 0;
+
+  /** 'ok' when the caller may write `id`, otherwise the response already sent. */
+  function authorize(req: IncomingMessage, res: ServerResponse, id: string, secret: string): boolean {
+    const ownership = store.check(id, secret);
+    if (ownership === 'forbidden') {
+      if (!wrongKeys.take(clientIp(req))) send(res, 429, { error: 'slow down' });
+      else send(res, 403, { error: 'wrong key' });
+      return false;
+    }
+    if (!writes.take(id) || (ownership === 'unclaimed' && !creations.take(clientIp(req)))) {
+      send(res, 429, { error: 'slow down' });
+      return false;
+    }
+    return true;
+  }
 
   const snapshotBody = (snap: Snapshot) =>
     snap.status === 'live' ? { ...snap, serverNow: now() }
@@ -101,7 +122,6 @@ export function createApp(opts: { store: LiveStore; lyrics: LyricsSource; public
   async function putLive(req: IncomingMessage, res: ServerResponse, id: string) {
     const secret = bearer(req);
     if (!secret) return send(res, 401, { error: 'missing key' });
-    if (!writes.take(id)) return send(res, 429, { error: 'slow down' });
     let raw: unknown;
     try {
       raw = JSON.parse(await readBody(req));
@@ -110,7 +130,7 @@ export function createApp(opts: { store: LiveStore; lyrics: LyricsSource; public
     }
     const state = validateLiveState(raw);
     if (!state) return send(res, 400, { error: 'invalid state' });
-    if (store.get(id).status === 'unknown' && !creations.take(clientIp(req))) return send(res, 429, { error: 'slow down' });
+    if (!authorize(req, res, id, secret)) return;
     const result = await store.put(id, secret, state);
     if (result === 'forbidden') return send(res, 403, { error: 'wrong key' });
     if (result === 'full') return send(res, 507, { error: 'full' });
@@ -120,7 +140,8 @@ export function createApp(opts: { store: LiveStore; lyrics: LyricsSource; public
   async function deleteLive(req: IncomingMessage, res: ServerResponse, id: string) {
     const secret = bearer(req);
     if (!secret) return send(res, 401, { error: 'missing key' });
-    if (!writes.take(id)) return send(res, 429, { error: 'slow down' });
+    if (store.check(id, secret) === 'unclaimed') return send(res, 404, { status: 'unknown' });
+    if (!authorize(req, res, id, secret)) return;
     const result = await store.remove(id, secret);
     if (result === 'forbidden') return send(res, 403, { error: 'wrong key' });
     if (result === 'missing') return send(res, 404, { status: 'unknown' });
@@ -144,14 +165,26 @@ export function createApp(opts: { store: LiveStore; lyrics: LyricsSource; public
     });
   }
 
-  async function lyricsRoute(url: URL, res: ServerResponse) {
-    const p = url.searchParams;
-    const title = p.get('title')?.trim() ?? '';
-    const artist = p.get('artist')?.trim() ?? '';
-    if (!title || !artist || title.length > 300 || artist.length > 300) return send(res, 400, { error: 'title and artist needed' });
-    const durationSec = Math.max(0, Math.round(Number(p.get('duration')) || 0));
-    const result = await lyrics.get({ title, artist, album: (p.get('album') ?? '').slice(0, 300), durationSec });
-    send(res, 200, result, { 'Cache-Control': 'public, max-age=3600' });
+  /**
+   * Lyrics of the track a live link is playing, and only that: the server never relays free-form lookups to
+   * LRCLIB. Throttled per IP and capped in flight.
+   */
+  async function lyricsRoute(req: IncomingMessage, res: ServerResponse, id: string) {
+    const snap = store.get(id);
+    if (snap.status !== 'live') return send(res, 404, snapshotBody(snap));
+    if (!lyricsLookups.take(clientIp(req))) return send(res, 429, { error: 'slow down' });
+    if (lookupsInFlight >= MAX_LOOKUPS_IN_FLIGHT) return send(res, 503, { error: 'busy' });
+    const { track } = snap.state;
+    lookupsInFlight++;
+    try {
+      // LRCLIB knows songs by their main artist: "Daft Punk, Pharrell Williams" → "Daft Punk".
+      const result = await lyrics.get({
+        title: track.title, artist: track.artists.split(', ')[0], album: track.album, durationSec: Math.round(track.duration / 1000),
+      });
+      send(res, 200, result, { 'Cache-Control': 'public, max-age=3600' });
+    } finally {
+      lookupsInFlight--;
+    }
   }
 
   return (req, res) => {
@@ -159,11 +192,13 @@ export function createApp(opts: { store: LiveStore; lyrics: LyricsSource; public
     const path = url.pathname;
     const method = req.method ?? 'GET';
     const handle = async () => {
-      const live = /^\/api\/live\/([^/]+)(\/events)?$/.exec(path);
+      const live = /^\/api\/live\/([^/]+)(\/events|\/lyrics)?$/.exec(path);
       if (live) {
-        const [, id, events] = live;
+        const [, id, sub] = live;
         if (!ID_PATTERN.test(id)) return send(res, 404, { status: 'unknown' });
-        if (events) return method === 'GET' ? stream(req, res, id) : send(res, 405, { error: 'method' });
+        if (sub && method !== 'GET') return send(res, 405, { error: 'method' });
+        if (sub === '/events') return stream(req, res, id);
+        if (sub === '/lyrics') return lyricsRoute(req, res, id);
         if (method === 'PUT') return putLive(req, res, id);
         if (method === 'DELETE') return deleteLive(req, res, id);
         if (method !== 'GET') return send(res, 405, { error: 'method' });
@@ -171,7 +206,6 @@ export function createApp(opts: { store: LiveStore; lyrics: LyricsSource; public
         return send(res, snap.status === 'unknown' ? 404 : 200, snapshotBody(snap));
       }
       if (method !== 'GET' && method !== 'HEAD') return send(res, 405, { error: 'method' });
-      if (path === '/api/lyrics') return lyricsRoute(url, res);
       if (/^\/l\/[^/]+$/.test(path)) return serveFile(res, 'index.html');
       if (path.startsWith('/assets/')) {
         let relative: string;

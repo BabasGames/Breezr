@@ -18,6 +18,7 @@ const state = (title = 'Get Lucky'): LiveState => ({
 let dir = '';
 let server: Server;
 let base = '';
+const lookups: { title: string; artist: string; album: string; durationSec: number }[] = [];
 const put = (id: string, body: unknown, secret: string | null = SECRET) => fetch(`${base}/api/live/${id}`, {
   method: 'PUT',
   headers: { 'content-type': 'application/json', ...(secret ? { authorization: `Bearer ${secret}` } : {}) },
@@ -31,7 +32,7 @@ beforeAll(async () => {
   writeFileSync(join(publicDir, 'index.html'), '<!doctype html><title>page</title>');
   writeFileSync(join(publicDir, 'assets', 'app.js'), 'console.log(1)');
   const store = new LiveStore({ file: join(dir, 'ids.json') });
-  const lyrics = { get: async () => ({ kind: 'plain' as const, text: 'La la' }) };
+  const lyrics = { get: async (q: (typeof lookups)[number]) => { lookups.push(q); return { kind: 'plain' as const, text: 'La la' }; } };
   server = createServer(createApp({ store, lyrics, publicDir }));
   await new Promise<void>((r) => server.listen(0, '127.0.0.1', r));
   base = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
@@ -63,6 +64,7 @@ describe('live API', () => {
   });
 
   test('too many writes are slowed down', async () => {
+    expect((await put('BBBBBBBBBB', state())).status).toBe(204);
     const codes = await Promise.all(Array.from({ length: 8 }, () => put('BBBBBBBBBB', state()).then((r) => r.status)));
     expect(codes).toContain(429);
   });
@@ -124,9 +126,56 @@ describe('page and lyrics', () => {
     expect((await fetch(`${base}/assets/%E0%A4%A`)).status).toBe(404);
   });
 
-  test('lyrics need a title and an artist', async () => {
-    expect((await fetch(`${base}/api/lyrics?title=x`)).status).toBe(400);
-    const ok = await fetch(`${base}/api/lyrics?title=x&artist=y&album=z&duration=200`);
-    expect(await ok.json()).toEqual({ kind: 'plain', text: 'La la' });
+  test('lyrics only for the track a live link is playing', async () => {
+    const id = 'EEEEEEEEEE';
+    expect((await fetch(`${base}/api/live/${id}/lyrics`)).status).toBe(404);
+    await put(id, state('Get Lucky'));
+    const res = await fetch(`${base}/api/live/${id}/lyrics`);
+    expect(await res.json()).toEqual({ kind: 'plain', text: 'La la' });
+    expect(lookups.at(-1)).toEqual({ title: 'Get Lucky', artist: 'Daft Punk', album: 'RAM', durationSec: 248 });
+  });
+
+  test('there is no free-form lyrics lookup', async () => {
+    expect((await fetch(`${base}/api/lyrics?title=x&artist=y`)).status).toBe(404);
+  });
+});
+
+describe('abuse', () => {
+  let dir2 = '';
+  let server2: Server;
+  let base2 = '';
+  beforeAll(async () => {
+    dir2 = mkdtempSync(join(tmpdir(), 'breezr-abuse-'));
+    const store = new LiveStore({ file: join(dir2, 'ids.json') });
+    server2 = createServer(createApp({ store, lyrics: { get: async () => ({ kind: 'none' as const }) }, publicDir: dir2 }));
+    await new Promise<void>((r) => server2.listen(0, '127.0.0.1', r));
+    base2 = `http://127.0.0.1:${(server2.address() as AddressInfo).port}`;
+  });
+  afterAll(() => {
+    server2.closeAllConnections();
+    server2.close();
+    rmSync(dir2, { recursive: true, force: true });
+  });
+  const put2 = (id: string, secret: string, title = 'x') => fetch(`${base2}/api/live/${id}`, {
+    method: 'PUT', headers: { 'content-type': 'application/json', authorization: `Bearer ${secret}` }, body: JSON.stringify(state(title)),
+  });
+
+  test('wrong keys do not use up the owner\'s writes, and are slowed down per IP', async () => {
+    const id = 'FFFFFFFFFF';
+    expect((await put2(id, SECRET)).status).toBe(204);
+    const attacks = [];
+    for (let i = 0; i < 15; i++) attacks.push((await put2(id, 'x'.repeat(43))).status);
+    expect(attacks).toContain(403);
+    expect(attacks).toContain(429);
+    expect((await put2(id, SECRET, 'Still mine')).status).toBe(204);
+  });
+
+  test('lyrics requests are rate limited per IP', async () => {
+    const id = 'GGGGGGGGGG';
+    await put2(id, SECRET);
+    const codes = [];
+    for (let i = 0; i < 30; i++) codes.push((await fetch(`${base2}/api/live/${id}/lyrics`)).status);
+    expect(codes).toContain(200);
+    expect(codes).toContain(429);
   });
 });

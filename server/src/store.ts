@@ -68,6 +68,13 @@ export class LiveStore {
     return 'ok';
   }
 
+  /** Whether `secret` owns `id`, before any write: lets callers charge rate limits to the right party. */
+  check(id: string, secret: string): 'owner' | 'forbidden' | 'unclaimed' {
+    const claim = this.claims.get(id);
+    if (!claim) return 'unclaimed';
+    return this.owns(claim, secret) ? 'owner' : 'forbidden';
+  }
+
   get(id: string): Snapshot {
     if (!this.claims.has(id)) return { status: 'unknown' };
     const live = this.states.get(id);
