@@ -162,5 +162,13 @@
   "tray.unlike": "إزالة من المفضلة",
   "settings.general.liveLinkShowViewers": "عرض عدد المشاهدين على الصفحة",
   "settings.general.liveLinkShowViewersHelp": "يرى من يفتح رابطك عدد الصفحات التي تتابعه الآن. يُعرض الرقم فقط.",
-  "web.viewers": "المشاهدون: {count}"
+  "web.viewers": "المشاهدون: {count}",
+  "web.listen": "استمع إلى الموسيقى",
+  "web.lyricsOnly": "عرض الكلمات",
+  "web.mute": "كتم الصوت",
+  "web.unmute": "تشغيل الصوت",
+  "web.musicOn": "استمع مع الفيديو",
+  "web.musicOff": "الكلمات فقط",
+  "web.musicUnavailable": "الموسيقى غير متاحة لهذا المقطع",
+  "web.tapForSound": "انقر لتشغيل الصوت"
 }

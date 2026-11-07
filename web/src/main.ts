@@ -4,6 +4,7 @@ import { loadI18n } from './i18n';
 import { createClock } from './sync';
 import { openLiveStream } from './stream';
 import { createView } from './view';
+import { lyricsTime, nextMode, type Mode, type ModeEvent } from './music';
 import { loadYouTubePlayer } from './youtube-player';
 
 type Message =
@@ -42,9 +43,28 @@ async function start() {
       error: (code) => audio.reportError(code),
       blocked: () => audio.reportBlocked(),
     }),
-    onUnavailable: () => undefined,
-    onMuted: () => undefined,
+    onUnavailable: (on) => view.setMusicUnavailable(on),
+    onMuted: (muted, blocked) => view.setMuted(muted, blocked),
   });
+
+  // The viewer's choice holds for the whole visit, through pauses and idle spells.
+  let mode: Mode = 'choice';
+  const apply = (event: ModeEvent) => {
+    const next = nextMode(mode, event);
+    if (next === mode) return;
+    mode = next;
+    view.setMode(mode);
+    if (mode === 'music') audio.enable();
+    else audio.disable();
+  };
+  view.setMode(mode);
+  view.onChoice({
+    listen: () => apply('listen'),
+    lyricsOnly: () => apply('lyricsOnly'),
+    toggleVideo: () => apply('toggleVideo'),
+    toggleMute: () => audio.toggleMute(),
+  });
+  const silence = () => audio.disable();
 
   async function loadLyrics(forTrack: string) {
     let result: LyricsResult = { kind: 'none' };
@@ -67,6 +87,7 @@ async function start() {
     if (message.status !== 'live') {
       live = null;
       trackId = null;
+      silence();
       view.setViewers(null);
       view.setStatus(message.status === 'idle' ? 'idle' : 'inactive');
       return;
@@ -79,6 +100,8 @@ async function start() {
       audio.load(message.state.track);
       void loadLyrics(trackId);
     }
+    // Back from idle with music on: start again (muted if the browser no longer allows sound).
+    if (mode === 'music' && !audio.enabled()) audio.enable();
     view.setStatus(message.state.playing ? 'live' : 'paused');
     view.setViewers(typeof message.viewers === 'number' ? message.viewers : null);
   };
@@ -93,18 +116,22 @@ async function start() {
     if (live && isStale(live.receivedAt, clock.serverTime(Date.now()))) {
       live = null;
       trackId = null;
+      silence();
       view.setStatus('idle');
       view.setViewers(null);
     }
     if (live) {
-      const position = positionAt(live.state, clock.serverTime(Date.now()), live.receivedAt);
+      const position = lyricsTime(mode, audio.timeMs(), positionAt(live.state, clock.serverTime(Date.now()), live.receivedAt));
       view.setProgress(position, live.state.track.duration);
       if (lyrics?.kind === 'synced') view.setLine(lineIndexAt(lyrics.lines, position));
-      audio.sync(position, live.state.playing);
     }
     requestAnimationFrame(frame);
   };
   requestAnimationFrame(frame);
+  // The video is driven from a timer: animation frames stop in a hidden tab, the music does not.
+  setInterval(() => {
+    if (live) audio.sync(positionAt(live.state, clock.serverTime(Date.now()), live.receivedAt), live.state.playing);
+  }, 250);
 }
 
 void start();

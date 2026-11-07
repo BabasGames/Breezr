@@ -13,21 +13,42 @@
 <body>
   <div class="page">
     <header class="top">
-      <span id="viewers" class="viewers" hidden>
-        <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>
-        <span id="viewers-count"></span>
-      </span>
-      <span id="status" class="status" hidden></span>
-      <div class="theme" id="theme">
-        <button type="button" class="theme-button" id="theme-button" aria-haspopup="menu" aria-expanded="false" aria-controls="theme-menu">
-          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a9 9 0 1 0 0 18c1.1 0 1.8-.9 1.8-1.9 0-.5-.2-.9-.5-1.3-.3-.3-.5-.8-.5-1.3 0-1 .8-1.8 1.8-1.8H17a4 4 0 0 0 4-4c0-4.3-4-7.7-9-7.7z"/><circle cx="7.5" cy="11" r="1"/><circle cx="10.5" cy="7.5" r="1"/><circle cx="15" cy="7.5" r="1"/></svg>
+      <!-- Music controls (left): shown once the viewer chose music or lyrics only. -->
+      <div class="music-controls" id="music-controls" hidden>
+        <button type="button" class="round-button" id="mute-button" hidden>
+          <svg class="icon-sound" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg>
+          <svg class="icon-muted" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="m16 9 6 6"/><path d="m22 9-6 6"/></svg>
         </button>
-        <div class="menu-wrap"><div class="menu" id="theme-menu" role="menu"></div></div>
+        <button type="button" class="round-button" id="video-button" aria-pressed="false">
+          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="6" width="13" height="12" rx="2"/><path d="m15.5 10.5 6-3.5v10l-6-3.5z"/></svg>
+        </button>
+      </div>
+      <div class="top-right">
+        <span id="viewers" class="viewers" hidden>
+          <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>
+          <span id="viewers-count"></span>
+        </span>
+        <span id="status" class="status" hidden></span>
+        <div class="theme" id="theme">
+          <button type="button" class="theme-button" id="theme-button" aria-haspopup="menu" aria-expanded="false" aria-controls="theme-menu">
+            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a9 9 0 1 0 0 18c1.1 0 1.8-.9 1.8-1.9 0-.5-.2-.9-.5-1.3-.3-.3-.5-.8-.5-1.3 0-1 .8-1.8 1.8-1.8H17a4 4 0 0 0 4-4c0-4.3-4-7.7-9-7.7z"/><circle cx="7.5" cy="11" r="1"/><circle cx="10.5" cy="7.5" r="1"/><circle cx="15" cy="7.5" r="1"/></svg>
+          </button>
+          <div class="menu-wrap"><div class="menu" id="theme-menu" role="menu"></div></div>
+        </div>
       </div>
     </header>
     <main class="stage" id="stage" hidden>
-      <div class="cover-col"><img id="cover" class="cover" alt="" width="480" height="480"></div>
+      <div class="cover-col">
+        <img id="cover" class="cover" alt="" width="480" height="480">
+        <!-- The YouTube player goes here, only after the viewer asked for music. -->
+        <div id="video" class="video" hidden></div>
+        <p id="music-note" class="music-note" hidden></p>
+      </div>
       <section class="lyrics" id="lyrics" aria-live="off"></section>
+      <div class="choice" id="choice" hidden>
+        <button type="button" class="choice-primary" id="listen-button"></button>
+        <button type="button" class="choice-secondary" id="lyrics-button"></button>
+      </div>
     </main>
     <p class="notice" id="notice"></p>
     <footer class="bar" id="bar" hidden>

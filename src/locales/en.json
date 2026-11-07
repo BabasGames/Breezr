@@ -155,5 +155,13 @@
   "tray.unlike": "Remove from Favourite tracks",
   "settings.general.liveLinkShowViewers": "Show the viewer count on the page",
   "settings.general.liveLinkShowViewersHelp": "People who open your link see how many pages follow it right now. Only the number is shown.",
-  "web.viewers": "Viewers: {count}"
+  "web.viewers": "Viewers: {count}",
+  "web.listen": "Listen to the music",
+  "web.lyricsOnly": "See the lyrics",
+  "web.mute": "Mute",
+  "web.unmute": "Unmute",
+  "web.musicOn": "Listen with the video",
+  "web.musicOff": "Lyrics only",
+  "web.musicUnavailable": "Music unavailable for this track",
+  "web.tapForSound": "Tap to turn the sound on"
 }

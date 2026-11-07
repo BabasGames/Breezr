@@ -18,15 +18,23 @@ body {
 [hidden] { display: none !important; }
 
 .page { display: grid; grid-template-rows: auto 1fr auto auto; block-size: 100dvh; }
-.top { display: flex; justify-content: flex-end; align-items: center; gap: 10px; padding: 20px 28px 0; min-block-size: 44px; position: relative; z-index: 2; }
+.top { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 20px 28px 0; min-block-size: 44px; position: relative; z-index: 2; }
+.top-right { display: flex; align-items: center; gap: 10px; margin-inline-start: auto; }
+.music-controls { display: flex; align-items: center; gap: 8px; }
 
 /* Colour menu: opens on hover where there is a mouse, on tap elsewhere (.open), and with the keyboard. */
 .theme { position: relative; }
-.theme-button {
+.theme-button, .round-button {
   display: inline-grid; place-items: center; inline-size: 32px; block-size: 32px; padding: 0; border: 0; border-radius: 50%;
   cursor: pointer; color: var(--fg); background: color-mix(in srgb, var(--fg) 12%, transparent);
 }
-.theme-button:hover, .theme-button:focus-visible { background: color-mix(in srgb, var(--fg) 22%, transparent); }
+.theme-button:hover, .theme-button:focus-visible, .round-button:hover, .round-button:focus-visible { background: color-mix(in srgb, var(--fg) 22%, transparent); }
+.round-button:focus-visible { outline: 2px solid var(--fg); outline-offset: 2px; }
+.round-button[aria-pressed="true"] { background: var(--fg); color: var(--bg); }
+.round-button .icon-muted, .round-button.muted .icon-sound { display: none; }
+.round-button.muted .icon-muted { display: block; }
+/* The browser kept the sound off: the button asks to be tapped. */
+.round-button.blink { animation: pulse 1.2s ease-in-out infinite; }
 .theme-button:focus-visible, .menu button:focus-visible { outline: 2px solid var(--fg); outline-offset: 2px; }
 /* The wrapper's padding bridges the gap to the menu, so moving the mouse onto it keeps it open. */
 .menu-wrap { display: none; position: absolute; inset-block-start: 100%; inset-inline-end: 0; padding-block-start: 8px; }
@@ -58,11 +66,27 @@ body {
   display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); gap: 48px; align-items: center;
   padding: 16px clamp(24px, 5vw, 80px); min-block-size: 0;
 }
-.cover-col { display: flex; justify-content: center; }
+.cover-col { display: flex; flex-direction: column; align-items: center; gap: 12px; min-inline-size: 0; }
 .cover {
   inline-size: min(100%, 460px); block-size: auto; aspect-ratio: 1; object-fit: cover; border-radius: 16px;
   box-shadow: 0 24px 60px rgb(0 0 0 / 0.35);
 }
+.video {
+  inline-size: min(100%, 640px); aspect-ratio: 16 / 9; border-radius: 16px; overflow: hidden; background: #000;
+  box-shadow: 0 24px 60px rgb(0 0 0 / 0.35);
+}
+.video iframe { display: block; inline-size: 100%; block-size: 100%; border: 0; }
+.music-note { margin: 0; font-size: 13px; color: var(--past); text-align: center; }
+/* The first choice takes the lyrics' place until the viewer picks. */
+.choice { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; }
+.choice button {
+  min-inline-size: min(100%, 260px); padding: 14px 28px; border: 0; border-radius: 999px; cursor: pointer;
+  font: inherit; font-weight: 600;
+}
+.choice-primary { background: var(--fg); color: var(--bg); }
+.choice-secondary { background: color-mix(in srgb, var(--fg) 14%, transparent); color: var(--fg); }
+.choice button:hover { filter: brightness(1.08); }
+.choice button:focus-visible { outline: 2px solid var(--fg); outline-offset: 3px; }
 .lyrics {
   block-size: 100%; max-block-size: calc(100dvh - 220px); overflow-y: auto; scrollbar-width: none;
   padding-block: 35vh; text-align: center;
@@ -119,10 +143,8 @@ body {
 .credits a { color: inherit; }
 
 @media (max-width: 720px) {
-  /* The badge sits centred above the cover, with room to breathe, instead of over its corner. */
-  .top { justify-content: center; padding: 14px 16px 0; }
-  .menu-wrap { inset-inline-end: 50%; transform: translateX(50%); }
-  [dir="rtl"] .menu-wrap { transform: translateX(-50%); }
+  /* Same order as on a computer: music controls on the left, live badge and colours on the right. */
+  .top { padding: 14px 16px 0; }
   /* Lyrics take exactly the room left between the cover and the bar (phones lose height to the browser's
      own bars), and scroll inside it: they never run under or over the bar. */
   .stage {
@@ -132,8 +154,12 @@ body {
   .cover-col { flex: none; }
   .cover { inline-size: min(56vw, 240px, 28dvh); }
   .lyrics { flex: 1; min-block-size: 0; block-size: auto; max-block-size: none; padding-block: 14dvh; }
-  /* The big cover is right above: a second, small one in the bar would only repeat it. */
+  /* The big cover is right above: a second, small one in the bar would only repeat it. When the video
+     takes the cover's place, the small one comes back. */
   .mini-cover { display: none; }
+  .page.video-shown .mini-cover { display: block; }
+  .video { inline-size: 100%; }
+  .choice { flex: 1; }
   /* Phone: title and artist on the left, play/pause opposite them, the progress bar full width below. */
   .bar { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "who state" "progress progress"; gap: 10px 14px; }
   .center { display: contents; }
@@ -144,6 +170,7 @@ body {
   .progress { grid-column: 1 / -1; }
 }
 @media (prefers-reduced-motion: reduce) {
+  .round-button.blink { animation: none; outline: 2px solid var(--fg); outline-offset: 2px; }
   body, .line { transition: none; }
   .marquee > span { animation: none; }
   .status.live::before { animation: none; }

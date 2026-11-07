@@ -153,5 +153,13 @@
   "tray.unlike": "お気に入りから削除",
   "settings.general.liveLinkShowViewers": "ページに視聴者数を表示",
   "settings.general.liveLinkShowViewersHelp": "リンクを開いた人に、今このリンクを見ているページの数が表示されます。表示されるのは数だけです。",
-  "web.viewers": "視聴者: {count}"
+  "web.viewers": "視聴者: {count}",
+  "web.listen": "音楽を聴く",
+  "web.lyricsOnly": "歌詞を見る",
+  "web.mute": "ミュート",
+  "web.unmute": "ミュート解除",
+  "web.musicOn": "動画付きで聴く",
+  "web.musicOff": "歌詞のみ",
+  "web.musicUnavailable": "この曲の音楽は利用できません",
+  "web.tapForSound": "タップして音声をオン"
 }

@@ -153,5 +153,13 @@
   "tray.unlike": "从我喜欢的移除",
   "settings.general.liveLinkShowViewers": "在页面上显示观看人数",
   "settings.general.liveLinkShowViewersHelp": "打开你链接的人可以看到当前有多少页面在关注它。只显示数字。",
-  "web.viewers": "观看人数：{count}"
+  "web.viewers": "观看人数：{count}",
+  "web.listen": "听音乐",
+  "web.lyricsOnly": "查看歌词",
+  "web.mute": "静音",
+  "web.unmute": "取消静音",
+  "web.musicOn": "边听边看视频",
+  "web.musicOff": "仅歌词",
+  "web.musicUnavailable": "此曲目无法播放音乐",
+  "web.tapForSound": "点按以开启声音"
 }

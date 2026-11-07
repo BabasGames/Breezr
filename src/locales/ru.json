@@ -159,5 +159,13 @@
   "tray.unlike": "Убрать из Любимых треков",
   "settings.general.liveLinkShowViewers": "Показывать число зрителей на странице",
   "settings.general.liveLinkShowViewersHelp": "Те, кто открывает вашу ссылку, видят, сколько страниц сейчас её смотрят. Показывается только число.",
-  "web.viewers": "Зрители: {count}"
+  "web.viewers": "Зрители: {count}",
+  "web.listen": "Слушать музыку",
+  "web.lyricsOnly": "Смотреть текст",
+  "web.mute": "Выключить звук",
+  "web.unmute": "Включить звук",
+  "web.musicOn": "Слушать с видео",
+  "web.musicOff": "Только текст",
+  "web.musicUnavailable": "Музыка для этого трека недоступна",
+  "web.tapForSound": "Нажмите, чтобы включить звук"
 }

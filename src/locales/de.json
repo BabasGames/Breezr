@@ -155,5 +155,13 @@
   "tray.unlike": "Aus Lieblingstiteln entfernen",
   "settings.general.liveLinkShowViewers": "Zuschauerzahl auf der Seite zeigen",
   "settings.general.liveLinkShowViewersHelp": "Wer deinen Link öffnet, sieht, wie viele Seiten ihm gerade folgen. Nur die Zahl wird gezeigt.",
-  "web.viewers": "Zuschauer: {count}"
+  "web.viewers": "Zuschauer: {count}",
+  "web.listen": "Musik hören",
+  "web.lyricsOnly": "Songtext ansehen",
+  "web.mute": "Ton aus",
+  "web.unmute": "Ton an",
+  "web.musicOn": "Musik mit Video hören",
+  "web.musicOff": "Nur Songtext",
+  "web.musicUnavailable": "Musik für diesen Titel nicht verfügbar",
+  "web.tapForSound": "Tippen, um den Ton einzuschalten"
 }

@@ -155,5 +155,13 @@
   "tray.unlike": "Retirer des Coups de cœur",
   "settings.general.liveLinkShowViewers": "Afficher le nombre de spectateurs sur la page",
   "settings.general.liveLinkShowViewersHelp": "Les personnes qui ouvrent votre lien voient combien de pages le suivent en ce moment. Seul le nombre est montré.",
-  "web.viewers": "Spectateurs : {count}"
+  "web.viewers": "Spectateurs : {count}",
+  "web.listen": "Écouter la musique",
+  "web.lyricsOnly": "Voir les paroles",
+  "web.mute": "Couper le son",
+  "web.unmute": "Remettre le son",
+  "web.musicOn": "Écouter la musique et voir la vidéo",
+  "web.musicOff": "Paroles seules",
+  "web.musicUnavailable": "Musique indisponible pour ce morceau",
+  "web.tapForSound": "Touchez pour activer le son"
 }

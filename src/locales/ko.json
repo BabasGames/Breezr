@@ -153,5 +153,13 @@
   "tray.unlike": "좋아요 표시한 곡에서 삭제",
   "settings.general.liveLinkShowViewers": "페이지에 시청자 수 표시",
   "settings.general.liveLinkShowViewersHelp": "링크를 연 사람에게 지금 몇 개의 페이지가 보고 있는지 표시돼요. 숫자만 보여요.",
-  "web.viewers": "시청자: {count}"
+  "web.viewers": "시청자: {count}",
+  "web.listen": "음악 듣기",
+  "web.lyricsOnly": "가사 보기",
+  "web.mute": "음소거",
+  "web.unmute": "음소거 해제",
+  "web.musicOn": "동영상과 함께 듣기",
+  "web.musicOff": "가사만",
+  "web.musicUnavailable": "이 곡의 음악을 사용할 수 없습니다",
+  "web.tapForSound": "탭하여 소리 켜기"
 }

@@ -3,6 +3,7 @@ import { formatTime } from './sync';
 import { applyMarquee } from './marquee';
 import type { T } from './i18n';
 import { readChoice, saveChoice, themeColors, THEME_CHOICES, type ThemeChoice } from './theme';
+import type { Mode } from './music';
 
 export type Status = 'loading' | 'live' | 'paused' | 'idle' | 'inactive';
 
@@ -51,6 +52,16 @@ export function createView(t: T) {
   const progress = byId('progress');
   const playState = byId('play-state');
   const viewers = byId('viewers');
+  const page = document.querySelector('.page') as HTMLElement;
+  const video = byId('video');
+  const musicNote = byId('music-note');
+  const choiceBox = byId('choice');
+  const musicControls = byId('music-controls');
+  const muteButton = byId<HTMLButtonElement>('mute-button');
+  const videoButton = byId<HTMLButtonElement>('video-button');
+  let mode: Mode = 'choice';
+  // Music on: null while looking for the track's video, then whether there is one.
+  let videoFound: boolean | null = null;
   let lines: HTMLElement[] = [];
   let currentLine = -2;
   let reconnecting = false;
@@ -117,6 +128,30 @@ export function createView(t: T) {
   // A narrower window can make a title overflow (or a wider one let it fit): measure again.
   new ResizeObserver(() => { applyMarquee(byId('title')); applyMarquee(byId('artists')); }).observe(byId('bar'));
 
+  byId('listen-button').textContent = t('listen');
+  byId('lyrics-button').textContent = t('lyricsOnly');
+  musicNote.textContent = t('musicUnavailable');
+  const label = (el: HTMLElement, text: string) => {
+    el.setAttribute('aria-label', text);
+    el.title = text;
+  };
+
+  /** Cover or video, choice or lyrics, and the controls: all from the mode and what is known of the video. */
+  function renderMusic() {
+    const playing = shownStatus === 'live' || shownStatus === 'paused';
+    const showVideo = mode === 'music' && videoFound === true;
+    choiceBox.hidden = mode !== 'choice';
+    lyricsBox.hidden = mode === 'choice';
+    video.hidden = !showVideo;
+    cover.hidden = showVideo;
+    page.classList.toggle('video-shown', showVideo);
+    musicNote.hidden = !(mode === 'music' && videoFound === false);
+    musicControls.hidden = !playing || mode === 'choice';
+    muteButton.hidden = mode !== 'music';
+    videoButton.setAttribute('aria-pressed', String(mode === 'music'));
+    label(videoButton, t(mode === 'music' ? 'musicOff' : 'musicOn'));
+  }
+
   byId('made-with').textContent = t('madeWith');
   byId('lyrics-by').textContent = t('lyricsBy');
   document.title = t('pageTitle');
@@ -145,9 +180,33 @@ export function createView(t: T) {
     status.textContent = shownStatus === 'live' ? t('live') : t('paused');
     playState.classList.toggle('paused', shownStatus === 'paused');
     playState.setAttribute('aria-label', shownStatus === 'paused' ? t('paused') : t('playing'));
+    renderMusic();
   }
 
+  label(muteButton, t('mute'));
+
   return {
+    setMode(next: Mode) {
+      if (next === 'music' && mode !== 'music') videoFound = null;
+      mode = next;
+      renderMusic();
+    },
+    setMusicUnavailable(on: boolean) {
+      videoFound = !on;
+      renderMusic();
+    },
+    /** `blocked`: the browser kept the sound off; the button blinks until the viewer taps it. */
+    setMuted(muted: boolean, blocked: boolean) {
+      muteButton.classList.toggle('muted', muted);
+      muteButton.classList.toggle('blink', blocked);
+      label(muteButton, blocked ? t('tapForSound') : t(muted ? 'unmute' : 'mute'));
+    },
+    onChoice(handlers: { listen(): void; lyricsOnly(): void; toggleVideo(): void; toggleMute(): void }) {
+      byId('listen-button').addEventListener('click', handlers.listen);
+      byId('lyrics-button').addEventListener('click', handlers.lyricsOnly);
+      videoButton.addEventListener('click', handlers.toggleVideo);
+      muteButton.addEventListener('click', handlers.toggleMute);
+    },
     /** The owner's viewer count, when they chose to show it; null hides it. */
     setViewers(count: number | null) {
       viewers.hidden = count === null || (shownStatus !== 'live' && shownStatus !== 'paused');

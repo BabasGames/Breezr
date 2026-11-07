@@ -155,5 +155,13 @@
   "tray.unlike": "Quitar de Favoritos",
   "settings.general.liveLinkShowViewers": "Mostrar el número de espectadores en la página",
   "settings.general.liveLinkShowViewersHelp": "Quienes abren tu enlace ven cuántas páginas lo siguen ahora mismo. Solo se muestra el número.",
-  "web.viewers": "Espectadores: {count}"
+  "web.viewers": "Espectadores: {count}",
+  "web.listen": "Escuchar la música",
+  "web.lyricsOnly": "Ver la letra",
+  "web.mute": "Silenciar",
+  "web.unmute": "Activar sonido",
+  "web.musicOn": "Escuchar con el vídeo",
+  "web.musicOff": "Solo la letra",
+  "web.musicUnavailable": "Música no disponible para esta canción",
+  "web.tapForSound": "Toca para activar el sonido"
 }

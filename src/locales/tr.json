@@ -154,5 +154,13 @@
   "tray.unlike": "Favorilerden çıkar",
   "settings.general.liveLinkShowViewers": "Sayfada izleyici sayısını göster",
   "settings.general.liveLinkShowViewersHelp": "Bağlantını açanlar, şu anda kaç sayfanın onu takip ettiğini görür. Yalnızca sayı gösterilir.",
-  "web.viewers": "İzleyiciler: {count}"
+  "web.viewers": "İzleyiciler: {count}",
+  "web.listen": "Müziği dinle",
+  "web.lyricsOnly": "Şarkı sözlerini gör",
+  "web.mute": "Sesi kapat",
+  "web.unmute": "Sesi aç",
+  "web.musicOn": "Videoyla dinle",
+  "web.musicOff": "Yalnızca sözler",
+  "web.musicUnavailable": "Bu parça için müzik yok",
+  "web.tapForSound": "Sesi açmak için dokun"
 }

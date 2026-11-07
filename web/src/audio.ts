@@ -83,7 +83,15 @@ export function createAudio(deps: {
       return;
     }
     creating ??= deps.player(first);
-    const created = await creating;
+    let created: VideoPlayer;
+    try {
+      created = await creating;
+    } catch {
+      // The YouTube script could not load (blocker, network): no music for this track, the next one retries.
+      creating = null;
+      if (mine === request) deps.onUnavailable(true);
+      return;
+    }
     if (mine !== request || !enabled) return;
     if (player !== created) {
       player = created;

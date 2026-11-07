@@ -183,6 +183,29 @@ describe('audio slot', () => {
     expect(events.at(-1)).toBe('unavailable true');
   });
 
+  test('a player that fails to load (blocked script) reads as unavailable, and the next track tries again', async () => {
+    let attempts = 0;
+    const events: string[] = [];
+    const player = fakePlayer();
+    const audio = createAudio({
+      trackVideo: async (id) => ({ videoId: `vid${id}` }),
+      player: async () => {
+        attempts++;
+        if (attempts === 1) throw new Error('YouTube API unavailable');
+        return player as VideoPlayer;
+      },
+      onUnavailable: (on) => events.push(`unavailable ${on}`),
+      onMuted: () => undefined,
+    });
+    audio.load(track('A'));
+    audio.enable();
+    await flush();
+    expect(events.at(-1)).toBe('unavailable true');
+    audio.load(track('B'));
+    await flush();
+    expect(attempts).toBe(2);
+  });
+
   test('timeMs is null until the video plays', async () => {
     const { audio, player } = setup();
     expect(audio.timeMs()).toBeNull();

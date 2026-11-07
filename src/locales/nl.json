@@ -155,5 +155,13 @@
   "tray.unlike": "Verwijderen uit Favorieten",
   "settings.general.liveLinkShowViewers": "Aantal kijkers op de pagina tonen",
   "settings.general.liveLinkShowViewersHelp": "Wie je link opent, ziet hoeveel pagina's hem nu volgen. Alleen het aantal wordt getoond.",
-  "web.viewers": "Kijkers: {count}"
+  "web.viewers": "Kijkers: {count}",
+  "web.listen": "Muziek luisteren",
+  "web.lyricsOnly": "Songtekst bekijken",
+  "web.mute": "Dempen",
+  "web.unmute": "Geluid aan",
+  "web.musicOn": "Luisteren met video",
+  "web.musicOff": "Alleen songtekst",
+  "web.musicUnavailable": "Muziek niet beschikbaar voor dit nummer",
+  "web.tapForSound": "Tik om het geluid aan te zetten"
 }
