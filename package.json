@@ -9,7 +9,7 @@
     "start": "electron ./build/src/main/index.js",
     "run": "tsc && bun run build:modal && bun run copy-assets && bun run start",
     "build": "tsc && bun run build:modal && bun run copy-assets && bun scripts/build.js",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit && tsc --noEmit -p server/tsconfig.json",
     "postinstall": "electron-builder install-app-deps",
     "lint": "eslint",
     "copy-assets": "cpy --flat ./src/img/* ./build/src/img/ && cpy --flat ./src/offline.html ./build/src/",

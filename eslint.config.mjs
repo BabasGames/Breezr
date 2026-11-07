@@ -17,7 +17,7 @@ const compat = new FlatCompat({
 });
 
 export default defineConfig([
-  globalIgnores(['**/dist/', '**/node_modules/', '*', '!src/', 'src/**/*.*', '!src/**/*.ts']),
+  globalIgnores(['**/dist/', '**/node_modules/', '*', '!src/', '!server/', '!web/', 'src/**/*.*', 'server/**/*.*', 'web/**/*.*', '!src/**/*.ts', '!server/**/*.ts', '!web/**/*.ts']),
   eslint.configs.recommended,
   tseslint.configs.recommended,
   {
