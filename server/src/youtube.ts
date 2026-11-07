@@ -18,6 +18,12 @@ const SEARCH_UNITS = 100;
 const VIDEOS_UNITS = 1;
 const MAX_RESULTS = '10';
 
+/**
+ * Anyone can publish any state on their own link: a track id alone would let a fake "505" titled otherwise
+ * poison every link's 505. The answer is tied to what was searched for.
+ */
+const cacheKey = (q: TrackQuery) => [q.trackId, normalizeName(q.artist), normalizeName(bareTitle(q.title)), q.durationSec].join('|');
+
 class Unavailable extends Error {}
 
 /** The day YouTube counts quota in: it resets at midnight in California. */
@@ -142,16 +148,18 @@ export function createVideoService(opts: {
     return video?.id === videoId && video.embeddable;
   }
 
-  async function resolve(q: TrackQuery): Promise<VideoAnswer> {
-    const known = cache.tracks[q.trackId];
+  async function resolve(q: TrackQuery, key: string, mayPay?: () => boolean): Promise<VideoAnswer> {
+    const known = cache.tracks[key];
     try {
       if (known?.videoId && now() - known.fetchedAt > KEEP_MS && await stillThere(known.videoId)) {
         known.fetchedAt = known.usedAt = now();
         await persist();
         return { status: 'found', videoId: known.videoId, kind: known.kind ?? 'audio' };
       }
+      // A full search costs 100 to 300 units: the caller decides whether this requester may spend them.
+      if (mayPay && !mayPay()) return { status: 'unavailable' };
       const pick = await search(q);
-      cache.tracks[q.trackId] = { videoId: pick?.videoId ?? null, kind: pick?.kind, fetchedAt: now(), usedAt: now() };
+      cache.tracks[key] = { videoId: pick?.videoId ?? null, kind: pick?.kind, fetchedAt: now(), usedAt: now() };
       // Saved before answering: a restart right after a paid search must not pay for it again.
       await persist();
       return pick ? { status: 'found', ...pick } : { status: 'none' };
@@ -208,9 +216,13 @@ export function createVideoService(opts: {
       if (dirty) await persist();
     },
 
-    async lookup(q: TrackQuery): Promise<VideoAnswer> {
+    /** `mayPay` is asked only before a paid search, never for an answer already known. */
+    async lookup(q: TrackQuery, mayPay?: () => boolean): Promise<VideoAnswer> {
+      // Negative ids are the owner's own uploads: not on YouTube.
+      if (q.trackId.startsWith('-')) return { status: 'none' };
       if (!opts.key) return { status: 'unavailable' };
-      const known = cache.tracks[q.trackId];
+      const key = cacheKey(q);
+      const known = cache.tracks[key];
       if (known) {
         const age = now() - known.fetchedAt;
         if (known.videoId && age <= KEEP_MS) {
@@ -223,10 +235,10 @@ export function createVideoService(opts: {
         }
         if (!known.videoId && age <= RETRY_NONE_MS) return { status: 'none' };
       }
-      let pending = inFlight.get(q.trackId);
+      let pending = inFlight.get(key);
       if (!pending) {
-        pending = resolve(q).finally(() => inFlight.delete(q.trackId));
-        inFlight.set(q.trackId, pending);
+        pending = resolve(q, key, mayPay).finally(() => inFlight.delete(key));
+        inFlight.set(key, pending);
       }
       return pending;
     },

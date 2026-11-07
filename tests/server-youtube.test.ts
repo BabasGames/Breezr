@@ -189,6 +189,31 @@ describe('video lookup', () => {
     expect(failing.calls.length).toBeGreaterThan(before);
   });
 
+  test('a fake state cannot poison the cache: the answer is tied to artist, title and duration too', async () => {
+    const yt = fakeYouTube();
+    const s = service(yt, { now: T0 });
+    await s.lookup(qLucky);
+    const before = yt.calls.length;
+    await s.lookup({ ...qLucky, artist: 'Rick Astley', title: 'Never Gonna Give You Up', durationSec: 213 });
+    expect(yt.calls.length).toBeGreaterThan(before);
+    expect(await s.lookup(qLucky)).toEqual({ status: 'found', videoId: '5NV6Rdv1a3I', kind: 'audio' });
+  });
+
+  test('user uploads (negative ids) are never searched', async () => {
+    const yt = fakeYouTube();
+    expect(await service(yt, { now: T0 }).lookup({ ...qLucky, trackId: '-123' })).toEqual({ status: 'none' });
+    expect(yt.calls).toEqual([]);
+  });
+
+  test('a paid search needs mayPay; cached answers do not', async () => {
+    const yt = fakeYouTube();
+    const s = service(yt, { now: T0 });
+    expect(await s.lookup(qLucky, () => false)).toEqual({ status: 'unavailable' });
+    expect(yt.calls).toEqual([]);
+    await s.lookup(qLucky, () => true);
+    expect(await s.lookup(qLucky, () => false)).toEqual({ status: 'found', videoId: '5NV6Rdv1a3I', kind: 'audio' });
+  });
+
   test('key never logged', async () => {
     const logs: string[] = [];
     const s = createVideoService({

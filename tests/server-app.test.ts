@@ -25,8 +25,10 @@ const lookups: { title: string; artist: string; album: string; durationSec: numb
 const videoLookups: TrackQuery[] = [];
 // Track ids decide the fake answer: 1 found, 3 none, anything else unavailable.
 const videos = {
-  lookup: async (q: TrackQuery): Promise<VideoAnswer> => {
+  lookup: async (q: TrackQuery, mayPay?: () => boolean): Promise<VideoAnswer> => {
     videoLookups.push(q);
+    // Track ids from 100 on stand for tracks nobody looked up yet: they need a paid search.
+    if (Number(q.trackId) >= 100) return mayPay?.() ? { status: 'found', videoId: `v${q.trackId}`, kind: 'clip' } : { status: 'unavailable' };
     if (q.trackId === '1') return { status: 'found', videoId: '5NV6Rdv1a3I', kind: 'audio' };
     return q.trackId === '3' ? { status: 'none' } : { status: 'unavailable' };
   },
@@ -211,7 +213,7 @@ describe('abuse', () => {
   beforeAll(async () => {
     dir2 = mkdtempSync(join(tmpdir(), 'breezr-abuse-'));
     const store = new LiveStore({ file: join(dir2, 'ids.json') });
-    server2 = createServer(createApp({ store, lyrics: { lookup: async () => ({ result: { kind: 'none' as const }, ok: false }) }, videos: noVideos, publicDir: dir2 }));
+    server2 = createServer(createApp({ store, lyrics: { lookup: async () => ({ result: { kind: 'none' as const }, ok: false }) }, videos, publicDir: dir2 }));
     await new Promise<void>((r) => server2.listen(0, '127.0.0.1', r));
     base2 = `http://127.0.0.1:${(server2.address() as AddressInfo).port}`;
   });
@@ -234,12 +236,27 @@ describe('abuse', () => {
     expect((await put2(id, SECRET, 'Still mine')).status).toBe(204);
   });
 
+  test('paid searches are limited per link, cached answers are not', async () => {
+    const id = 'PPPPPPPPPP';
+    const codes = [];
+    for (let i = 0; i < 6; i++) {
+      // Owner writes are limited too (5, then 1/s): space them a little.
+      if (i > 0) await new Promise((r) => setTimeout(r, 220));
+      await fetch(`${base2}/api/live/${id}`, {
+        method: 'PUT', headers: { 'content-type': 'application/json', authorization: `Bearer ${SECRET}` },
+        body: JSON.stringify({ ...state('x'), track: { ...state().track, id: String(100 + i) } }),
+      });
+      codes.push((await fetch(`${base2}/api/live/${id}/video?track=${100 + i}`)).status);
+    }
+    expect(codes).toEqual([200, 200, 200, 200, 200, 503]);
+  });
+
   test('video requests are rate limited per IP', async () => {
     const id = 'ZZZZZZZZZZ';
     await put2(id, SECRET);
     const codes = [];
-    for (let i = 0; i < 7; i++) codes.push((await fetch(`${base2}/api/live/${id}/video?track=1`)).status);
-    expect(codes.slice(0, 5)).toEqual([503, 503, 503, 503, 503]);
+    for (let i = 0; i < 20; i++) codes.push((await fetch(`${base2}/api/live/${id}/video?track=1`)).status);
+    expect(codes).toContain(200);
     expect(codes).toContain(429);
   });
 

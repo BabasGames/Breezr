@@ -39,7 +39,7 @@ const MIME: Record<string, string> = {
 };
 
 export interface LyricsSource { lookup(q: LyricsQuery): Promise<{ result: LyricsResult; ok: boolean }> }
-export interface VideoSource { lookup(q: TrackQuery): Promise<VideoAnswer> }
+export interface VideoSource { lookup(q: TrackQuery, mayPay?: () => boolean): Promise<VideoAnswer> }
 
 class BodyError extends Error {}
 
@@ -117,8 +117,11 @@ export function createApp(opts: { store: LiveStore; lyrics: LyricsSource; videos
   const wrongKeys = new RateLimiter(10, 10 / 60, now);
   const creations = new RateLimiter(10, 10 / 3600, now);
   const lyricsLookups = new RateLimiter(10, 0.5, now);
-  // Each new track can cost hundreds of YouTube quota units: a viewer gets a few lookups, then one every 5 s.
-  const videoLookups = new RateLimiter(5, 0.2, now);
+  const videoLookups = new RateLimiter(10, 0.5, now);
+  // A search for a track nobody looked up yet costs 100 to 300 of the day's 9 500 YouTube units: per link,
+  // about one new track per song length; per address, 20 an hour. Known tracks are not counted.
+  const paidPerLink = new RateLimiter(5, 1 / 90, now);
+  const paidPerIp = new RateLimiter(20, 20 / 3600, now);
   let streams = 0;
   const streamsByIp = new Map<string, number>();
   // Open viewer pages per link: only a number, nothing about who they are.
@@ -306,9 +309,10 @@ export function createApp(opts: { store: LiveStore; lyrics: LyricsSource; videos
     if (lookupsInFlight >= MAX_LOOKUPS_IN_FLIGHT) return send(res, 503, { unavailable: true });
     lookupsInFlight++;
     try {
+      const ip = creationKey(clientIp(req));
       const answer = await videos.lookup({
         trackId: track.id, artist: mainArtist(track.artists), title: bareTitle(track.title), durationSec: Math.round(track.duration / 1000),
-      });
+      }, () => paidPerLink.take(id) && paidPerIp.take(ip));
       if (answer.status === 'found') return send(res, 200, { videoId: answer.videoId, kind: answer.kind });
       if (answer.status === 'none') return send(res, 200, { none: true });
       send(res, 503, { unavailable: true });
