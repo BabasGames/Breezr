@@ -18,7 +18,30 @@ body {
 [hidden] { display: none !important; }
 
 .page { display: grid; grid-template-rows: auto 1fr auto auto; block-size: 100dvh; }
-.top { display: flex; justify-content: flex-end; padding: 20px 28px 0; min-block-size: 44px; }
+.top { display: flex; justify-content: flex-end; align-items: center; gap: 10px; padding: 20px 28px 0; min-block-size: 44px; position: relative; z-index: 2; }
+
+/* Colour menu: opens on hover where there is a mouse, on tap elsewhere (.open), and with the keyboard. */
+.theme { position: relative; }
+.theme-button {
+  display: inline-grid; place-items: center; inline-size: 32px; block-size: 32px; padding: 0; border: 0; border-radius: 50%;
+  cursor: pointer; color: var(--fg); background: color-mix(in srgb, var(--fg) 12%, transparent);
+}
+.theme-button:hover, .theme-button:focus-visible { background: color-mix(in srgb, var(--fg) 22%, transparent); }
+.theme-button:focus-visible, .menu button:focus-visible { outline: 2px solid var(--fg); outline-offset: 2px; }
+/* The wrapper's padding bridges the gap to the menu, so moving the mouse onto it keeps it open. */
+.menu-wrap { display: none; position: absolute; inset-block-start: 100%; inset-inline-end: 0; padding-block-start: 8px; }
+.theme.open .menu-wrap { display: block; }
+@media (hover: hover) { .theme:hover .menu-wrap { display: block; } }
+.menu {
+  min-inline-size: 210px; padding: 6px; border-radius: 12px; display: flex; flex-direction: column; gap: 2px;
+  background: color-mix(in srgb, var(--bg) 82%, var(--fg) 18%); box-shadow: 0 12px 32px rgb(0 0 0 / 0.3);
+}
+.menu button {
+  display: flex; align-items: center; gap: 10px; inline-size: 100%; padding: 9px 10px; border: 0; border-radius: 8px;
+  background: transparent; color: var(--fg); font: inherit; font-size: 14px; text-align: start; cursor: pointer;
+}
+.menu button:hover { background: color-mix(in srgb, var(--fg) 12%, transparent); }
+.menu .check { inline-size: 16px; flex: none; text-align: center; font-weight: 700; }
 .status {
   display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 999px;
   font-size: 13px; font-weight: 600; background: color-mix(in srgb, var(--fg) 12%, transparent);
@@ -78,6 +101,8 @@ body {
 @media (max-width: 720px) {
   /* The badge sits centred above the cover, with room to breathe, instead of over its corner. */
   .top { justify-content: center; padding: 14px 16px 0; }
+  .menu-wrap { inset-inline-end: 50%; transform: translateX(50%); }
+  [dir="rtl"] .menu-wrap { transform: translateX(-50%); }
   /* Lyrics take exactly the room left between the cover and the bar (phones lose height to the browser's
      own bars), and scroll inside it: they never run under or over the bar. */
   .stage {

@@ -1,6 +1,7 @@
 import type { LiveTrack, LyricsResult } from '../../src/shared/live';
 import { formatTime } from './sync';
 import type { T } from './i18n';
+import { readChoice, saveChoice, themeColors, THEME_CHOICES, type ThemeChoice } from './theme';
 
 export type Status = 'loading' | 'live' | 'paused' | 'idle' | 'inactive';
 
@@ -24,11 +25,6 @@ function averageColor(img: HTMLImageElement): [number, number, number] | null {
   }
 }
 
-const luminance = ([r, g, b]: [number, number, number]) => {
-  const lin = (c: number) => { const s = c / 255; return s <= 0.03928 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4; };
-  return 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
-};
-
 /** Every text goes through textContent: titles and lyrics come from other people's players. */
 export function createView(t: T) {
   const stage = byId('stage');
@@ -47,6 +43,64 @@ export function createView(t: T) {
   let reconnecting = false;
   let shownStatus: Status = 'loading';
 
+  const storage = (() => { try { return localStorage; } catch { return null; } })();
+  let choice: ThemeChoice = readChoice(storage);
+  let coverColor: [number, number, number] | null = null;
+
+  const applyTheme = () => {
+    const { bg, light } = themeColors(choice, coverColor);
+    document.documentElement.style.setProperty('--bg', bg);
+    document.documentElement.classList.toggle('light', light);
+  };
+
+  // The colour menu: hover opens it with a mouse (CSS), a tap or Enter toggles it (.open).
+  const themeBox = byId('theme');
+  const themeButton = byId<HTMLButtonElement>('theme-button');
+  const themeMenu = byId('theme-menu');
+  const labels: Record<ThemeChoice, string> = { cover: t('themeCover'), light: t('themeLight'), dark: t('themeDark') };
+  themeButton.title = t('theme');
+  themeButton.setAttribute('aria-label', t('theme'));
+  const setOpen = (open: boolean) => {
+    themeBox.classList.toggle('open', open);
+    themeButton.setAttribute('aria-expanded', String(open));
+  };
+  const items = THEME_CHOICES.map((value) => {
+    const item = document.createElement('button');
+    item.type = 'button';
+    item.setAttribute('role', 'menuitemradio');
+    const check = document.createElement('span');
+    check.className = 'check';
+    check.setAttribute('aria-hidden', 'true');
+    const label = document.createElement('span');
+    label.textContent = labels[value];
+    item.append(check, label);
+    item.addEventListener('click', () => {
+      choice = value;
+      saveChoice(storage, value);
+      renderMenu();
+      applyTheme();
+      setOpen(false);
+      themeButton.focus();
+    });
+    themeMenu.append(item);
+    return { value, item, check };
+  });
+  const renderMenu = () => {
+    for (const { value, item, check } of items) {
+      item.setAttribute('aria-checked', String(value === choice));
+      check.textContent = value === choice ? '✓' : '';
+    }
+  };
+  themeButton.addEventListener('click', () => setOpen(!themeBox.classList.contains('open')));
+  document.addEventListener('click', (event) => { if (!themeBox.contains(event.target as Node)) setOpen(false); });
+  document.addEventListener('keydown', (event) => {
+    if (event.key !== 'Escape' || !themeBox.classList.contains('open')) return;
+    setOpen(false);
+    themeButton.focus();
+  });
+  renderMenu();
+  applyTheme();
+
   byId('made-with').textContent = t('madeWith');
   byId('lyrics-by').textContent = t('lyricsBy');
   document.title = t('pageTitle');
@@ -55,11 +109,9 @@ export function createView(t: T) {
     const probe = new Image();
     probe.crossOrigin = 'anonymous';
     probe.onload = () => {
-      const color = averageColor(probe);
-      if (!color) return;
-      // Deezer-like: the page takes the cover's colour, text flips dark on light covers.
-      document.documentElement.style.setProperty('--bg', `rgb(${color.join(' ')})`);
-      document.documentElement.classList.toggle('light', luminance(color) > 0.45);
+      // Deezer-like: in "cover" mode the page takes the cover's colour, text flips dark on light covers.
+      coverColor = averageColor(probe);
+      applyTheme();
     };
     probe.src = src;
   }

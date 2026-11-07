@@ -132,5 +132,9 @@
   "settings.general.liveLinkDiscord": "Show the link in my Discord status",
   "settings.general.liveLinkDiscordHelp": "Adds a \"See the lyrics\" button to your status while music plays.",
   "lyrics.share": "Share the lyrics live",
-  "lyrics.shareCopied": "Link copied: it follows what you play, live. You can turn it off in Settings."
+  "lyrics.shareCopied": "Link copied: it follows what you play, live. You can turn it off in Settings.",
+  "web.theme": "Colours",
+  "web.themeCover": "Cover colour",
+  "web.themeLight": "Light",
+  "web.themeDark": "Dark"
 }

@@ -131,5 +131,9 @@
   "settings.general.liveLinkDiscord": "Bağlantıyı Discord durumumda göster",
   "settings.general.liveLinkDiscordHelp": "Müzik çalarken durumuna \"See the lyrics\" düğmesi ekler; herkes anlasın diye İngilizce.",
   "lyrics.share": "Şarkı sözlerini canlı paylaş",
-  "lyrics.shareCopied": "Bağlantı kopyalandı: dinlediğini canlı takip eder. Ayarlar'dan kapatılabilir."
+  "lyrics.shareCopied": "Bağlantı kopyalandı: dinlediğini canlı takip eder. Ayarlar'dan kapatılabilir.",
+  "web.theme": "Renkler",
+  "web.themeCover": "Kapak rengi",
+  "web.themeLight": "Açık",
+  "web.themeDark": "Koyu"
 }

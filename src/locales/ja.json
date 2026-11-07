@@ -131,5 +131,9 @@
   "settings.general.liveLinkDiscord": "Discord のステータスにリンクを表示",
   "settings.general.liveLinkDiscordHelp": "再生中、ステータスに「See the lyrics」ボタンを追加します。誰にでも伝わるよう英語で表示されます。",
   "lyrics.share": "歌詞をライブで共有",
-  "lyrics.shareCopied": "リンクをコピーしました：再生にリアルタイムで追従します。設定でオフにできます。"
+  "lyrics.shareCopied": "リンクをコピーしました：再生にリアルタイムで追従します。設定でオフにできます。",
+  "web.theme": "カラー",
+  "web.themeCover": "ジャケットの色",
+  "web.themeLight": "ライト",
+  "web.themeDark": "ダーク"
 }

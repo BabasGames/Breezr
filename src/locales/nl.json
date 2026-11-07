@@ -132,5 +132,9 @@
   "settings.general.liveLinkDiscord": "Link tonen in mijn Discord-status",
   "settings.general.liveLinkDiscordHelp": "Voegt tijdens het afspelen een knop \"See the lyrics\" toe aan je status, in het Engels zodat iedereen hem begrijpt.",
   "lyrics.share": "Songtekst live delen",
-  "lyrics.shareCopied": "Link gekopieerd: hij volgt live wat je afspeelt. Uit te zetten in Instellingen."
+  "lyrics.shareCopied": "Link gekopieerd: hij volgt live wat je afspeelt. Uit te zetten in Instellingen.",
+  "web.theme": "Kleuren",
+  "web.themeCover": "Kleur van de hoes",
+  "web.themeLight": "Licht",
+  "web.themeDark": "Donker"
 }

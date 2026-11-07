@@ -132,5 +132,9 @@
   "settings.general.liveLinkDiscord": "Mostra il link nel mio stato Discord",
   "settings.general.liveLinkDiscordHelp": "Aggiunge un pulsante «See the lyrics» al tuo stato durante la riproduzione, in inglese perché tutti lo capiscano.",
   "lyrics.share": "Condividi il testo in diretta",
-  "lyrics.shareCopied": "Link copiato: segue il tuo ascolto in diretta. Disattivabile nelle Impostazioni."
+  "lyrics.shareCopied": "Link copiato: segue il tuo ascolto in diretta. Disattivabile nelle Impostazioni.",
+  "web.theme": "Colori",
+  "web.themeCover": "Colore della copertina",
+  "web.themeLight": "Chiaro",
+  "web.themeDark": "Scuro"
 }
