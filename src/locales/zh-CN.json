@@ -121,5 +121,6 @@
   "web.unsynced": "歌词未同步",
   "web.lyricsBy": "歌词：LRCLIB",
   "web.madeWith": "由 Breezr 制作",
-  "web.reconnecting": "正在重新连接…"
+  "web.reconnecting": "正在重新连接…",
+  "discord.lyricsButton": "查看歌词"
 }

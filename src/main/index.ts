@@ -7,6 +7,8 @@ import * as Window from './window';
 import { version } from '../../package.json';
 import { showWindow } from './window';
 import { join } from 'path';
+import * as Config from './config';
+import { liveLink } from './live-runtime';
 
 // One config folder in dev (where Electron uses package.json "name") and in packaged builds (productName).
 app.setName('Breezr');
@@ -33,7 +35,12 @@ app.whenReady().then(async () => {
 
   RPC.connect();
 
+  void liveLink(app).retryPendingDelete();
+  // The option is on but its credentials file is gone (deleted by hand, new machine): start a new link.
+  if (Config.get(app, 'live_link') && !liveLink(app).url()) void liveLink(app).enable();
+
   app.on('quit', () => {
+    liveLink(app).stop();
     RPC.disconnect();
   });
 

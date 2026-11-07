@@ -121,5 +121,6 @@
   "web.unsynced": "Şarkı sözleri senkronize değil",
   "web.lyricsBy": "Şarkı sözleri: LRCLIB",
   "web.madeWith": "Breezr ile yapıldı",
-  "web.reconnecting": "Yeniden bağlanıyor…"
+  "web.reconnecting": "Yeniden bağlanıyor…",
+  "discord.lyricsButton": "Şarkı sözlerini gör"
 }

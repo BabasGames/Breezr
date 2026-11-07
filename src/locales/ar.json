@@ -126,5 +126,6 @@
   "web.unsynced": "الكلمات غير متزامنة",
   "web.lyricsBy": "الكلمات: LRCLIB",
   "web.madeWith": "صُنع باستخدام Breezr",
-  "web.reconnecting": "جارٍ إعادة الاتصال…"
+  "web.reconnecting": "جارٍ إعادة الاتصال…",
+  "discord.lyricsButton": "عرض الكلمات"
 }

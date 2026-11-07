@@ -124,5 +124,6 @@
   "web.unsynced": "Tekst niezsynchronizowany",
   "web.lyricsBy": "Tekst: LRCLIB",
   "web.madeWith": "Stworzone w Breezr",
-  "web.reconnecting": "Ponowne łączenie…"
+  "web.reconnecting": "Ponowne łączenie…",
+  "discord.lyricsButton": "Zobacz tekst"
 }

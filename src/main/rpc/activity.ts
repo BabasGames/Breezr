@@ -2,10 +2,12 @@ import * as Config from '../config';
 import { tray } from '../tray';
 import { version } from '../../../package.json';
 import { ActivityType } from 'discord-api-types/v10';
+import { t } from '../i18n';
+import { activityButtons } from './activity-buttons';
 
 export async function setActivity({
   timeLeft, playing, client, albumTitle, albumId, trackArtists, trackTitle, albumCover, app, type, trackId, songTime,
-  firstArtistId,
+  firstArtistId, liveUrl,
 }: ActivityOptions) {
   if (!client?.user || !client.isConnected) throw new Error('Not connected to Discord');
   const statusName = Config.get(app, 'status_name');
@@ -62,9 +64,11 @@ export async function setActivity({
   };
 
   const trackLink = getTrackLink();
-  const button = (trackLink && Number.parseInt(trackId) > 0) ?
-    { label: 'Play on Deezer', url: trackLink } :
-    undefined;
+  const buttons = activityButtons(
+    trackLink && Number.parseInt(trackId) > 0 ? trackLink : undefined,
+    liveUrl,
+    { play: 'Play on Deezer', lyrics: t('discord.lyricsButton') },
+  );
   const isLivestream = (Date.now() + timeLeft) < Date.now();
   const playedTime = Date.now() - songTime + timeLeft;
 
@@ -82,11 +86,13 @@ export async function setActivity({
     instance: false,
     startTimestamp: playedTime,
     [isLivestream ? 'startTimestamp' : 'endTimestamp']: Date.now() + timeLeft,
-    buttons: button ? [button] : undefined,
+    buttons,
   });
 }
 
 interface ActivityOptions {
+  /** The live link, when the user chose to show it in the Discord status. */
+  liveUrl?: string;
   client: import('@xhayper/discord-rpc').Client;
   albumId: number;
   trackId: string;

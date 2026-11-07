@@ -16,6 +16,8 @@ export interface SettingsSnapshot {
   source: SourceMessage;
   /** Default palette paths, home shortened to ~ (placeholders of the path fields). */
   defaultPaths: { caelestia: string; pywal: string };
+  /** The live link, when enabled. */
+  liveUrl: string | null;
 }
 
 export interface BreezrBridge {
@@ -27,5 +29,11 @@ export interface BreezrBridge {
     onOpen(callback: () => void): void;
     /** Palette/status of the source currently shown (saved or previewed), whenever it changes. */
     onSource(callback: (update: SourceMessage) => void): void;
+  };
+  live: {
+    /** Turns the live link on if needed, copies it to the clipboard, returns it. */
+    share(): Promise<{ url: string }>;
+    /** Replaces the link: the old one stops working. */
+    renew(): Promise<{ url: string }>;
   };
 }

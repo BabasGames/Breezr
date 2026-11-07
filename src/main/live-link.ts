@@ -1,5 +1,5 @@
 import { readFileSync, writeFileSync } from 'fs';
-import { LIVE_BASE_URL, liveLinkUrl, newLiveCredentials, type LiveState } from '../shared/live';
+import { LIVE_BASE_URL, liveLinkUrl, newLiveCredentials, validateLiveState, type LiveState } from '../shared/live';
 import { log as defaultLog } from './log';
 
 interface Credentials { id: string; secret: string }
@@ -145,4 +145,19 @@ export function createLiveLink(opts: {
       clearInterval(heartbeat);
     },
   };
+}
+
+/** The live state from what updateActivity reads in Deezer's player; null when it would not validate. */
+export function buildLiveState(result: {
+  trackId: string; isrc?: string; trackName: string; artists: string; albumName: string; coverUrl: string;
+  songTime: number; timeLeft: number; playing: boolean; isLivestreamRadio?: boolean;
+}, now: number): LiveState | null {
+  const duration = result.isLivestreamRadio ? 0 : Math.max(0, Math.round(result.songTime));
+  const position = Math.max(0, Math.round(result.songTime - result.timeLeft));
+  const track = {
+    id: String(result.trackId), title: result.trackName, artists: result.artists, album: result.albumName ?? '',
+    cover: result.coverUrl, duration,
+    ...(typeof result.isrc === 'string' && /^[A-Z0-9]{12}$/.test(result.isrc) ? { isrc: result.isrc } : {}),
+  };
+  return validateLiveState({ track, playing: result.playing, position: duration > 0 ? Math.min(position, duration) : position, at: now });
 }

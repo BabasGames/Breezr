@@ -1,4 +1,4 @@
-import { ipcMain, type BrowserWindow, type IpcMainEvent, type IpcMainInvokeEvent } from 'electron';
+import { clipboard, ipcMain, type BrowserWindow, type IpcMainEvent, type IpcMainInvokeEvent } from 'electron';
 import { version } from '../../package.json';
 import { validateConfig, type BreezrConfig } from '../shared/config-schema';
 import { isRtl } from '../shared/i18n';
@@ -14,6 +14,7 @@ import type { ThemeState } from './theme-state';
 import { defaultPathsForDisplay } from './theme-runtime';
 import { applyPageTweaks } from './page-tweaks';
 import { homedir } from 'os';
+import { liveLink } from './live-runtime';
 
 /** The config as the page may see it: source paths with the home folder shortened to ~ (re-expanded on save). */
 function pageConfig(app: Electron.App): BreezrConfig {
@@ -37,10 +38,11 @@ function snapshot(app: Electron.App, state: ThemeState): SettingsSnapshot {
     version,
     source: { ...state.savedSource(), forSource: publicSourceKey(state.savedSource().forSource, homedir()) },
     defaultPaths: defaultPathsForDisplay(),
+    liveUrl: Config.get(app, 'live_link') ? liveLink(app).url() : null,
   };
 }
 
-export function registerSettings(app: Electron.App, win: BrowserWindow, state: ThemeState) {
+export function registerSettings(app: Electron.App, win: BrowserWindow, state: ThemeState, onLiveChange: () => void) {
   // Only Deezer's top frame in the main window may read or change settings: login popups and
   // third-party scripts in iframes also get the preload, and must not reach these channels.
   const trusted = (event: IpcMainEvent | IpcMainInvokeEvent) =>
@@ -67,12 +69,35 @@ export function registerSettings(app: Electron.App, win: BrowserWindow, state: T
     const { config, warnings } = validateConfig({ ...raw, window_width: current.window_width, window_height: current.window_height }, { home: homedir() });
     for (const warning of warnings) log('Settings', warning);
     Config.setAll(app, config);
+    if (config.live_link !== current.live_link) {
+      if (config.live_link) await liveLink(app).enable();
+      else await liveLink(app).disable();
+    }
+    if (config.live_link !== current.live_link || config.live_link_discord !== current.live_link_discord) onLiveChange();
     void applyPageTweaks(win.webContents, { animateSidebar: config.animate_sidebar });
     state.setModalOpen(false);
     // Answer only once the page shows the saved theme, so the modal never closes on stale colors.
     await state.save(config.theme);
     notifyLocaleChange();
     return snapshot(app, state);
+  });
+
+  ipcMain.handle('breezr:live:share', async (event) => {
+    if (!trusted(event)) throw new Error('Untrusted sender');
+    const wasOn = Config.get(app, 'live_link');
+    if (!wasOn) Config.set(app, 'live_link', true);
+    const url = await liveLink(app).enable();
+    clipboard.writeText(url);
+    if (!wasOn) onLiveChange();
+    return { url };
+  });
+
+  ipcMain.handle('breezr:live:renew', async (event) => {
+    if (!trusted(event)) throw new Error('Untrusted sender');
+    if (!Config.get(app, 'live_link')) throw new Error('Live link is off');
+    const url = await liveLink(app).renew();
+    onLiveChange();
+    return { url };
   });
 
   ipcMain.on('breezr:settings:cancel', (event) => {

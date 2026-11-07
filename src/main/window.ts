@@ -11,6 +11,8 @@ import { checkTempoVariables, forgetInsertedTheme } from './theme';
 import { applyPageTweaks, forgetPageTweaks } from './page-tweaks';
 import { createThemeState } from './theme-runtime';
 import { withTimeout } from './timeout';
+import { buildLiveState } from './live-link';
+import { liveLink } from './live-runtime';
 import type { ThemeState } from './theme-state';
 import { openSettings, registerSettings } from './settings';
 import { classifyWindowOpen, isDeezerUrl } from '../shared/origin';
@@ -98,7 +100,7 @@ export async function load(app: Electron.App) {
   });
 
   themeState = createThemeState(app, win);
-  registerSettings(app, win, themeState);
+  registerSettings(app, win, themeState, () => refreshActivity(app));
   win.on('closed', () => themeState.stop());
 
   session.defaultSession.webRequest.onBeforeSendHeaders((details, callback) => {
@@ -325,6 +327,7 @@ async function updateActivity(app: Electron.App, currentTimeChanged: boolean) {
       const artists = currentSong?.ARTISTS?.map(art => art.ART_NAME)?.join(', ') || dzPlayer.getArtistName() ||
                       currentSong?.SHOW_NAME || playerInfo?.split(' · ')?.[1];
       const firstArtistId = currentSong?.ART_ID;
+      const isrc = currentSong?.ISRC;
       const playing = dzPlayer.isPlaying();
       const songTime = Math.floor(dzPlayer.getDuration() * 1000);
       const timeLeft = Math.floor(dzPlayer.getRemainingTime() * 1000);
@@ -336,12 +339,18 @@ async function updateActivity(app: Electron.App, currentTimeChanged: boolean) {
       const coverUrl = \`https://e-cdns-images.dzcdn.net/images/\${coverType}/\${cover}/256x256-000000-80-0-0.jpg\`;
       return JSON.stringify({
         albumId, trackId, mediaType, playerType, trackName, albumName, artists, playing, songTime, timeLeft, coverUrl,
-        isLivestreamRadio, firstArtistId
+        isLivestreamRadio, firstArtistId, isrc
       });
     })()`;
   const r = await runJs(code).catch(() => null);
   if (!r || seq !== updateSeq) return;
   const result: JSResult = JSON.parse(r);
+
+  // The live link does not depend on Discord: publish before Discord's deduplication and connection checks.
+  if (Config.get(app, 'live_link')) {
+    const live = buildLiveState({ ...result, trackId: String(result.trackId), coverUrl: result.coverUrl ?? '' }, Date.now());
+    if (live) liveLink(app).publish(live);
+  }
 
   // The duration is part of the key because Deezer reports 0 until the track has loaded.
   const desiredKey = result.playing ? `${result.trackId}|${result.trackName}|${result.songTime}` : CLEARED_ACTIVITY;
@@ -375,6 +384,7 @@ async function updateActivity(app: Electron.App, currentTimeChanged: boolean) {
     playing: result.playing,
     type: result.mediaType,
     songTime: result.songTime,
+    liveUrl: Config.get(app, 'live_link') && Config.get(app, 'live_link_discord') ? liveLink(app).url() ?? undefined : undefined,
   }).then(() => true).catch((reason) => {
     log('Activity', 'Update failed, retrying:', reason?.toString() ?? 'Unknown error');
     return false;
@@ -403,6 +413,13 @@ interface JSResult {
   mediaType: string,
   trackId: string,
   firstArtistId: string;
+  isrc?: string;
+}
+
+/** Resend the Discord status even if the track did not change (e.g. the live link button was toggled). */
+export function refreshActivity(app: Electron.App) {
+  sentKey = '';
+  scheduleActivityUpdate(app);
 }
 
 function isDeezerPage() {

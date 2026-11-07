@@ -121,5 +121,6 @@
   "web.unsynced": "歌詞は同期されていません",
   "web.lyricsBy": "歌詞: LRCLIB",
   "web.madeWith": "Breezr で作成",
-  "web.reconnecting": "再接続中…"
+  "web.reconnecting": "再接続中…",
+  "discord.lyricsButton": "歌詞を見る"
 }

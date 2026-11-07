@@ -122,5 +122,6 @@
   "web.unsynced": "Songtekst niet gesynchroniseerd",
   "web.lyricsBy": "Songtekst: LRCLIB",
   "web.madeWith": "Gemaakt met Breezr",
-  "web.reconnecting": "Opnieuw verbinden…"
+  "web.reconnecting": "Opnieuw verbinden…",
+  "discord.lyricsButton": "Songtekst bekijken"
 }

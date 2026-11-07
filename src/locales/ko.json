@@ -121,5 +121,6 @@
   "web.unsynced": "동기화되지 않은 가사",
   "web.lyricsBy": "가사: LRCLIB",
   "web.madeWith": "Breezr로 만듦",
-  "web.reconnecting": "다시 연결 중…"
+  "web.reconnecting": "다시 연결 중…",
+  "discord.lyricsButton": "가사 보기"
 }
