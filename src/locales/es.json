@@ -130,7 +130,7 @@
   "settings.general.liveLinkCopied": "Copiado",
   "settings.general.liveLinkRenew": "Nuevo enlace",
   "settings.general.liveLinkDiscord": "Mostrar el enlace en mi estado de Discord",
-  "settings.general.liveLinkDiscordHelp": "Añade un botón «See the lyrics» a tu estado mientras suena la música, en inglés para que todos lo entiendan.",
+  "settings.general.liveLinkDiscordHelp": "Añade un botón «Live lyrics» a tu estado mientras suena la música, en inglés para que todos lo entiendan.",
   "lyrics.share": "Compartir la letra en directo",
   "lyrics.shareCopied": "Enlace copiado: sigue lo que escuchas en directo. Puedes desactivarlo en Ajustes.",
   "web.theme": "Colores",

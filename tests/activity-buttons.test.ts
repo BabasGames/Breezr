@@ -18,7 +18,7 @@ describe('Discord buttons', () => {
   });
   test('none at all', () => expect(activityButtons(undefined, undefined, labels)).toBeUndefined());
   test('labels are English for everyone (Discord shows them as is to every viewer) and fit 32 characters', () => {
-    expect(BUTTON_LABELS).toEqual({ play: 'Play on Deezer', lyrics: 'See the lyrics' });
+    expect(BUTTON_LABELS).toEqual({ play: 'Play on Deezer', lyrics: 'Live lyrics' });
     for (const label of Object.values(BUTTON_LABELS)) expect(label.length).toBeLessThanOrEqual(32);
   });
   test('no translated Discord label is left in the locales', () => {

@@ -130,7 +130,7 @@
   "settings.general.liveLinkCopied": "Copiado",
   "settings.general.liveLinkRenew": "Novo link",
   "settings.general.liveLinkDiscord": "Mostrar o link no meu status do Discord",
-  "settings.general.liveLinkDiscordHelp": "Adiciona um botão \"See the lyrics\" ao seu status durante a reprodução, em inglês para que todos entendam.",
+  "settings.general.liveLinkDiscordHelp": "Adiciona um botão \"Live lyrics\" ao seu status durante a reprodução, em inglês para que todos entendam.",
   "lyrics.share": "Compartilhar a letra ao vivo",
   "lyrics.shareCopied": "Link copiado: ele acompanha o que você ouve, ao vivo. Dá para desativar nas Configurações.",
   "web.theme": "Cores",

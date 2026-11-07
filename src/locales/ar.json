@@ -134,7 +134,7 @@
   "settings.general.liveLinkCopied": "تم النسخ",
   "settings.general.liveLinkRenew": "رابط جديد",
   "settings.general.liveLinkDiscord": "عرض الرابط في حالتي على Discord",
-  "settings.general.liveLinkDiscordHelp": "يضيف زر «See the lyrics» إلى حالتك أثناء التشغيل، بالإنجليزية ليفهمه الجميع.",
+  "settings.general.liveLinkDiscordHelp": "يضيف زر «Live lyrics» إلى حالتك أثناء التشغيل، بالإنجليزية ليفهمه الجميع.",
   "lyrics.share": "مشاركة الكلمات مباشرةً",
   "lyrics.shareCopied": "تم نسخ الرابط: يتابع ما تشغّله مباشرةً. يمكن إيقافه من الإعدادات.",
   "web.theme": "الألوان",
