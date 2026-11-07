@@ -1,0 +1,4 @@
+# Live links (Breezr). Caddy flushes text/event-stream responses as they come, so the live stream works as is.
+breezr.babas.app {
+	reverse_proxy 127.0.0.1:63120
+}
