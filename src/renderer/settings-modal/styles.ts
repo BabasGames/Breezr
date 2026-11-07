@@ -86,6 +86,8 @@ input[aria-invalid="true"] { border-color: var(--bz-error); }
 .setting-label { display: flex; align-items: center; gap: 8px; min-inline-size: 0; }
 .setting-control { display: flex; align-items: center; justify-content: flex-end; gap: 8px; flex-wrap: wrap; }
 .setting-message { grid-column: 1 / -1; }
+/* The live link, full width under its switch. */
+.url-row input.url { inline-size: 100%; font-family: ui-monospace, monospace; font-size: 12px; }
 .section > fieldset { gap: 0; }
 .section > .warning { padding-block: 8px; }
 .help {

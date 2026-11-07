@@ -2,6 +2,7 @@ import { bridge } from './bridge';
 import { createModal } from './modal';
 import { createTranslator } from '../../shared/i18n';
 import { startTopbarButtons } from './topbar-buttons';
+import { startLyricsShareButton } from './lyrics-share';
 
 (() => {
   // The bundle is injected on every dom-ready; a reload starts from a fresh document, an SPA navigation does not.
@@ -40,5 +41,6 @@ import { startTopbarButtons } from './topbar-buttons';
     startTopbarButtons(() => { void modal.open(); }, {
       back: t('nav.back'), forward: t('nav.forward'), settings: t('settings.openButton'),
     });
+    startLyricsShareButton(() => bridge().live.share(), { share: t('lyrics.share'), copied: t('lyrics.shareCopied') });
   });
 })();

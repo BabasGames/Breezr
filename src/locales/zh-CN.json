@@ -122,5 +122,15 @@
   "web.lyricsBy": "歌词：LRCLIB",
   "web.madeWith": "由 Breezr 制作",
   "web.reconnecting": "正在重新连接…",
-  "discord.lyricsButton": "查看歌词"
+  "discord.lyricsButton": "查看歌词",
+  "settings.general.section.share": "分享",
+  "settings.general.liveLink": "实时链接",
+  "settings.general.liveLinkHelp": "在可分享的链接上实时发布你正在听的内容：封面、同步歌词和播放进度。关闭后链接会被删除。",
+  "settings.general.liveLinkCopy": "复制",
+  "settings.general.liveLinkCopied": "已复制",
+  "settings.general.liveLinkRenew": "新链接",
+  "settings.general.liveLinkDiscord": "在我的 Discord 状态中显示链接",
+  "settings.general.liveLinkDiscordHelp": "播放时在你的状态中添加“查看歌词”按钮。Discord 不允许点击自己的按钮，但其他人可以。",
+  "lyrics.share": "实时分享歌词",
+  "lyrics.shareCopied": "链接已复制：它会实时跟随你的播放。可在设置中关闭。"
 }

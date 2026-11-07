@@ -33,6 +33,8 @@ export interface BreezrBridge {
   live: {
     /** Turns the live link on if needed, copies it to the clipboard, returns it. */
     share(): Promise<{ url: string }>;
+    /** Turns the live link on or off right away (off deletes it); returns the link, or null when off. */
+    set(on: boolean): Promise<{ url: string | null }>;
     /** Replaces the link: the old one stops working. */
     renew(): Promise<{ url: string }>;
   };

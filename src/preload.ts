@@ -24,6 +24,7 @@ if (globalThis.location.protocol === 'https:' && /(^|\.)deezer\.com$/.test(globa
   },
   live: {
     share: () => ipcRenderer.invoke('breezr:live:share'),
+    set: (on: boolean) => ipcRenderer.invoke('breezr:live:set', on === true),
     renew: () => ipcRenderer.invoke('breezr:live:renew'),
   },
 });

@@ -125,5 +125,15 @@
   "web.lyricsBy": "Текст: LRCLIB",
   "web.madeWith": "Сделано с Breezr",
   "web.reconnecting": "Переподключение…",
-  "discord.lyricsButton": "Смотреть текст"
+  "discord.lyricsButton": "Смотреть текст",
+  "settings.general.section.share": "Обмен",
+  "settings.general.liveLink": "Живая ссылка",
+  "settings.general.liveLinkHelp": "Публикует то, что вы слушаете, по ссылке, которой можно поделиться: обложка, синхронизированный текст и прогресс в реальном времени. Отключение удаляет ссылку.",
+  "settings.general.liveLinkCopy": "Копировать",
+  "settings.general.liveLinkCopied": "Скопировано",
+  "settings.general.liveLinkRenew": "Новая ссылка",
+  "settings.general.liveLinkDiscord": "Показывать ссылку в моём статусе Discord",
+  "settings.general.liveLinkDiscordHelp": "Добавляет в ваш статус кнопку «Смотреть текст» во время воспроизведения. Discord не даёт нажимать на свои кнопки, но другие могут.",
+  "lyrics.share": "Поделиться текстом в реальном времени",
+  "lyrics.shareCopied": "Ссылка скопирована: она следит за вашим воспроизведением в реальном времени. Отключается в Настройках."
 }

@@ -127,5 +127,15 @@
   "web.lyricsBy": "الكلمات: LRCLIB",
   "web.madeWith": "صُنع باستخدام Breezr",
   "web.reconnecting": "جارٍ إعادة الاتصال…",
-  "discord.lyricsButton": "عرض الكلمات"
+  "discord.lyricsButton": "عرض الكلمات",
+  "settings.general.section.share": "المشاركة",
+  "settings.general.liveLink": "رابط مباشر",
+  "settings.general.liveLinkHelp": "ينشر ما تستمع إليه على رابط يمكن مشاركته: الغلاف والكلمات المتزامنة والتقدّم، مباشرةً. إيقافه يحذف الرابط.",
+  "settings.general.liveLinkCopy": "نسخ",
+  "settings.general.liveLinkCopied": "تم النسخ",
+  "settings.general.liveLinkRenew": "رابط جديد",
+  "settings.general.liveLinkDiscord": "عرض الرابط في حالتي على Discord",
+  "settings.general.liveLinkDiscordHelp": "يضيف زر «عرض الكلمات» إلى حالتك أثناء التشغيل. لا يسمح لك Discord بالنقر على أزرارك، لكن الآخرين يستطيعون.",
+  "lyrics.share": "مشاركة الكلمات مباشرةً",
+  "lyrics.shareCopied": "تم نسخ الرابط: يتابع ما تشغّله مباشرةً. يمكن إيقافه من الإعدادات."
 }

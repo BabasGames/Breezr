@@ -92,6 +92,19 @@ export function registerSettings(app: Electron.App, win: BrowserWindow, state: T
     return { url };
   });
 
+  // An action, not a draft setting: turning the link on must show it at once, turning it off deletes it.
+  ipcMain.handle('breezr:live:set', async (event, on: boolean) => {
+    if (!trusted(event)) throw new Error('Untrusted sender');
+    const enable = on === true;
+    const changed = Config.get(app, 'live_link') !== enable;
+    Config.set(app, 'live_link', enable);
+    let url: string | null = null;
+    if (enable) url = await liveLink(app).enable();
+    else await liveLink(app).disable();
+    if (changed) onLiveChange();
+    return { url };
+  });
+
   ipcMain.handle('breezr:live:renew', async (event) => {
     if (!trusted(event)) throw new Error('Untrusted sender');
     if (!Config.get(app, 'live_link')) throw new Error('Live link is off');

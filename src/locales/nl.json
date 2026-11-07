@@ -123,5 +123,15 @@
   "web.lyricsBy": "Songtekst: LRCLIB",
   "web.madeWith": "Gemaakt met Breezr",
   "web.reconnecting": "Opnieuw verbinden…",
-  "discord.lyricsButton": "Songtekst bekijken"
+  "discord.lyricsButton": "Songtekst bekijken",
+  "settings.general.section.share": "Delen",
+  "settings.general.liveLink": "Live-link",
+  "settings.general.liveLinkHelp": "Publiceert wat je luistert op een link om te delen: hoes, gesynchroniseerde songtekst en voortgang, live. Uitzetten verwijdert de link.",
+  "settings.general.liveLinkCopy": "Kopiëren",
+  "settings.general.liveLinkCopied": "Gekopieerd",
+  "settings.general.liveLinkRenew": "Nieuwe link",
+  "settings.general.liveLinkDiscord": "Link tonen in mijn Discord-status",
+  "settings.general.liveLinkDiscordHelp": "Voegt tijdens het afspelen een knop \"Songtekst bekijken\" toe aan je status. In Discord kun je niet op je eigen knoppen klikken, anderen wel.",
+  "lyrics.share": "Songtekst live delen",
+  "lyrics.shareCopied": "Link gekopieerd: hij volgt live wat je afspeelt. Uit te zetten in Instellingen."
 }

@@ -123,5 +123,15 @@
   "web.lyricsBy": "Songtext: LRCLIB",
   "web.madeWith": "Erstellt mit Breezr",
   "web.reconnecting": "Verbindung wird wiederhergestellt…",
-  "discord.lyricsButton": "Songtext ansehen"
+  "discord.lyricsButton": "Songtext ansehen",
+  "settings.general.section.share": "Teilen",
+  "settings.general.liveLink": "Live-Link",
+  "settings.general.liveLinkHelp": "Veröffentlicht, was du hörst, unter einem teilbaren Link: Cover, synchronisierter Songtext und Fortschritt, live. Ausschalten löscht den Link.",
+  "settings.general.liveLinkCopy": "Kopieren",
+  "settings.general.liveLinkCopied": "Kopiert",
+  "settings.general.liveLinkRenew": "Neuer Link",
+  "settings.general.liveLinkDiscord": "Link in meinem Discord-Status zeigen",
+  "settings.general.liveLinkDiscordHelp": "Fügt deinem Status während der Wiedergabe eine Schaltfläche „Songtext ansehen“ hinzu. Auf eigene Schaltflächen kannst du in Discord nicht klicken, andere schon.",
+  "lyrics.share": "Songtext live teilen",
+  "lyrics.shareCopied": "Link kopiert: Er folgt deiner Wiedergabe live. In den Einstellungen abschaltbar."
 }

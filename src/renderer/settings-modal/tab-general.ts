@@ -1,6 +1,7 @@
 import { h } from './dom';
 import type { ModalContext } from './modal';
 import { createUi } from './ui';
+import { bridge } from './bridge';
 import { LANGUAGE_NAMES, LOCALES } from '../../shared/i18n';
 import { STATUS_NAMES, TOOLTIP_TEXTS, type BreezrConfig, type StatusName, type TooltipText } from '../../shared/config-schema';
 
@@ -21,6 +22,30 @@ export function renderGeneral(ctx: ModalContext): HTMLElement {
 
   const { section, setting, toggle } = createUi(t);
 
+  const liveDiscord = toggle('live-link-discord', ctx.draft.live_link_discord, (live_link_discord) => set({ live_link_discord }));
+  liveDiscord.disabled = !ctx.snapshot.liveUrl;
+
+  const liveUrlRow = (url: string) => {
+    // dir=ltr: a URL reads left to right even in Arabic.
+    const field = h('input', { type: 'text', class: 'url', readOnly: true, value: url, dir: 'ltr', 'aria-label': t('settings.general.liveLink'), 'data-focus-id': 'live-url' });
+    field.spellcheck = false;
+    const copy = h('button', { type: 'button', 'data-focus-id': 'live-copy' }, t('settings.general.liveLinkCopy'));
+    copy.addEventListener('click', () => {
+      void navigator.clipboard.writeText(url).then(() => {
+        copy.textContent = t('settings.general.liveLinkCopied');
+        setTimeout(() => { copy.textContent = t('settings.general.liveLinkCopy'); }, 2000);
+      });
+    });
+    const renew = h('button', { type: 'button', 'data-focus-id': 'live-renew' }, t('settings.general.liveLinkRenew'));
+    renew.addEventListener('click', () => {
+      void bridge().live.renew().then(({ url: next }) => {
+        ctx.snapshot.liveUrl = next;
+        ctx.update(ctx.draft);
+      });
+    });
+    return h('div', { class: 'setting url-row' }, field, h('div', { class: 'setting-control' }, copy, renew));
+  };
+
   return h('div', {},
     section(t('settings.general.section.interface'),
       setting({ label: t('settings.general.language'), id: 'language', help: t('settings.general.languageHelp') },
@@ -31,6 +56,17 @@ export function renderGeneral(ctx: ModalContext): HTMLElement {
       setting({ label: t('tray.statusName'), id: 'status-name', help: t('settings.general.statusNameHelp') },
         select<StatusName>('status-name', ctx.draft.status_name, STATUS_NAMES.map((id) => [id, t(`option.statusName.${id}`)]),
           (status_name) => set({ status_name })))),
+    section(t('settings.general.section.share'),
+      setting({ label: t('settings.general.liveLink'), id: 'live-link', help: t('settings.general.liveLinkHelp') },
+        toggle('live-link', ctx.draft.live_link && ctx.snapshot.liveUrl !== null, (on) => {
+          void bridge().live.set(on).then(({ url }) => {
+            ctx.snapshot.liveUrl = url;
+            set({ live_link: on });
+          });
+        })),
+      ctx.snapshot.liveUrl ? liveUrlRow(ctx.snapshot.liveUrl) : null,
+      setting({ label: t('settings.general.liveLinkDiscord'), id: 'live-link-discord', help: t('settings.general.liveLinkDiscordHelp') },
+        liveDiscord)),
     section(t('settings.general.section.tray'),
       setting({ label: t('tray.tooltipText'), id: 'tooltip-text', help: t('settings.general.tooltipTextHelp') },
         select<TooltipText>('tooltip-text', ctx.draft.tooltip_text, TOOLTIP_TEXTS.map((id) => [id, t(`option.tooltip.${id}`)]),
