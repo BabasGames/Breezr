@@ -3,12 +3,26 @@
 
 const SHARE_ICON = '<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7"/><path d="M16 6l-4-4-4 4"/><path d="M12 2v13"/></svg>';
 
+// Deezer's lyrics header is a window-drag area (it can be grabbed to move the window): without no-drag,
+// clicks on the button would move the window instead. Its icon colour comes from the light/dark theme
+// Deezer puts around the lyrics view, so the button must live inside that view's header.
 const BUTTON_STYLE = [
-  'position:absolute', 'inset-block-start:44px', 'inset-inline-end:88px', 'z-index:1',
-  'display:inline-flex', 'align-items:center', 'justify-content:center',
-  'inline-size:32px', 'block-size:32px', 'padding:0', 'border:0', 'border-radius:50%',
-  'background:transparent', 'cursor:pointer', 'color:currentColor',
+  'display:inline-flex', 'align-items:center', 'justify-content:center', 'flex-shrink:0',
+  'inline-size:40px', 'block-size:40px', 'padding:0', 'border:0', 'border-radius:50%',
+  'background:transparent', 'cursor:pointer', '-webkit-app-region:no-drag',
+  'color:var(--tempo-colors-icon-neutral-primary-default, currentColor)',
 ].join(';');
+const FALLBACK_STYLE = 'position:absolute;inset-block-start:44px;inset-inline-end:88px;z-index:3';
+
+/** The group holding Deezer's own header buttons (the "report a problem" one), right of the close button. */
+function headerButtonGroup(view: Element): Element | null {
+  for (const el of view.querySelectorAll('*')) {
+    if (getComputedStyle(el).gridArea.split(' / ')[0] !== 'header') continue;
+    const row = el.firstElementChild;
+    return row && row.childElementCount >= 2 ? row.lastElementChild : null;
+  }
+  return null;
+}
 
 const TOAST_STYLE = [
   'position:fixed', 'inset-block-start:84px', 'inset-inline-end:24px', 'z-index:2147483646', 'max-inline-size:320px',
@@ -43,12 +57,21 @@ export function startLyricsShareButton(share: () => Promise<{ url: string }>, la
     button.setAttribute('aria-label', labels.share);
     button.style.cssText = BUTTON_STYLE;
     button.innerHTML = SHARE_ICON; // static SVG constant only
-    button.addEventListener('mouseenter', () => { button.style.background = 'rgb(127 127 127 / 0.2)'; });
+    button.addEventListener('mouseenter', () => {
+      button.style.background = 'var(--tempo-colors-background-neutral-tertiary-hovered, rgb(127 127 127 / 0.2))';
+    });
     button.addEventListener('mouseleave', () => { button.style.background = 'transparent'; });
     button.addEventListener('click', () => {
       share().then(() => toast(labels.copied)).catch(() => undefined);
     });
-    view.append(button);
+    const group = headerButtonGroup(view);
+    if (group) {
+      group.prepend(button);
+    } else {
+      // Unknown layout: keep it reachable anyway, top right of the view.
+      button.style.cssText += `;${FALLBACK_STYLE}`;
+      view.append(button);
+    }
   };
   ensure();
   setInterval(ensure, 1000);
