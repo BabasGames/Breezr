@@ -1,4 +1,5 @@
 # Live links (Breezr). Caddy flushes text/event-stream responses as they come, so the live stream works as is.
 breezr.babas.app {
+	header Strict-Transport-Security "max-age=31536000"
 	reverse_proxy 127.0.0.1:63120
 }

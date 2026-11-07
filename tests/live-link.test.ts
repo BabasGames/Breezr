@@ -158,4 +158,23 @@ describe('live link', () => {
     expect(second).not.toBe(first);
     expect(calls.some((c) => c.method === 'DELETE' && c.url.endsWith(first.split('/').pop()!))).toBe(true);
   });
+
+  test('turning the link off waits for a send in progress, so the delete always lands last', async () => {
+    setup();
+    const events: string[] = [];
+    const fn = (async (_input: string | URL | Request, init?: RequestInit) => {
+      const method = init?.method ?? 'GET';
+      events.push(`${method} start`);
+      if (method === 'PUT') await wait(100);
+      events.push(`${method} end`);
+      return new Response(null, { status: 204 });
+    }) as typeof fetch;
+    const link = make(fn);
+    await link.enable();
+    link.publish(state());
+    await wait(40);
+    await link.disable();
+    expect(events).toEqual(['PUT start', 'PUT end', 'DELETE start', 'DELETE end']);
+  });
 });
+

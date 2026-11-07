@@ -83,7 +83,8 @@ const STATE_KEYS = ['track', 'playing', 'position', 'at'] as const;
 export function validateLiveState(raw: unknown): LiveState | null {
   if (!isObj(raw) || !onlyKeys(raw, STATE_KEYS) || !isObj(raw.track) || !onlyKeys(raw.track, TRACK_KEYS)) return null;
   const t = raw.track;
-  if (typeof t.id !== 'string' || !/^\d{1,20}$/.test(t.id)) return null;
+  // Negative ids are the user's own uploaded tracks.
+  if (typeof t.id !== 'string' || !/^-?\d{1,20}$/.test(t.id)) return null;
   if (t.isrc !== undefined && (typeof t.isrc !== 'string' || !/^[A-Z0-9]{12}$/.test(t.isrc))) return null;
   if (!text(t.title) || !text(t.artists) || !text(t.album, true) || !isDeezerCover(t.cover)) return null;
   if (!int(t.duration, 0, MAX_DURATION)) return null;

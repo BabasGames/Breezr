@@ -45,6 +45,14 @@ export function createLiveLink(opts: {
   let lastSent: LiveState | null = null;
   let lastSentAt = 0;
   let pending: ReturnType<typeof setTimeout> | undefined;
+  // PUTs and DELETEs go out one at a time, in order: a send still in flight must never land after the
+  // DELETE that turned the link off.
+  let queue: Promise<unknown> = Promise.resolve();
+  const enqueue = <T>(job: () => Promise<T>): Promise<T> => {
+    const run = queue.then(job, job);
+    queue = run.catch(() => undefined);
+    return run;
+  };
 
   const credentials = (): Credentials | null => (data.id && data.secret ? { id: data.id, secret: data.secret } : null);
   const save = () => writeFileSync(opts.file, JSON.stringify(data), { mode: 0o600 });
@@ -75,7 +83,10 @@ export function createLiveLink(opts: {
     return Math.abs(expected - state.position) <= POSITION_TOLERANCE_MS;
   }
 
-  async function send(force: boolean) {
+  const send = (force: boolean) => enqueue(() => sendNow(force));
+
+  async function sendNow(force: boolean) {
+    // Read at run time: the link may have been turned off while this send waited in the queue.
     const creds = credentials();
     if (!creds || !latest) return;
     const state = caughtUp(latest, now());
@@ -103,8 +114,12 @@ export function createLiveLink(opts: {
     if (!creds) return;
     delete data.id;
     delete data.secret;
-    if (!(await request('DELETE', creds))) data.pendingDelete = [...(data.pendingDelete ?? []), creds];
     save();
+    const deleted = await enqueue(() => request('DELETE', creds));
+    if (!deleted) {
+      data.pendingDelete = [...(data.pendingDelete ?? []), creds];
+      save();
+    }
   }
 
   async function enable(): Promise<string> {
@@ -147,6 +162,13 @@ export function createLiveLink(opts: {
   };
 }
 
+/** At most `max` UTF-16 units, never cutting an emoji (surrogate pair) in half. */
+function clip(text: string, max = 300): string {
+  if (text.length <= max) return text;
+  const cut = text.slice(0, max);
+  return /[\ud800-\udbff]$/.test(cut) ? cut.slice(0, -1) : cut;
+}
+
 /** The live state from what updateActivity reads in Deezer's player; null when it would not validate. */
 export function buildLiveState(result: {
   trackId: string; isrc?: string; trackName: string; artists: string; albumName: string; coverUrl: string;
@@ -155,7 +177,7 @@ export function buildLiveState(result: {
   const duration = result.isLivestreamRadio ? 0 : Math.max(0, Math.round(result.songTime));
   const position = Math.max(0, Math.round(result.songTime - result.timeLeft));
   const track = {
-    id: String(result.trackId), title: result.trackName, artists: result.artists, album: result.albumName ?? '',
+    id: String(result.trackId), title: clip(result.trackName), artists: clip(result.artists), album: clip(result.albumName ?? ''),
     cover: result.coverUrl, duration,
     ...(typeof result.isrc === 'string' && /^[A-Z0-9]{12}$/.test(result.isrc) ? { isrc: result.isrc } : {}),
   };

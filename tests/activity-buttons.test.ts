@@ -42,6 +42,16 @@ describe('buildLiveState', () => {
     expect(buildLiveState({ ...result, isLivestreamRadio: true, songTime: 0, timeLeft: -5000 }, 1000)?.track.duration).toBe(0);
   });
   test('nothing to publish without a cover', () => expect(buildLiveState({ ...result, coverUrl: '' }, 1000)).toBeNull());
+  test('long titles are shortened rather than dropping the track', () => {
+    const long = buildLiveState({ ...result, trackName: '🎵'.repeat(200), artists: 'a'.repeat(400) }, 1000);
+    expect(long).not.toBeNull();
+    expect(long!.track.title.length).toBeLessThanOrEqual(300);
+    expect(long!.track.artists.length).toBe(300);
+    expect(long!.track.title.endsWith('\ud83c')).toBe(false);
+  });
+  test('user-uploaded tracks (negative ids) are published too', () => {
+    expect(buildLiveState({ ...result, trackId: '-123456' }, 1000)?.track.id).toBe('-123456');
+  });
   test('an invalid ISRC is dropped rather than losing the whole state', () => {
     expect(buildLiveState({ ...result, isrc: 'nope' }, 1000)?.track.isrc).toBeUndefined();
   });

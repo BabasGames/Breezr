@@ -1,7 +1,8 @@
-import { ID_PATTERN, lineIndexAt, positionAt, type LiveState, type LyricsResult } from '../../src/shared/live';
+import { ID_PATTERN, isStale, lineIndexAt, positionAt, type LiveState, type LyricsResult } from '../../src/shared/live';
 import { audio } from './audio';
 import { loadI18n } from './i18n';
 import { createClock } from './sync';
+import { openLiveStream } from './stream';
 import { createView } from './view';
 
 type Message =
@@ -37,13 +38,9 @@ async function start() {
     view.setLyrics(result);
   }
 
-  const events = new EventSource(`/api/live/${id}/events`);
-  events.onopen = () => view.setReconnecting(false);
-  // EventSource reconnects by itself; just say so meanwhile.
-  events.onerror = () => view.setReconnecting(events.readyState !== EventSource.OPEN);
-  events.onmessage = (event) => {
+  const onMessage = (data: string) => {
     view.setReconnecting(false);
-    const message = JSON.parse(event.data) as Message;
+    const message = JSON.parse(data) as Message;
     if ('serverNow' in message) clock = createClock(message.serverNow, Date.now());
     if (message.status !== 'live') {
       live = null;
@@ -61,8 +58,19 @@ async function start() {
     }
     view.setStatus(message.state.playing ? 'live' : 'paused');
   };
+  openLiveStream(`/api/live/${id}/events`, {
+    message: onMessage,
+    connected: () => view.setReconnecting(false),
+    reconnecting: () => view.setReconnecting(true),
+  });
 
   const frame = () => {
+    // The stream stays open when Breezr goes silent (PC asleep, app closed): notice it here.
+    if (live && isStale(live.receivedAt, clock.serverTime(Date.now()))) {
+      live = null;
+      trackId = null;
+      view.setStatus('idle');
+    }
     if (live) {
       const position = positionAt(live.state, clock.serverTime(Date.now()), live.receivedAt);
       view.setProgress(position, live.state.track.duration);

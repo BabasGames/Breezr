@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test';
 import {
-  ID_PATTERN, lineIndexAt, liveLinkUrl, newLiveCredentials, positionAt, validateLiveState, type LiveState,
+  ID_PATTERN, isStale, lineIndexAt, liveLinkUrl, newLiveCredentials, positionAt, validateLiveState, type LiveState,
 } from '../src/shared/live';
 
 const valid = (): LiveState => ({
@@ -74,6 +74,13 @@ describe('positionAt', () => {
   });
   test('unbounded for a live radio', () => {
     expect(positionAt({ ...withTrack({ duration: 0 }) }, 1_000_000, 0)).toBe(1_083_000);
+  });
+});
+
+describe('isStale', () => {
+  test('a link quiet for more than 10 minutes is stale', () => {
+    expect(isStale(0, 600_000)).toBe(false);
+    expect(isStale(0, 600_001)).toBe(true);
   });
 });
 
