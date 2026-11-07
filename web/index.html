@@ -26,16 +26,26 @@
     </main>
     <p class="notice" id="notice"></p>
     <footer class="bar" id="bar" hidden>
-      <img id="mini-cover" class="mini-cover" alt="" width="48" height="48">
-      <div class="meta">
-        <p id="title" class="title" dir="auto"></p>
-        <p id="artists" class="artists" dir="auto"></p>
+      <div class="who">
+        <img id="mini-cover" class="mini-cover" alt="" width="48" height="48">
+        <div class="meta">
+          <p id="title" class="title" dir="auto"></p>
+          <p id="artists" class="artists" dir="auto"></p>
+        </div>
       </div>
-      <div class="progress" id="progress">
-        <span id="elapsed" class="time"></span>
-        <div class="track"><div id="fill" class="fill"></div></div>
-        <span id="total" class="time"></span>
+      <div class="center">
+        <!-- Shows whether the music plays; not a control (viewers do not drive the player). -->
+        <span class="play-state" id="play-state" role="img">
+          <svg class="icon-pause" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>
+          <svg class="icon-play" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="currentColor"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z"/></svg>
+        </span>
+        <div class="progress" id="progress">
+          <span id="elapsed" class="time"></span>
+          <div class="track"><div id="fill" class="fill"></div></div>
+          <span id="total" class="time"></span>
+        </div>
       </div>
+      <div class="spacer" aria-hidden="true"></div>
     </footer>
     <p class="credits">
       <a id="made-with" href="https://github.com/BabasGames/Breezr" target="_blank" rel="noopener noreferrer"></a>

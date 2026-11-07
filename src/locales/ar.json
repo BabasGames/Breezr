@@ -140,5 +140,7 @@
   "web.theme": "الألوان",
   "web.themeCover": "لون الغلاف",
   "web.themeLight": "فاتح",
-  "web.themeDark": "داكن"
+  "web.themeDark": "داكن",
+  "web.playing": "قيد التشغيل",
+  "web.themeCoverDark": "لون الغلاف الداكن"
 }

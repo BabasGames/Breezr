@@ -135,5 +135,7 @@
   "web.theme": "Renkler",
   "web.themeCover": "Kapak rengi",
   "web.themeLight": "Açık",
-  "web.themeDark": "Koyu"
+  "web.themeDark": "Koyu",
+  "web.playing": "Çalıyor",
+  "web.themeCoverDark": "Koyu kapak rengi"
 }

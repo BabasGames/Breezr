@@ -135,5 +135,7 @@
   "web.theme": "색상",
   "web.themeCover": "앨범 커버 색상",
   "web.themeLight": "라이트",
-  "web.themeDark": "다크"
+  "web.themeDark": "다크",
+  "web.playing": "재생 중",
+  "web.themeCoverDark": "어두운 앨범 커버 색상"
 }

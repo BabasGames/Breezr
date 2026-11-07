@@ -136,5 +136,7 @@
   "web.theme": "Colores",
   "web.themeCover": "Color de la portada",
   "web.themeLight": "Claro",
-  "web.themeDark": "Oscuro"
+  "web.themeDark": "Oscuro",
+  "web.playing": "Reproduciendo",
+  "web.themeCoverDark": "Portada oscura"
 }

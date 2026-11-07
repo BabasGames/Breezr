@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import { readChoice, saveChoice, themeColors } from '../web/src/theme';
+import { readChoice, saveChoice, themeColors, THEME_CHOICES } from '../web/src/theme';
 
 const memory = () => {
   const data = new Map<string, string>();
@@ -32,6 +32,26 @@ describe('themeColors', () => {
   });
   test('cover not readable yet: the neutral dark tint', () => {
     expect(themeColors('cover', null)).toEqual({ bg: '#1b1622', light: false });
+  });
+  test('dark cover: the cover hue, darkened close to black, with light text', () => {
+    const red = themeColors('cover-dark', [220, 40, 40]);
+    expect(red.light).toBe(false);
+    const [r, g, b] = red.bg.match(/\d+/g)!.map(Number);
+    expect(r).toBeGreaterThan(g);
+    expect(r).toBeGreaterThan(b);
+    expect(Math.max(r, g, b)).toBeLessThanOrEqual(60);
+    const pale = themeColors('cover-dark', [250, 245, 240]);
+    expect(pale.light).toBe(false);
+    expect(Math.max(...pale.bg.match(/\d+/g)!.map(Number))).toBeLessThanOrEqual(60);
+    // A pale cover gives an almost neutral dark grey, not brown.
+    const [pr, , pb] = pale.bg.match(/\d+/g)!.map(Number);
+    expect(pr - pb).toBeLessThanOrEqual(8);
+  });
+  test('dark cover with no cover colour yet: the neutral dark tint', () => {
+    expect(themeColors('cover-dark', null)).toEqual({ bg: '#1b1622', light: false });
+  });
+  test('the menu offers four modes, dark cover second', () => {
+    expect(THEME_CHOICES).toEqual(['cover', 'cover-dark', 'light', 'dark']);
   });
   test('light and dark ignore the cover', () => {
     expect(themeColors('light', [20, 20, 30])).toEqual({ bg: '#f6f4f8', light: true });

@@ -136,5 +136,7 @@
   "web.theme": "Kleuren",
   "web.themeCover": "Kleur van de hoes",
   "web.themeLight": "Licht",
-  "web.themeDark": "Donker"
+  "web.themeDark": "Donker",
+  "web.playing": "Speelt af",
+  "web.themeCoverDark": "Donkere hoeskleur"
 }

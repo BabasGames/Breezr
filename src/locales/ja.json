@@ -135,5 +135,7 @@
   "web.theme": "カラー",
   "web.themeCover": "ジャケットの色",
   "web.themeLight": "ライト",
-  "web.themeDark": "ダーク"
+  "web.themeDark": "ダーク",
+  "web.playing": "再生中",
+  "web.themeCoverDark": "ジャケットの色（ダーク）"
 }

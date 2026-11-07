@@ -136,5 +136,7 @@
   "web.theme": "Cores",
   "web.themeCover": "Cor da capa",
   "web.themeLight": "Claro",
-  "web.themeDark": "Escuro"
+  "web.themeDark": "Escuro",
+  "web.playing": "Tocando",
+  "web.themeCoverDark": "Capa escura"
 }

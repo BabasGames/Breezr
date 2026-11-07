@@ -136,5 +136,7 @@
   "web.theme": "Couleurs",
   "web.themeCover": "Couleur de la pochette",
   "web.themeLight": "Clair",
-  "web.themeDark": "Sombre"
+  "web.themeDark": "Sombre",
+  "web.playing": "En lecture",
+  "web.themeCoverDark": "Pochette sombre"
 }

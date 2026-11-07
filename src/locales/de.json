@@ -136,5 +136,7 @@
   "web.theme": "Farben",
   "web.themeCover": "Farbe des Covers",
   "web.themeLight": "Hell",
-  "web.themeDark": "Dunkel"
+  "web.themeDark": "Dunkel",
+  "web.playing": "Wird abgespielt",
+  "web.themeCoverDark": "Dunkle Coverfarbe"
 }

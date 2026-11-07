@@ -138,5 +138,7 @@
   "web.theme": "Kolory",
   "web.themeCover": "Kolor okładki",
   "web.themeLight": "Jasny",
-  "web.themeDark": "Ciemny"
+  "web.themeDark": "Ciemny",
+  "web.playing": "Odtwarzanie",
+  "web.themeCoverDark": "Ciemny kolor okładki"
 }

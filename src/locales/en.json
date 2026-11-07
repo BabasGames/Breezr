@@ -136,5 +136,7 @@
   "web.theme": "Colours",
   "web.themeCover": "Cover colour",
   "web.themeLight": "Light",
-  "web.themeDark": "Dark"
+  "web.themeDark": "Dark",
+  "web.playing": "Playing",
+  "web.themeCoverDark": "Dark cover colour"
 }

@@ -38,6 +38,7 @@ export function createView(t: T) {
   const elapsed = byId('elapsed');
   const total = byId('total');
   const progress = byId('progress');
+  const playState = byId('play-state');
   let lines: HTMLElement[] = [];
   let currentLine = -2;
   let reconnecting = false;
@@ -57,7 +58,7 @@ export function createView(t: T) {
   const themeBox = byId('theme');
   const themeButton = byId<HTMLButtonElement>('theme-button');
   const themeMenu = byId('theme-menu');
-  const labels: Record<ThemeChoice, string> = { cover: t('themeCover'), light: t('themeLight'), dark: t('themeDark') };
+  const labels: Record<ThemeChoice, string> = { cover: t('themeCover'), 'cover-dark': t('themeCoverDark'), light: t('themeLight'), dark: t('themeDark') };
   themeButton.title = t('theme');
   themeButton.setAttribute('aria-label', t('theme'));
   const setOpen = (open: boolean) => {
@@ -127,6 +128,8 @@ export function createView(t: T) {
     status.hidden = !playing;
     status.className = `status ${shownStatus}`;
     status.textContent = shownStatus === 'live' ? t('live') : t('paused');
+    playState.classList.toggle('paused', shownStatus === 'paused');
+    playState.setAttribute('aria-label', shownStatus === 'paused' ? t('paused') : t('playing'));
   }
 
   return {

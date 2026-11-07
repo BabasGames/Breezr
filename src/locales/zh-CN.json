@@ -135,5 +135,7 @@
   "web.theme": "颜色",
   "web.themeCover": "封面颜色",
   "web.themeLight": "浅色",
-  "web.themeDark": "深色"
+  "web.themeDark": "深色",
+  "web.playing": "正在播放",
+  "web.themeCoverDark": "深色封面颜色"
 }

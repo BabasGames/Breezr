@@ -81,9 +81,21 @@ body {
 
 .bar, .credits { position: relative; z-index: 1; }
 .bar {
-  display: grid; grid-template-columns: auto minmax(0, 1fr) minmax(0, 1.4fr); gap: 16px; align-items: center;
-  padding: 14px 24px; background: var(--bar);
+  /* Like Deezer's player: track on the left, playback in the middle; the empty right column has the same
+     width as the left one, so the middle really is centred. */
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr) minmax(0, 1fr); gap: 24px; align-items: center;
+  padding: 12px 24px; background: var(--bar);
 }
+.who { display: flex; align-items: center; gap: 14px; min-inline-size: 0; }
+.center { display: flex; flex-direction: column; align-items: center; gap: 8px; min-inline-size: 0; }
+.center .progress { inline-size: 100%; }
+.play-state {
+  display: inline-grid; place-items: center; inline-size: 36px; block-size: 36px; border-radius: 50%;
+  background: var(--fg); color: var(--bar);
+}
+.play-state .icon-play { margin-inline-start: 2px; }
+.play-state.paused .icon-pause, .play-state:not(.paused) .icon-play { display: none; }
+[dir="rtl"] .play-state .icon-play { transform: scaleX(-1); margin-inline-start: 0; margin-inline-end: 2px; }
 .mini-cover { inline-size: 48px; block-size: 48px; border-radius: 8px; object-fit: cover; }
 .meta { min-inline-size: 0; }
 .title, .artists { margin: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
@@ -114,7 +126,8 @@ body {
   .lyrics { flex: 1; min-block-size: 0; block-size: auto; max-block-size: none; padding-block: 14dvh; }
   /* The big cover is right above: a second, small one in the bar would only repeat it. */
   .mini-cover { display: none; }
-  .bar { grid-template-columns: minmax(0, 1fr); }
+  .bar { grid-template-columns: minmax(0, 1fr); gap: 10px; }
+  .spacer { display: none; }
   .progress { grid-column: 1 / -1; }
 }
 @media (prefers-reduced-motion: reduce) {
