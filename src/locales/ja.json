@@ -122,7 +122,6 @@
   "web.lyricsBy": "歌詞: LRCLIB",
   "web.madeWith": "Breezr で作成",
   "web.reconnecting": "再接続中…",
-  "discord.lyricsButton": "歌詞を見る",
   "settings.general.section.share": "共有",
   "settings.general.liveLink": "ライブリンク",
   "settings.general.liveLinkHelp": "聴いている曲を共有できるリンクで公開します：ジャケット、同期歌詞、再生位置をリアルタイムで。オフにするとリンクは削除されます。",
@@ -130,7 +129,7 @@
   "settings.general.liveLinkCopied": "コピーしました",
   "settings.general.liveLinkRenew": "新しいリンク",
   "settings.general.liveLinkDiscord": "Discord のステータスにリンクを表示",
-  "settings.general.liveLinkDiscordHelp": "再生中、ステータスに「歌詞を見る」ボタンを追加します。",
+  "settings.general.liveLinkDiscordHelp": "再生中、ステータスに「See the lyrics」ボタンを追加します。誰にでも伝わるよう英語で表示されます。",
   "lyrics.share": "歌詞をライブで共有",
   "lyrics.shareCopied": "リンクをコピーしました：再生にリアルタイムで追従します。設定でオフにできます。"
 }

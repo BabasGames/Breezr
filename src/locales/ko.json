@@ -122,7 +122,6 @@
   "web.lyricsBy": "가사: LRCLIB",
   "web.madeWith": "Breezr로 만듦",
   "web.reconnecting": "다시 연결 중…",
-  "discord.lyricsButton": "가사 보기",
   "settings.general.section.share": "공유",
   "settings.general.liveLink": "실시간 링크",
   "settings.general.liveLinkHelp": "듣고 있는 곡을 공유 가능한 링크에 실시간으로 게시해요: 앨범 커버, 동기화된 가사, 재생 위치. 끄면 링크가 삭제돼요.",
@@ -130,7 +129,7 @@
   "settings.general.liveLinkCopied": "복사됨",
   "settings.general.liveLinkRenew": "새 링크",
   "settings.general.liveLinkDiscord": "Discord 상태에 링크 표시",
-  "settings.general.liveLinkDiscordHelp": "재생 중 상태에 \"가사 보기\" 버튼을 추가해요.",
+  "settings.general.liveLinkDiscordHelp": "재생 중 상태에 \"See the lyrics\" 버튼을 추가해요. 누구나 알아볼 수 있도록 영어로 표시돼요.",
   "lyrics.share": "가사를 실시간으로 공유",
   "lyrics.shareCopied": "링크를 복사했어요: 재생을 실시간으로 따라가요. 설정에서 끌 수 있어요."
 }

@@ -123,7 +123,6 @@
   "web.lyricsBy": "Letra: LRCLIB",
   "web.madeWith": "Feito com Breezr",
   "web.reconnecting": "Reconectando…",
-  "discord.lyricsButton": "Ver a letra",
   "settings.general.section.share": "Compartilhamento",
   "settings.general.liveLink": "Link ao vivo",
   "settings.general.liveLinkHelp": "Publica o que você está ouvindo em um link para compartilhar: capa, letra sincronizada e progresso, ao vivo. Desativar apaga o link.",
@@ -131,7 +130,7 @@
   "settings.general.liveLinkCopied": "Copiado",
   "settings.general.liveLinkRenew": "Novo link",
   "settings.general.liveLinkDiscord": "Mostrar o link no meu status do Discord",
-  "settings.general.liveLinkDiscordHelp": "Adiciona um botão \"Ver a letra\" ao seu status durante a reprodução.",
+  "settings.general.liveLinkDiscordHelp": "Adiciona um botão \"See the lyrics\" ao seu status durante a reprodução, em inglês para que todos entendam.",
   "lyrics.share": "Compartilhar a letra ao vivo",
   "lyrics.shareCopied": "Link copiado: ele acompanha o que você ouve, ao vivo. Dá para desativar nas Configurações."
 }

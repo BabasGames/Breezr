@@ -2,8 +2,7 @@ import * as Config from '../config';
 import { tray } from '../tray';
 import { version } from '../../../package.json';
 import { ActivityType } from 'discord-api-types/v10';
-import { t } from '../i18n';
-import { activityButtons } from './activity-buttons';
+import { activityButtons, BUTTON_LABELS } from './activity-buttons';
 
 export async function setActivity({
   timeLeft, playing, client, albumTitle, albumId, trackArtists, trackTitle, albumCover, app, type, trackId, songTime,
@@ -67,7 +66,7 @@ export async function setActivity({
   const buttons = activityButtons(
     trackLink && Number.parseInt(trackId) > 0 ? trackLink : undefined,
     liveUrl,
-    { play: 'Play on Deezer', lyrics: t('discord.lyricsButton') },
+    BUTTON_LABELS,
   );
   const isLivestream = (Date.now() + timeLeft) < Date.now();
   const playedTime = Date.now() - songTime + timeLeft;

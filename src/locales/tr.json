@@ -122,7 +122,6 @@
   "web.lyricsBy": "Şarkı sözleri: LRCLIB",
   "web.madeWith": "Breezr ile yapıldı",
   "web.reconnecting": "Yeniden bağlanıyor…",
-  "discord.lyricsButton": "Şarkı sözlerini gör",
   "settings.general.section.share": "Paylaşım",
   "settings.general.liveLink": "Canlı bağlantı",
   "settings.general.liveLinkHelp": "Dinlediğini paylaşılabilir bir bağlantıda yayınlar: kapak, senkronize şarkı sözleri ve ilerleme, canlı. Kapatmak bağlantıyı siler.",
@@ -130,7 +129,7 @@
   "settings.general.liveLinkCopied": "Kopyalandı",
   "settings.general.liveLinkRenew": "Yeni bağlantı",
   "settings.general.liveLinkDiscord": "Bağlantıyı Discord durumumda göster",
-  "settings.general.liveLinkDiscordHelp": "Müzik çalarken durumuna \"Şarkı sözlerini gör\" düğmesi ekler.",
+  "settings.general.liveLinkDiscordHelp": "Müzik çalarken durumuna \"See the lyrics\" düğmesi ekler; herkes anlasın diye İngilizce.",
   "lyrics.share": "Şarkı sözlerini canlı paylaş",
   "lyrics.shareCopied": "Bağlantı kopyalandı: dinlediğini canlı takip eder. Ayarlar'dan kapatılabilir."
 }

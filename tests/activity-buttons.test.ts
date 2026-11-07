@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'bun:test';
 import { readdirSync, readFileSync } from 'fs';
 import { join } from 'path';
-import { activityButtons } from '../src/main/rpc/activity-buttons';
+import { activityButtons, BUTTON_LABELS } from '../src/main/rpc/activity-buttons';
 import { buildLiveState } from '../src/main/live-link';
 
 const labels = { play: 'Play on Deezer', lyrics: 'See the lyrics' };
@@ -17,11 +17,14 @@ describe('Discord buttons', () => {
     expect(activityButtons('https://www.deezer.com/track/1', undefined, labels)).toEqual([{ label: 'Play on Deezer', url: 'https://www.deezer.com/track/1' }]);
   });
   test('none at all', () => expect(activityButtons(undefined, undefined, labels)).toBeUndefined());
-  test('the lyrics button fits Discord\'s 32 characters in every language', () => {
+  test('labels are English for everyone (Discord shows them as is to every viewer) and fit 32 characters', () => {
+    expect(BUTTON_LABELS).toEqual({ play: 'Play on Deezer', lyrics: 'See the lyrics' });
+    for (const label of Object.values(BUTTON_LABELS)) expect(label.length).toBeLessThanOrEqual(32);
+  });
+  test('no translated Discord label is left in the locales', () => {
     const dir = join(import.meta.dir, '..', 'src', 'locales');
     for (const file of readdirSync(dir).filter((f) => f.endsWith('.json'))) {
-      const label = JSON.parse(readFileSync(join(dir, file), 'utf-8'))['discord.lyricsButton'];
-      expect({ file, ok: typeof label === 'string' && label.length > 0 && label.length <= 32 }).toEqual({ file, ok: true });
+      expect({ file, has: 'discord.lyricsButton' in JSON.parse(readFileSync(join(dir, file), 'utf-8')) }).toEqual({ file, has: false });
     }
   });
 });
