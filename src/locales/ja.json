@@ -130,7 +130,7 @@
   "settings.general.liveLinkCopied": "コピーしました",
   "settings.general.liveLinkRenew": "新しいリンク",
   "settings.general.liveLinkDiscord": "Discord のステータスにリンクを表示",
-  "settings.general.liveLinkDiscordHelp": "再生中、ステータスに「歌詞を見る」ボタンを追加します。Discord では自分のボタンは押せませんが、他の人は押せます。",
+  "settings.general.liveLinkDiscordHelp": "再生中、ステータスに「歌詞を見る」ボタンを追加します。",
   "lyrics.share": "歌詞をライブで共有",
   "lyrics.shareCopied": "リンクをコピーしました：再生にリアルタイムで追従します。設定でオフにできます。"
 }

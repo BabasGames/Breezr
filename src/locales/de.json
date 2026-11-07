@@ -131,7 +131,7 @@
   "settings.general.liveLinkCopied": "Kopiert",
   "settings.general.liveLinkRenew": "Neuer Link",
   "settings.general.liveLinkDiscord": "Link in meinem Discord-Status zeigen",
-  "settings.general.liveLinkDiscordHelp": "Fügt deinem Status während der Wiedergabe eine Schaltfläche „Songtext ansehen“ hinzu. Auf eigene Schaltflächen kannst du in Discord nicht klicken, andere schon.",
+  "settings.general.liveLinkDiscordHelp": "Fügt deinem Status während der Wiedergabe eine Schaltfläche „Songtext ansehen“ hinzu.",
   "lyrics.share": "Songtext live teilen",
   "lyrics.shareCopied": "Link kopiert: Er folgt deiner Wiedergabe live. In den Einstellungen abschaltbar."
 }

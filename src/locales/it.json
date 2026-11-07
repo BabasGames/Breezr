@@ -131,7 +131,7 @@
   "settings.general.liveLinkCopied": "Copiato",
   "settings.general.liveLinkRenew": "Nuovo link",
   "settings.general.liveLinkDiscord": "Mostra il link nel mio stato Discord",
-  "settings.general.liveLinkDiscordHelp": "Aggiunge un pulsante «Vedi il testo» al tuo stato durante la riproduzione. Discord non ti lascia cliccare sui tuoi pulsanti, ma gli altri possono.",
+  "settings.general.liveLinkDiscordHelp": "Aggiunge un pulsante «Vedi il testo» al tuo stato durante la riproduzione.",
   "lyrics.share": "Condividi il testo in diretta",
   "lyrics.shareCopied": "Link copiato: segue il tuo ascolto in diretta. Disattivabile nelle Impostazioni."
 }

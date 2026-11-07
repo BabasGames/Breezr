@@ -131,7 +131,7 @@
   "settings.general.liveLinkCopied": "Copié",
   "settings.general.liveLinkRenew": "Nouveau lien",
   "settings.general.liveLinkDiscord": "Afficher le lien dans mon statut Discord",
-  "settings.general.liveLinkDiscordHelp": "Ajoute un bouton « Voir les paroles » à votre statut pendant la lecture. Discord ne vous laisse pas cliquer sur vos propres boutons, mais les autres peuvent.",
+  "settings.general.liveLinkDiscordHelp": "Ajoute un bouton « Voir les paroles » à votre statut pendant la lecture.",
   "lyrics.share": "Partager les paroles en direct",
   "lyrics.shareCopied": "Lien copié : il suit votre lecture en direct. Désactivable dans les Réglages."
 }

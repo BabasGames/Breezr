@@ -131,7 +131,7 @@
   "settings.general.liveLinkCopied": "Gekopieerd",
   "settings.general.liveLinkRenew": "Nieuwe link",
   "settings.general.liveLinkDiscord": "Link tonen in mijn Discord-status",
-  "settings.general.liveLinkDiscordHelp": "Voegt tijdens het afspelen een knop \"Songtekst bekijken\" toe aan je status. In Discord kun je niet op je eigen knoppen klikken, anderen wel.",
+  "settings.general.liveLinkDiscordHelp": "Voegt tijdens het afspelen een knop \"Songtekst bekijken\" toe aan je status.",
   "lyrics.share": "Songtekst live delen",
   "lyrics.shareCopied": "Link gekopieerd: hij volgt live wat je afspeelt. Uit te zetten in Instellingen."
 }

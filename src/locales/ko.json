@@ -130,7 +130,7 @@
   "settings.general.liveLinkCopied": "복사됨",
   "settings.general.liveLinkRenew": "새 링크",
   "settings.general.liveLinkDiscord": "Discord 상태에 링크 표시",
-  "settings.general.liveLinkDiscordHelp": "재생 중 상태에 \"가사 보기\" 버튼을 추가해요. Discord에서는 내 버튼을 누를 수 없지만 다른 사람은 누를 수 있어요.",
+  "settings.general.liveLinkDiscordHelp": "재생 중 상태에 \"가사 보기\" 버튼을 추가해요.",
   "lyrics.share": "가사를 실시간으로 공유",
   "lyrics.shareCopied": "링크를 복사했어요: 재생을 실시간으로 따라가요. 설정에서 끌 수 있어요."
 }

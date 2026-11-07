@@ -133,7 +133,7 @@
   "settings.general.liveLinkCopied": "Skopiowano",
   "settings.general.liveLinkRenew": "Nowy link",
   "settings.general.liveLinkDiscord": "Pokaż link w moim statusie Discord",
-  "settings.general.liveLinkDiscordHelp": "Dodaje do twojego statusu przycisk „Zobacz tekst” podczas odtwarzania. Discord nie pozwala klikać własnych przycisków, ale inni mogą.",
+  "settings.general.liveLinkDiscordHelp": "Dodaje do twojego statusu przycisk „Zobacz tekst” podczas odtwarzania.",
   "lyrics.share": "Udostępnij tekst na żywo",
   "lyrics.shareCopied": "Link skopiowany: śledzi na żywo to, czego słuchasz. Można to wyłączyć w Ustawieniach."
 }

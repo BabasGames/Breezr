@@ -131,7 +131,7 @@
   "settings.general.liveLinkCopied": "Copiado",
   "settings.general.liveLinkRenew": "Nuevo enlace",
   "settings.general.liveLinkDiscord": "Mostrar el enlace en mi estado de Discord",
-  "settings.general.liveLinkDiscordHelp": "Añade un botón «Ver la letra» a tu estado mientras suena la música. Discord no te deja pulsar tus propios botones, pero los demás sí.",
+  "settings.general.liveLinkDiscordHelp": "Añade un botón «Ver la letra» a tu estado mientras suena la música.",
   "lyrics.share": "Compartir la letra en directo",
   "lyrics.shareCopied": "Enlace copiado: sigue lo que escuchas en directo. Puedes desactivarlo en Ajustes."
 }

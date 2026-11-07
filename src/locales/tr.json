@@ -130,7 +130,7 @@
   "settings.general.liveLinkCopied": "Kopyalandı",
   "settings.general.liveLinkRenew": "Yeni bağlantı",
   "settings.general.liveLinkDiscord": "Bağlantıyı Discord durumumda göster",
-  "settings.general.liveLinkDiscordHelp": "Müzik çalarken durumuna \"Şarkı sözlerini gör\" düğmesi ekler. Discord kendi düğmelerine tıklamana izin vermez, ama başkaları tıklayabilir.",
+  "settings.general.liveLinkDiscordHelp": "Müzik çalarken durumuna \"Şarkı sözlerini gör\" düğmesi ekler.",
   "lyrics.share": "Şarkı sözlerini canlı paylaş",
   "lyrics.shareCopied": "Bağlantı kopyalandı: dinlediğini canlı takip eder. Ayarlar'dan kapatılabilir."
 }

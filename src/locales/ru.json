@@ -133,7 +133,7 @@
   "settings.general.liveLinkCopied": "Скопировано",
   "settings.general.liveLinkRenew": "Новая ссылка",
   "settings.general.liveLinkDiscord": "Показывать ссылку в моём статусе Discord",
-  "settings.general.liveLinkDiscordHelp": "Добавляет в ваш статус кнопку «Смотреть текст» во время воспроизведения. Discord не даёт нажимать на свои кнопки, но другие могут.",
+  "settings.general.liveLinkDiscordHelp": "Добавляет в ваш статус кнопку «Смотреть текст» во время воспроизведения.",
   "lyrics.share": "Поделиться текстом в реальном времени",
   "lyrics.shareCopied": "Ссылка скопирована: она следит за вашим воспроизведением в реальном времени. Отключается в Настройках."
 }
