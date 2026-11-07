@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 2.2.1
 
 - The Discord status comes back on its own when Discord is closed and reopened, or started after Breezr.
 
