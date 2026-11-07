@@ -23,10 +23,12 @@ let server: Server;
 let base = '';
 const lookups: { title: string; artist: string; album: string; durationSec: number }[] = [];
 const videoLookups: TrackQuery[] = [];
+const priorities: boolean[] = [];
 // Track ids decide the fake answer: 1 found, 3 none, anything else unavailable.
 const videos = {
-  lookup: async (q: TrackQuery, mayPay?: () => boolean): Promise<VideoAnswer> => {
+  lookup: async (q: TrackQuery, mayPay?: () => boolean, priority?: boolean): Promise<VideoAnswer> => {
     videoLookups.push(q);
+    priorities.push(priority === true);
     // Track ids from 100 on stand for tracks nobody looked up yet: they need a paid search.
     if (Number(q.trackId) >= 100) return mayPay?.() ? { status: 'found', videoId: `v${q.trackId}`, kind: 'clip' } : { status: 'unavailable' };
     if (q.trackId === '1') return { status: 'found', videoId: '5NV6Rdv1a3I', kind: 'audio' };
@@ -191,6 +193,14 @@ describe('page and lyrics', () => {
     await put(id, { ...state('Get Lucky'), track: { ...state().track, artists: 'Daft Punk, Pharrell Williams' } });
     await fetch(`${base}/api/live/${id}/video?track=1`);
     expect(videoLookups.at(-1)).toEqual({ trackId: '1', artist: 'Daft Punk', title: 'Get Lucky', durationSec: 248 });
+    expect(priorities.at(-1)).toBe(false);
+  });
+
+  test('video: the full Deezer title reaches the picking rules, so a live track can match a live upload', async () => {
+    const id = 'XXXXXXXXXX';
+    await put(id, { ...state('505 (Live)'), track: { ...state().track, title: '505 (Live)' } });
+    await fetch(`${base}/api/live/${id}/video?track=1`);
+    expect(videoLookups.at(-1)?.title).toBe('505 (Live)');
   });
 
   test('duration 0 answers none without calling YouTube', async () => {
@@ -427,7 +437,7 @@ describe('viewer count on the page', () => {
   };
 
   test('when the owner allows it, pages get the count and its changes', async () => {
-    const id = 'LLLLLLLLLL';
+    const id = 'XXXXXXXXXX';
     await publish(id, true);
     const first = await reader(id);
     expect((await first.next()).viewers).toBe(1);
@@ -457,7 +467,7 @@ describe('paid video searches', () => {
   beforeAll(async () => {
     dir6 = mkdtempSync(join(tmpdir(), 'breezr-paid-'));
     const store = new LiveStore({ file: join(dir6, 'ids.json') });
-    server6 = createServer(createApp({ store, lyrics: { lookup: async () => ({ result: { kind: 'none' as const }, ok: true }) }, videos, publicDir: dir6, now: () => clock.now }));
+    server6 = createServer(createApp({ store, lyrics: { lookup: async () => ({ result: { kind: 'none' as const }, ok: true }) }, videos, publicDir: dir6, now: () => clock.now, priorityLinks: new Set(['Owner00001']) }));
     await new Promise<void>((r) => server6.listen(0, '127.0.0.1', r));
     base6 = `http://127.0.0.1:${(server6.address() as AddressInfo).port}`;
   });
@@ -501,5 +511,17 @@ describe('paid video searches', () => {
       fine.push((await ask(victim, track, '198.51.100.7')).status);
     }
     expect(fine).toEqual([200, 200, 200, 200, 200]);
+  });
+
+  test('the owner\'s own links use the reserved budget and are not limited', async () => {
+    const codes = [];
+    let track = 5000;
+    for (let i = 0; i < 8; i++) {
+      clock.now += 2000;
+      await playOn('Owner00001', ++track);
+      codes.push((await ask('Owner00001', track, '203.0.113.9')).status);
+    }
+    expect(codes).toEqual(Array(8).fill(200));
+    expect(priorities.at(-1)).toBe(true);
   });
 });

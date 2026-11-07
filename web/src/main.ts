@@ -26,10 +26,15 @@ async function start() {
   let trackId: string | null = null;
   let lyrics: LyricsResult | null = null;
 
-  // Only asked once the viewer turned music on; 503 (no key, no quota left) reads as "no video".
-  async function trackVideo(forTrack: string): Promise<{ videoId: string } | null> {
+  // Only asked once the viewer turned music on. A busy or throttled server (429, 503) gets one more try a few
+  // seconds later; then, as for "no key" or "no quota left", the track plays without music.
+  async function trackVideo(forTrack: string, retry = true): Promise<{ videoId: string } | null> {
     try {
       const res = await fetch(`/api/live/${id}/video?track=${encodeURIComponent(forTrack)}`);
+      if ((res.status === 429 || res.status === 503) && retry) {
+        await new Promise((r) => setTimeout(r, 4000));
+        return forTrack === trackId ? trackVideo(forTrack, false) : null;
+      }
       if (!res.ok) return null;
       const body = (await res.json()) as { videoId?: unknown };
       return typeof body.videoId === 'string' ? { videoId: body.videoId } : null;
@@ -97,7 +102,8 @@ async function start() {
       trackId = message.state.track.id;
       lyrics = null;
       view.setTrack(message.state.track);
-      audio.load(message.state.track);
+      // The new track's own position: the slot must not start it where the previous one stopped.
+      audio.load(message.state.track, positionAt(message.state, clock.serverTime(Date.now()), message.receivedAt), message.state.playing);
       void loadLyrics(trackId);
     }
     // Back from idle with music on: start again (muted if the browser no longer allows sound).
@@ -111,8 +117,9 @@ async function start() {
     reconnecting: () => view.setReconnecting(true),
   });
 
-  const frame = () => {
-    // The stream stays open when Breezr goes silent (PC asleep, app closed): notice it here.
+  // The stream stays open when Breezr goes silent (PC asleep, app closed): notice it here. Checked from the
+  // timer, which keeps running in a hidden tab, so a video does not play on alone.
+  const checkStale = () => {
     if (live && isStale(live.receivedAt, clock.serverTime(Date.now()))) {
       live = null;
       trackId = null;
@@ -120,6 +127,9 @@ async function start() {
       view.setStatus('idle');
       view.setViewers(null);
     }
+  };
+  const frame = () => {
+    checkStale();
     if (live) {
       const position = lyricsTime(mode, audio.timeMs(), positionAt(live.state, clock.serverTime(Date.now()), live.receivedAt));
       view.setProgress(position, live.state.track.duration);
@@ -130,6 +140,7 @@ async function start() {
   requestAnimationFrame(frame);
   // The video is driven from a timer: animation frames stop in a hidden tab, the music does not.
   setInterval(() => {
+    checkStale();
     if (live) audio.sync(positionAt(live.state, clock.serverTime(Date.now()), live.receivedAt), live.state.playing);
   }, 250);
 }

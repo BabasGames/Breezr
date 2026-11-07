@@ -35,11 +35,14 @@ const quotaDay = (t: number) => new Intl.DateTimeFormat('en-CA', { timeZone: 'Am
  */
 export function createVideoService(opts: {
   fetch: typeof fetch; key: string | null; file: string; now?: () => number; timeoutMs?: number; dailyBudget?: number;
+  /** Units only the owner's own links may spend: strangers cannot leave them without music for the day. */
+  reserve?: number;
   log?: (msg: string) => void;
 }) {
   const now = opts.now ?? Date.now;
   const timeoutMs = opts.timeoutMs ?? 8000;
   const budget = opts.dailyBudget ?? 9500;
+  const reserve = opts.reserve ?? 4000;
   const log = opts.log ?? ((msg: string) => console.error(msg));
   let cache: CacheFile = { tracks: {}, topics: {} };
   let day = quotaDay(now());
@@ -59,14 +62,14 @@ export function createVideoService(opts: {
     return today;
   };
 
-  function spend(cost: number) {
+  function spend(cost: number, priority: boolean) {
     if (blockedDay === rollDay()) throw new Unavailable('quota exceeded');
-    if (units + cost > budget) throw new Unavailable('daily budget reached');
+    if (units + cost > (priority ? budget : budget - reserve)) throw new Unavailable('daily budget reached');
     units += cost;
   }
 
-  async function call(path: 'search' | 'videos', params: Record<string, string>, cost: number): Promise<Record<string, unknown>> {
-    spend(cost);
+  async function call(path: 'search' | 'videos', params: Record<string, string>, cost: number, priority: boolean): Promise<Record<string, unknown>> {
+    spend(cost, priority);
     const url = new URL(`${API}/${path}`);
     for (const [k, v] of Object.entries(params)) url.searchParams.set(k, v);
     url.searchParams.set('key', opts.key as string);
@@ -97,9 +100,9 @@ export function createVideoService(opts: {
     return (await res.json()) as Record<string, unknown>;
   }
 
-  async function videos(ids: string[]): Promise<YtVideo[]> {
+  async function videos(ids: string[], priority: boolean): Promise<YtVideo[]> {
     if (ids.length === 0) return [];
-    const body = await call('videos', { part: 'contentDetails,status,snippet', id: ids.join(',') }, VIDEOS_UNITS);
+    const body = await call('videos', { part: 'contentDetails,status,snippet', id: ids.join(',') }, VIDEOS_UNITS, priority);
     const items = Array.isArray(body.items) ? body.items as Record<string, Record<string, unknown>>[] : [];
     return items.map((item) => ({
       id: String(item.id),
@@ -111,13 +114,13 @@ export function createVideoService(opts: {
     }));
   }
 
-  async function searchVideos(params: Record<string, string>): Promise<YtVideo[]> {
-    const body = await call('search', { part: 'id', type: 'video', maxResults: MAX_RESULTS, ...params }, SEARCH_UNITS);
+  async function searchVideos(params: Record<string, string>, priority: boolean): Promise<YtVideo[]> {
+    const body = await call('search', { part: 'id', type: 'video', maxResults: MAX_RESULTS, ...params }, SEARCH_UNITS, priority);
     const items = Array.isArray(body.items) ? body.items as { id?: { videoId?: string } }[] : [];
-    return videos(items.map((i) => i.id?.videoId).filter((id): id is string => typeof id === 'string'));
+    return videos(items.map((i) => i.id?.videoId).filter((id): id is string => typeof id === 'string'), priority);
   }
 
-  async function topicChannel(artist: string): Promise<string | null> {
+  async function topicChannel(artist: string, priority: boolean): Promise<string | null> {
     const key = normalizeName(artist);
     const known = cache.topics[key];
     const fresh = known && now() - known.fetchedAt <= (known.channelId ? KEEP_MS : RETRY_NONE_MS);
@@ -125,7 +128,7 @@ export function createVideoService(opts: {
       known.usedAt = now();
       return known.channelId;
     }
-    const body = await call('search', { part: 'snippet', type: 'channel', maxResults: '5', q: `${artist} - Topic` }, SEARCH_UNITS);
+    const body = await call('search', { part: 'snippet', type: 'channel', maxResults: '5', q: `${artist} - Topic` }, SEARCH_UNITS, priority);
     const items = Array.isArray(body.items) ? body.items as { id?: { channelId?: string }; snippet?: { title?: string } }[] : [];
     const match = items.find((i) => typeof i.id?.channelId === 'string' && isTopicChannelOf(i.snippet?.title ?? '', artist));
     const channelId = match?.id?.channelId ?? null;
@@ -133,32 +136,32 @@ export function createVideoService(opts: {
     return channelId;
   }
 
-  async function search(q: TrackQuery): Promise<Pick | null> {
+  async function search(q: TrackQuery, priority: boolean): Promise<Pick | null> {
     const title = bareTitle(q.title);
-    const official = pickOfficial(await searchVideos({ q: `${q.artist} ${title}` }), q);
+    const official = pickOfficial(await searchVideos({ q: `${q.artist} ${title}` }, priority), q);
     if (official) return official;
-    const channelId = await topicChannel(q.artist);
+    const channelId = await topicChannel(q.artist, priority);
     if (!channelId) return null;
-    return pickTopic(await searchVideos({ q: title, channelId }), q);
+    return pickTopic(await searchVideos({ q: title, channelId }, priority), q);
   }
 
   /** A known video older than 30 days: one cheap check that it is still there and embeddable. */
-  async function stillThere(videoId: string): Promise<boolean> {
-    const [video] = await videos([videoId]);
+  async function stillThere(videoId: string, priority: boolean): Promise<boolean> {
+    const [video] = await videos([videoId], priority);
     return video?.id === videoId && video.embeddable;
   }
 
-  async function resolve(q: TrackQuery, key: string, mayPay?: () => boolean): Promise<VideoAnswer> {
+  async function resolve(q: TrackQuery, key: string, mayPay: (() => boolean) | undefined, priority: boolean): Promise<VideoAnswer> {
     const known = cache.tracks[key];
     try {
-      if (known?.videoId && now() - known.fetchedAt > KEEP_MS && await stillThere(known.videoId)) {
+      if (known?.videoId && now() - known.fetchedAt > KEEP_MS && await stillThere(known.videoId, priority)) {
         known.fetchedAt = known.usedAt = now();
         await persist();
         return { status: 'found', videoId: known.videoId, kind: known.kind ?? 'audio' };
       }
       // A full search costs 100 to 300 units: the caller decides whether this requester may spend them.
       if (mayPay && !mayPay()) return { status: 'unavailable' };
-      const pick = await search(q);
+      const pick = await search(q, priority);
       cache.tracks[key] = { videoId: pick?.videoId ?? null, kind: pick?.kind, fetchedAt: now(), usedAt: now() };
       // Saved before answering: a restart right after a paid search must not pay for it again.
       await persist();
@@ -217,7 +220,7 @@ export function createVideoService(opts: {
     },
 
     /** `mayPay` is asked only before a paid search, never for an answer already known. */
-    async lookup(q: TrackQuery, mayPay?: () => boolean): Promise<VideoAnswer> {
+    async lookup(q: TrackQuery, mayPay?: () => boolean, priority = false): Promise<VideoAnswer> {
       // Negative ids are the owner's own uploads: not on YouTube.
       if (q.trackId.startsWith('-')) return { status: 'none' };
       if (!opts.key) return { status: 'unavailable' };
@@ -237,7 +240,7 @@ export function createVideoService(opts: {
       }
       let pending = inFlight.get(key);
       if (!pending) {
-        pending = resolve(q, key, mayPay).finally(() => inFlight.delete(key));
+        pending = resolve(q, key, mayPay, priority).finally(() => inFlight.delete(key));
         inFlight.set(key, pending);
       }
       return pending;

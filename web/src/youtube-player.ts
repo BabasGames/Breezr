@@ -1,4 +1,4 @@
-import type { VideoPlayer } from './audio';
+import type { PlayerState, VideoPlayer } from './audio';
 
 // The official IFrame Player API, loaded only when a viewer asks for music.
 interface YTPlayer {
@@ -9,8 +9,8 @@ interface YTPlayer {
   pauseVideo(): void;
   mute(): void;
   unMute(): void;
-  isMuted(): boolean;
   getCurrentTime(): number;
+  getDuration(): number;
   destroy(): void;
 }
 interface YTNamespace {
@@ -25,6 +25,7 @@ declare global {
 const API_URL = 'https://www.youtube.com/iframe_api';
 // Privacy-enhanced host: no YouTube cookies until the video plays.
 const PLAYER_HOST = 'https://www.youtube-nocookie.com';
+const ENDED = 0;
 const PLAYING = 1;
 const PAUSED = 2;
 const BUFFERING = 3;
@@ -111,9 +112,13 @@ export async function loadYouTubePlayer(
       },
       mute: () => yt.mute(),
       unmute: () => yt.unMute(),
-      isMuted: () => yt.isMuted(),
       currentMs: () => (state === PLAYING || state === PAUSED || state === BUFFERING ? Math.round(yt.getCurrentTime() * 1000) : null),
-      isPlaying: () => state === PLAYING || state === BUFFERING,
+      durationMs: () => {
+        const sec = yt.getDuration();
+        return sec > 0 ? Math.round(sec * 1000) : null;
+      },
+      state: (): PlayerState => (state === PLAYING ? 'playing' : state === BUFFERING ? 'buffering' : state === PAUSED ? 'paused'
+        : state === ENDED ? 'ended' : 'idle'),
       destroy() {
         clearTimeout(blockTimer);
         yt.destroy();

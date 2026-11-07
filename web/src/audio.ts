@@ -3,9 +3,12 @@ import { shouldSeek } from './music';
 
 /** What the page calls on every track change and on every sync tick. */
 export interface AudioSlot {
-  load(track: LiveTrack): void;
+  load(track: LiveTrack, positionMs: number, playing: boolean): void;
   sync(positionMs: number, playing: boolean): void;
 }
+
+/** `idle`: not started or cued. */
+export type PlayerState = 'playing' | 'buffering' | 'paused' | 'ended' | 'idle';
 
 /** The YouTube player as the audio slot sees it (see youtube-player.ts). */
 export interface VideoPlayer {
@@ -15,15 +18,19 @@ export interface VideoPlayer {
   pause(): void;
   mute(): void;
   unmute(): void;
-  isMuted(): boolean;
-  /** null while nothing plays. */
+  /** null while nothing is loaded. */
   currentMs(): number | null;
-  isPlaying(): boolean;
+  durationMs(): number | null;
+  state(): PlayerState;
   destroy(): void;
 }
 
 // After a load, seek or play command the player needs a moment (buffering, an ad): no new command meanwhile.
 const COMMAND_COOLDOWN_MS = 3000;
+// Near its end the video is left to finish: playing it again would start the song over.
+const END_MARGIN_MS = 500;
+// A drift must show on this many ticks in a row before a seek: one late tick right after a seek is noise.
+const DRIFT_TICKS = 2;
 
 /**
  * Plays the track's YouTube video in step with the owner's playback, once the viewer turned music on.
@@ -44,21 +51,34 @@ export function createAudio(deps: {
   let playing = false;
   let player: VideoPlayer | null = null;
   let creating: Promise<VideoPlayer> | null = null;
+  // The video the player was created with, until it is adopted.
+  let createdWith: string | null = null;
   // The video of the current track, once known; null while looking or when there is none.
   let videoId: string | null = null;
+  // The video the player holds right now.
+  let loaded: string | null = null;
   // Bumped on every track change or disable: answers for an older request are dropped.
   let request = 0;
   let lastCommandAt = -Infinity;
+  let driftTicks = 0;
   let muted = false;
 
   const command = (fn: () => void) => {
     lastCommandAt = now();
+    driftTicks = 0;
     fn();
+  };
+
+  const loadCurrent = (p: VideoPlayer, id: string) => {
+    command(() => p.load(id, position / 1000, playing));
+    loaded = id;
   };
 
   async function start(forTrack: LiveTrack) {
     const mine = ++request;
     videoId = null;
+    // The previous song must not go on under the next one while its video is looked up.
+    player?.pause();
     if (forTrack.duration === 0) {
       deps.onUnavailable(true);
       return;
@@ -71,18 +91,19 @@ export function createAudio(deps: {
     }
     if (mine !== request || !enabled) return;
     if (!answer) {
-      player?.pause();
       deps.onUnavailable(true);
       return;
     }
     deps.onUnavailable(false);
     videoId = answer.videoId;
-    const first = { videoId: answer.videoId, startSec: position / 1000, play: playing };
     if (player) {
-      command(() => player?.load(first.videoId, first.startSec, first.play));
+      loadCurrent(player, videoId);
       return;
     }
-    creating ??= deps.player(first);
+    if (!creating) {
+      createdWith = videoId;
+      creating = deps.player({ videoId, startSec: position / 1000, play: playing });
+    }
     let created: VideoPlayer;
     try {
       created = await creating;
@@ -92,37 +113,62 @@ export function createAudio(deps: {
       if (mine === request) deps.onUnavailable(true);
       return;
     }
-    if (mine !== request || !enabled) return;
+    // Whoever gets here first adopts the new player, so that it can always be paused or reloaded.
     if (player !== created) {
       player = created;
+      loaded = createdWith;
       lastCommandAt = now();
       if (muted) player.mute();
-    } else {
-      command(() => player?.load(first.videoId, first.startSec, first.play));
     }
+    if (!enabled) {
+      player.pause();
+      return;
+    }
+    if (mine !== request || !videoId) return;
+    if (loaded !== videoId) loadCurrent(player, videoId);
   }
 
   return {
-    load(next: LiveTrack) {
+    load(next: LiveTrack, positionMs: number, isPlaying: boolean) {
       track = next;
+      position = positionMs;
+      playing = isPlaying;
       if (enabled) void start(next);
     },
 
     sync(positionMs: number, isPlaying: boolean) {
       position = positionMs;
       playing = isPlaying;
-      if (!enabled || !player || !videoId || now() - lastCommandAt < COMMAND_COOLDOWN_MS) return;
+      if (!enabled || !player || !videoId || loaded !== videoId || now() - lastCommandAt < COMMAND_COOLDOWN_MS) return;
       const p = player;
+      const state = p.state();
       if (!isPlaying) {
-        if (p.isPlaying()) command(() => p.pause());
+        driftTicks = 0;
+        if (state === 'playing' || state === 'buffering') command(() => p.pause());
         return;
       }
-      if (!p.isPlaying()) {
-        command(() => p.play());
+      const duration = p.durationMs();
+      const atEnd = duration !== null && duration > 0 && positionMs >= duration - END_MARGIN_MS;
+      if (state === 'ended') {
+        // The owner went back into the song: follow. Otherwise let the video stay finished.
+        if (!atEnd) command(() => { p.seek(positionMs / 1000); p.play(); });
+        return;
+      }
+      if (state === 'paused' || state === 'idle') {
+        if (!atEnd) command(() => p.play());
+        return;
+      }
+      // While buffering the reported time stands still: it says nothing about drift.
+      if (state === 'buffering') {
+        driftTicks = 0;
         return;
       }
       const current = p.currentMs();
-      if (current !== null && shouldSeek(current, positionMs)) command(() => p.seek(positionMs / 1000));
+      if (current === null || !shouldSeek(current, positionMs)) {
+        driftTicks = 0;
+        return;
+      }
+      if (++driftTicks >= DRIFT_TICKS) command(() => p.seek(positionMs / 1000));
     },
 
     enable() {
@@ -165,8 +211,9 @@ export function createAudio(deps: {
 
     /** What the viewer hears, when a video plays; lyrics follow it. */
     timeMs(): number | null {
-      if (!enabled || !player || !videoId || !player.isPlaying()) return null;
-      return player.currentMs();
+      if (!enabled || !player || !videoId || loaded !== videoId) return null;
+      const state = player.state();
+      return state === 'playing' || state === 'buffering' ? player.currentMs() : null;
     },
   };
 }

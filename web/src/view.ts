@@ -236,6 +236,11 @@ export function createView(t: T) {
       progress.hidden = track.duration === 0;
       total.textContent = formatTime(track.duration);
       tint(track.cover);
+      // A new track: its video is looked up again, the cover shows meanwhile.
+      if (mode === 'music') {
+        videoFound = null;
+        renderMusic();
+      }
       this.setLyrics(null);
     },
     /** null while loading the lyrics of a new track. */

@@ -158,7 +158,7 @@ describe('video lookup', () => {
     // 07:59 UTC on 2026-11-08 is still 2026-11-07 in California (PST), 08:01 is the next day.
     const clock = { now: Date.UTC(2026, 10, 8, 7, 59) };
     const yt = fakeYouTube();
-    const s = service(yt, clock, { dailyBudget: 150 });
+    const s = service(yt, clock, { dailyBudget: 150, reserve: 0 });
     expect((await s.lookup(qLucky)).status).toBe('found');
     expect(await s.lookup(q505)).toEqual({ status: 'unavailable' });
     expect(yt.calls.length).toBe(2);
@@ -212,6 +212,14 @@ describe('video lookup', () => {
     expect(yt.calls).toEqual([]);
     await s.lookup(qLucky, () => true);
     expect(await s.lookup(qLucky, () => false)).toEqual({ status: 'found', videoId: '5NV6Rdv1a3I', kind: 'audio' });
+  });
+
+  test('a share of the budget is kept for the owner\'s own links', async () => {
+    const yt = fakeYouTube();
+    const s = service(yt, { now: T0 }, { dailyBudget: 300, reserve: 250 });
+    expect(await s.lookup(qLucky, () => true, false)).toEqual({ status: 'unavailable' });
+    expect(yt.calls).toEqual([]);
+    expect(await s.lookup(qLucky, () => true, true)).toEqual({ status: 'found', videoId: '5NV6Rdv1a3I', kind: 'audio' });
   });
 
   test('key never logged', async () => {

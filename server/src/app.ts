@@ -5,7 +5,7 @@ import { ID_PATTERN, validateLiveState, type LyricsResult } from '../../src/shar
 import { RateLimiter } from './rate-limit';
 import type { LiveStore, Snapshot } from './store';
 import type { LyricsQuery } from './lyrics';
-import { bareTitle, mainArtist, type TrackQuery } from './youtube-pick';
+import { mainArtist, type TrackQuery } from './youtube-pick';
 import type { VideoAnswer } from './youtube';
 
 const MAX_BODY = 4096;
@@ -39,7 +39,7 @@ const MIME: Record<string, string> = {
 };
 
 export interface LyricsSource { lookup(q: LyricsQuery): Promise<{ result: LyricsResult; ok: boolean }> }
-export interface VideoSource { lookup(q: TrackQuery, mayPay?: () => boolean): Promise<VideoAnswer> }
+export interface VideoSource { lookup(q: TrackQuery, mayPay?: () => boolean, priority?: boolean): Promise<VideoAnswer> }
 
 class BodyError extends Error {}
 
@@ -108,7 +108,11 @@ function bearer(req: IncomingMessage): string | null {
   return match && SECRET_PATTERN.test(match[1]) ? match[1] : null;
 }
 
-export function createApp(opts: { store: LiveStore; lyrics: LyricsSource; videos: VideoSource; publicDir: string; now?: () => number }): RequestListener {
+export function createApp(opts: {
+  store: LiveStore; lyrics: LyricsSource; videos: VideoSource; publicDir: string; now?: () => number;
+  /** The server owner's own links: they spend the reserved quota and skip the paid-search limits. */
+  priorityLinks?: ReadonlySet<string>;
+}): RequestListener {
   const { store, lyrics, videos, publicDir } = opts;
   const now = opts.now ?? Date.now;
   // Writes are charged to the link only once its owner is proven: a stranger who knows the (public) id cannot
@@ -310,10 +314,13 @@ export function createApp(opts: { store: LiveStore; lyrics: LyricsSource; videos
     lookupsInFlight++;
     try {
       const ip = creationKey(clientIp(req));
-      // The requester's own budget is taken first: one that is spent must not use up the link's.
+      const priority = opts.priorityLinks?.has(id) === true;
+      // The full title: the picking rules tell "505 (Live)" from "505" with it; the search itself strips it.
+      // A stranger's requester budget is taken before the link's: one that is spent must not use up the link's.
+      const mayPay = priority ? () => true : () => paidPerIp.take(ip) && paidPerLink.take(id);
       const answer = await videos.lookup({
-        trackId: track.id, artist: mainArtist(track.artists), title: bareTitle(track.title), durationSec: Math.round(track.duration / 1000),
-      }, () => paidPerIp.take(ip) && paidPerLink.take(id));
+        trackId: track.id, artist: mainArtist(track.artists), title: track.title, durationSec: Math.round(track.duration / 1000),
+      }, mayPay, priority);
       if (answer.status === 'found') return send(res, 200, { videoId: answer.videoId, kind: answer.kind });
       if (answer.status === 'none') return send(res, 200, { none: true });
       send(res, 503, { unavailable: true });
