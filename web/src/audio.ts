@@ -155,7 +155,9 @@ export function createAudio(deps: {
         return;
       }
       if (state === 'paused' || state === 'idle') {
-        if (!atEnd) command(() => p.play());
+        // The pause reached the page late, so the video stopped a little past the owner: resume from the owner's
+        // position, or every pause would add to the gap (below the drift threshold, nothing else corrects it).
+        if (!atEnd) command(() => { p.seek(positionMs / 1000); p.play(); });
         return;
       }
       // While buffering the reported time stands still: it says nothing about drift.

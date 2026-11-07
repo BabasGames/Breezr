@@ -150,6 +150,21 @@ describe('audio slot', () => {
     expect(env.player.log).toContain('play');
   });
 
+  test('on resume the video starts again from the owner\'s position, not from where it was paused', async () => {
+    const env = setup();
+    env.audio.load(track('A'), 10_000, true);
+    env.audio.enable();
+    await flush();
+    env.clock.now += COOLDOWN;
+    env.audio.sync(10_000, false);
+    expect(env.player.log.at(-1)).toBe('pause');
+    // The pause reached the page late: the video stopped a little past the owner's position.
+    env.player.time = 10_800;
+    env.clock.now += COOLDOWN;
+    env.audio.sync(10_000, true);
+    expect(env.player.log.slice(-2)).toEqual(['seek 10', 'play']);
+  });
+
   test('drift reseeks past 1.5 s on two ticks in a row, not on one', async () => {
     const env = setup();
     env.audio.load(track('A'), 10_000, true);
