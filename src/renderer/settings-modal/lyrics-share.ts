@@ -46,10 +46,13 @@ function toast(text: string) {
  * A share button in Deezer's full-screen lyrics view, next to its own buttons. Optional: if Deezer changes
  * that view the button simply does not appear, and the link stays available in the settings.
  */
+// Same height and colour as Deezer's header icons, so the gaps between items look the same.
 const BADGE_STYLE = [
-  'display:inline-flex', 'align-items:center', 'gap:4px', 'font:600 13px/1 Inter, system-ui, sans-serif',
-  'color:var(--tempo-colors-text-neutral-secondary-default, currentColor)', '-webkit-app-region:no-drag',
+  'align-items:center', 'justify-content:center', 'gap:6px', 'flex-shrink:0', 'block-size:40px', 'padding:0 4px',
+  'font:600 14px/1 Inter, system-ui, sans-serif', 'font-variant-numeric:tabular-nums',
+  'color:var(--tempo-colors-icon-neutral-primary-default, currentColor)', '-webkit-app-region:no-drag',
 ].join(';');
+const EYE_ICON = '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>';
 
 export function startLyricsShareButton(
   share: () => Promise<{ url: string }>,
@@ -92,15 +95,20 @@ function viewerBadge(viewers: { count: () => Promise<number | null>; describe: (
   const badge = document.createElement('span');
   badge.className = 'breezr-lyrics-viewers';
   badge.style.cssText = BADGE_STYLE;
-  badge.hidden = true;
+  // Toggled through style.display: the inline style would override the `hidden` attribute.
+  badge.style.display = 'none';
+  badge.innerHTML = EYE_ICON; // static SVG constant only
+  const number = document.createElement('span');
+  badge.append(number);
   const refresh = () => {
     if (!badge.isConnected && badge.dataset.started) return clearInterval(timer);
     badge.dataset.started = '1';
     void viewers.count().then((count) => {
-      badge.hidden = !count;
+      badge.style.display = count ? 'inline-flex' : 'none';
       if (!count) return;
-      badge.textContent = `👁 ${count}`;
+      number.textContent = String(count);
       badge.title = viewers.describe(count);
+      badge.setAttribute('aria-label', viewers.describe(count));
     }).catch(() => undefined);
   };
   const timer = setInterval(refresh, 30_000);
