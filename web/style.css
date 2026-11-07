@@ -99,6 +99,10 @@ body {
 .mini-cover { inline-size: 48px; block-size: 48px; border-radius: 8px; object-fit: cover; }
 .meta { min-inline-size: 0; }
 .title, .artists { margin: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+/* Too long for its room: the text slides to its end and back, pausing at both ends (marquee.ts). */
+.marquee { text-overflow: clip; mask-image: linear-gradient(to right, transparent, black 12px, black calc(100% - 12px), transparent); }
+.marquee > span { display: inline-block; animation: marquee var(--marquee-duration, 6s) ease-in-out infinite alternate; }
+@keyframes marquee { 0%, 15% { transform: translateX(0); } 85%, 100% { transform: translateX(var(--shift, 0)); } }
 .title { font-weight: 700; }
 .artists { font-size: 14px; color: var(--past); }
 .progress { display: flex; align-items: center; gap: 12px; }
@@ -126,11 +130,17 @@ body {
   .lyrics { flex: 1; min-block-size: 0; block-size: auto; max-block-size: none; padding-block: 14dvh; }
   /* The big cover is right above: a second, small one in the bar would only repeat it. */
   .mini-cover { display: none; }
-  .bar { grid-template-columns: minmax(0, 1fr); gap: 10px; }
+  /* Phone: title and artist on the left, play/pause opposite them, the progress bar full width below. */
+  .bar { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "who state" "progress progress"; gap: 10px 14px; }
+  .center { display: contents; }
+  .who { grid-area: who; }
+  .play-state { grid-area: state; }
+  .center .progress { grid-area: progress; }
   .spacer { display: none; }
   .progress { grid-column: 1 / -1; }
 }
 @media (prefers-reduced-motion: reduce) {
   body, .line { transition: none; }
+  .marquee > span { animation: none; }
   .status.live::before { animation: none; }
 }

@@ -1,5 +1,6 @@
 import type { LiveTrack, LyricsResult } from '../../src/shared/live';
 import { formatTime } from './sync';
+import { applyMarquee } from './marquee';
 import type { T } from './i18n';
 import { readChoice, saveChoice, themeColors, THEME_CHOICES, type ThemeChoice } from './theme';
 
@@ -102,6 +103,9 @@ export function createView(t: T) {
   renderMenu();
   applyTheme();
 
+  // A narrower window can make a title overflow (or a wider one let it fit): measure again.
+  new ResizeObserver(() => { applyMarquee(byId('title')); applyMarquee(byId('artists')); }).observe(byId('bar'));
+
   byId('made-with').textContent = t('madeWith');
   byId('lyrics-by').textContent = t('lyricsBy');
   document.title = t('pageTitle');
@@ -144,8 +148,12 @@ export function createView(t: T) {
     setTrack(track: LiveTrack) {
       cover.src = miniCover.src = track.cover;
       cover.alt = track.album;
-      byId('title').textContent = track.title;
-      byId('artists').textContent = track.artists;
+      const title = byId('title');
+      const artists = byId('artists');
+      title.firstElementChild!.textContent = track.title;
+      artists.firstElementChild!.textContent = track.artists;
+      // After layout, once the new text has a width.
+      requestAnimationFrame(() => { applyMarquee(title); applyMarquee(artists); });
       document.title = `${track.title} · ${track.artists}`;
       progress.hidden = track.duration === 0;
       total.textContent = formatTime(track.duration);
