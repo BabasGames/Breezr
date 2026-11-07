@@ -56,6 +56,7 @@ body {
 .notice:empty { display: none; }
 .stage:not([hidden]) + .notice { display: none; }
 
+.bar, .credits { position: relative; z-index: 1; }
 .bar {
   display: grid; grid-template-columns: auto minmax(0, 1fr) minmax(0, 1.4fr); gap: 16px; align-items: center;
   padding: 14px 24px; background: var(--bar);
@@ -77,9 +78,15 @@ body {
 @media (max-width: 720px) {
   /* The badge sits centred above the cover, with room to breathe, instead of over its corner. */
   .top { justify-content: center; padding: 14px 16px 0; }
-  .stage { grid-template-columns: 1fr; gap: 20px; align-items: start; padding-block-start: 14px; }
-  .cover { inline-size: min(56vw, 240px); }
-  .lyrics { max-block-size: none; block-size: 46dvh; padding-block: 18dvh; }
+  /* Lyrics take exactly the room left between the cover and the bar (phones lose height to the browser's
+     own bars), and scroll inside it: they never run under or over the bar. */
+  .stage {
+    display: flex; flex-direction: column; align-items: stretch; gap: 16px;
+    padding-block-start: 14px; min-block-size: 0; overflow: hidden;
+  }
+  .cover-col { flex: none; }
+  .cover { inline-size: min(56vw, 240px, 28dvh); }
+  .lyrics { flex: 1; min-block-size: 0; block-size: auto; max-block-size: none; padding-block: 14dvh; }
   /* The big cover is right above: a second, small one in the bar would only repeat it. */
   .mini-cover { display: none; }
   .bar { grid-template-columns: minmax(0, 1fr); }
