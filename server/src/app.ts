@@ -114,6 +114,8 @@ export function createApp(opts: { store: LiveStore; lyrics: LyricsSource; public
   const lyricsLookups = new RateLimiter(10, 0.5, now);
   let streams = 0;
   const streamsByIp = new Map<string, number>();
+  // Open viewer pages per link: only a number, nothing about who they are.
+  const streamsById = new Map<string, number>();
   let lookupsInFlight = 0;
 
   /** 'ok' when the caller may write `id`, otherwise the response already sent. */
@@ -191,6 +193,7 @@ export function createApp(opts: { store: LiveStore; lyrics: LyricsSource; public
     if (streams >= MAX_STREAMS) return send(res, 503, { error: 'busy' });
     streams++;
     streamsByIp.set(ip, mine + 1);
+    streamsById.set(id, (streamsById.get(id) ?? 0) + 1);
     res.writeHead(200, {
       ...SECURITY_HEADERS, 'Content-Type': 'text/event-stream; charset=utf-8', 'Cache-Control': 'no-store', 'X-Accel-Buffering': 'no',
     });
@@ -203,9 +206,25 @@ export function createApp(opts: { store: LiveStore; lyrics: LyricsSource; public
       const left = (streamsByIp.get(ip) ?? 1) - 1;
       if (left > 0) streamsByIp.set(ip, left);
       else streamsByIp.delete(ip);
+      const watching = (streamsById.get(id) ?? 1) - 1;
+      if (watching > 0) streamsById.set(id, watching);
+      else streamsById.delete(id);
       clearInterval(ping);
       off();
     });
+  }
+
+  /** How many pages follow the link right now: for its owner only (the key proves it). */
+  function viewersRoute(req: IncomingMessage, res: ServerResponse, id: string) {
+    const secret = bearer(req);
+    if (!secret) return send(res, 401, { error: 'missing key' });
+    const ownership = store.check(id, secret);
+    if (ownership === 'unclaimed' || ownership === 'gone') return send(res, 404, { status: 'unknown' });
+    if (ownership === 'forbidden') {
+      if (!wrongKeys.take(clientIp(req))) return send(res, 429, { error: 'slow down' });
+      return send(res, 403, { error: 'wrong key' });
+    }
+    send(res, 200, { viewers: streamsById.get(id) ?? 0 });
   }
 
   /**
@@ -246,13 +265,14 @@ export function createApp(opts: { store: LiveStore; lyrics: LyricsSource; public
         return send(res, 400, { error: 'bad request' });
       }
       const path = url.pathname;
-      const live = /^\/api\/live\/([^/]+)(\/events|\/lyrics)?$/.exec(path);
+      const live = /^\/api\/live\/([^/]+)(\/events|\/lyrics|\/viewers)?$/.exec(path);
       if (live) {
         const [, id, sub] = live;
         if (!ID_PATTERN.test(id)) return send(res, 404, { status: 'unknown' });
         if (sub && method !== 'GET') return send(res, 405, { error: 'method' });
         if (sub === '/events') return stream(req, res, id);
         if (sub === '/lyrics') return lyricsRoute(req, res, id, url);
+        if (sub === '/viewers') return viewersRoute(req, res, id);
         if (method === 'PUT') return putLive(req, res, id);
         if (method === 'DELETE') return deleteLive(req, res, id);
         if (method !== 'GET') return send(res, 405, { error: 'method' });

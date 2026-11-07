@@ -272,3 +272,40 @@ describe('helpers', () => {
     expect(writeOrDrop(ok as never, 'y')).toBe(true);
   });
 });
+
+describe('viewer count', () => {
+  let dir4 = '';
+  let server4: Server;
+  let base4 = '';
+  beforeAll(async () => {
+    dir4 = mkdtempSync(join(tmpdir(), 'breezr-viewers-'));
+    const store = new LiveStore({ file: join(dir4, 'ids.json') });
+    server4 = createLiveServer({ store, lyrics: { lookup: async () => ({ result: { kind: 'none' as const }, ok: true }) }, publicDir: dir4 });
+    await new Promise<void>((r) => server4.listen(0, '127.0.0.1', r));
+    base4 = `http://127.0.0.1:${(server4.address() as AddressInfo).port}`;
+  });
+  afterAll(() => {
+    server4.closeAllConnections();
+    server4.close();
+    rmSync(dir4, { recursive: true, force: true });
+  });
+  const viewers = (id: string, secret: string | null) =>
+    fetch(`${base4}/api/live/${id}/viewers`, { headers: secret ? { authorization: `Bearer ${secret}` } : {} });
+
+  test('only the owner can read how many pages follow the link, and it counts open pages', async () => {
+    const id = 'KKKKKKKKKK';
+    await fetch(`${base4}/api/live/${id}`, { method: 'PUT', headers: { authorization: `Bearer ${SECRET}` }, body: JSON.stringify(state()) });
+    expect(await (await viewers(id, SECRET)).json()).toEqual({ viewers: 0 });
+    const a = await fetch(`${base4}/api/live/${id}/events`);
+    const b = await fetch(`${base4}/api/live/${id}/events`);
+    await new Promise((r) => setTimeout(r, 50));
+    expect(await (await viewers(id, SECRET)).json()).toEqual({ viewers: 2 });
+    await a.body!.cancel();
+    await new Promise((r) => setTimeout(r, 100));
+    expect(await (await viewers(id, SECRET)).json()).toEqual({ viewers: 1 });
+    await b.body!.cancel();
+    expect((await viewers(id, null)).status).toBe(401);
+    expect((await viewers(id, 'x'.repeat(43))).status).toBe(403);
+    expect((await viewers('ZZZZZZZZZZ', SECRET)).status).toBe(404);
+  });
+});
