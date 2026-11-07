@@ -1,20 +1,34 @@
 import { join } from 'node:path';
-import { mkdirSync } from 'node:fs';
+import { mkdirSync, readFileSync } from 'node:fs';
 import { createLiveServer } from './app';
 import { createLyricsService } from './lyrics';
 import { LiveStore } from './store';
+import { createVideoService } from './youtube';
 
 const port = Number(process.env.PORT ?? 63120);
 const host = process.env.HOST ?? '127.0.0.1';
 const dataDir = process.env.DATA_DIR ?? './data';
 const publicDir = process.env.PUBLIC_DIR ?? './public';
 
+/** The YouTube Data API key, put by hand in data/youtube-key (never in the repo); null turns music off. */
+function readYouTubeKey(): string | null {
+  try {
+    return readFileSync(join(dataDir, 'youtube-key'), 'utf-8').trim() || null;
+  } catch {
+    return null;
+  }
+}
+
 async function main() {
   mkdirSync(dataDir, { recursive: true, mode: 0o700 });
   const store = new LiveStore({ file: join(dataDir, 'ids.json') });
   await store.load();
   const lyrics = createLyricsService({ fetch });
-  const server = createLiveServer({ store, lyrics, publicDir });
+  const key = readYouTubeKey();
+  if (!key) console.error('breezr-live: YouTube key missing: music disabled');
+  const videos = createVideoService({ fetch, key, file: join(dataDir, 'youtube.json') });
+  await videos.load();
+  const server = createLiveServer({ store, lyrics, videos, publicDir });
   server.listen(port, host, () => console.log(`breezr-live listening on http://${host}:${port}`));
   const stop = () => {
     server.closeAllConnections();

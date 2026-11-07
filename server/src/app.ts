@@ -5,6 +5,8 @@ import { ID_PATTERN, validateLiveState, type LyricsResult } from '../../src/shar
 import { RateLimiter } from './rate-limit';
 import type { LiveStore, Snapshot } from './store';
 import type { LyricsQuery } from './lyrics';
+import { bareTitle, mainArtist, type TrackQuery } from './youtube-pick';
+import type { VideoAnswer } from './youtube';
 
 const MAX_BODY = 4096;
 const SECRET_PATTERN = /^[A-Za-z0-9_-]{43}$/;
@@ -18,7 +20,9 @@ const REPO_URL = 'https://github.com/BabasGames/Breezr';
 
 const SECURITY_HEADERS: Record<string, string> = {
   'Content-Security-Policy':
-    'default-src \'self\'; img-src \'self\' https://*.dzcdn.net data:; style-src \'self\'; script-src \'self\'; connect-src \'self\'; frame-ancestors \'none\'; base-uri \'none\'',
+    // YouTube: the IFrame API script and the privacy-enhanced player frame, loaded only once a viewer asks for music.
+    'default-src \'self\'; img-src \'self\' https://*.dzcdn.net data:; style-src \'self\'; script-src \'self\' https://www.youtube.com; '
+    + 'frame-src https://www.youtube-nocookie.com; connect-src \'self\'; frame-ancestors \'none\'; base-uri \'none\'',
   'Referrer-Policy': 'no-referrer',
   'X-Content-Type-Options': 'nosniff',
 };
@@ -35,6 +39,7 @@ const MIME: Record<string, string> = {
 };
 
 export interface LyricsSource { lookup(q: LyricsQuery): Promise<{ result: LyricsResult; ok: boolean }> }
+export interface VideoSource { lookup(q: TrackQuery): Promise<VideoAnswer> }
 
 class BodyError extends Error {}
 
@@ -103,8 +108,8 @@ function bearer(req: IncomingMessage): string | null {
   return match && SECRET_PATTERN.test(match[1]) ? match[1] : null;
 }
 
-export function createApp(opts: { store: LiveStore; lyrics: LyricsSource; publicDir: string; now?: () => number }): RequestListener {
-  const { store, lyrics, publicDir } = opts;
+export function createApp(opts: { store: LiveStore; lyrics: LyricsSource; videos: VideoSource; publicDir: string; now?: () => number }): RequestListener {
+  const { store, lyrics, videos, publicDir } = opts;
   const now = opts.now ?? Date.now;
   // Writes are charged to the link only once its owner is proven: a stranger who knows the (public) id cannot
   // use up the owner's budget. Wrong keys are charged to the caller's IP instead.
@@ -112,6 +117,8 @@ export function createApp(opts: { store: LiveStore; lyrics: LyricsSource; public
   const wrongKeys = new RateLimiter(10, 10 / 60, now);
   const creations = new RateLimiter(10, 10 / 3600, now);
   const lyricsLookups = new RateLimiter(10, 0.5, now);
+  // Each new track can cost hundreds of YouTube quota units: a viewer gets a few lookups, then one every 5 s.
+  const videoLookups = new RateLimiter(5, 0.2, now);
   let streams = 0;
   const streamsByIp = new Map<string, number>();
   // Open viewer pages per link: only a number, nothing about who they are.
@@ -282,6 +289,34 @@ export function createApp(opts: { store: LiveStore; lyrics: LyricsSource; public
     }
   }
 
+  /**
+   * The YouTube video of the track a live link is playing, and only that one: asked by a page only once its
+   * viewer chose to listen. 503 when there is no key or no quota left today.
+   */
+  async function videoRoute(req: IncomingMessage, res: ServerResponse, id: string, url: URL) {
+    const wanted = url.searchParams.get('track');
+    if (!wanted) return send(res, 400, { error: 'track needed' });
+    const snap = store.get(id);
+    if (snap.status !== 'live') return send(res, 404, snapshotBody(snap));
+    if (snap.state.track.id !== wanted) return send(res, 409, { error: 'not the current track' });
+    const { track } = snap.state;
+    // Live radio has no fixed recording to find.
+    if (track.duration === 0) return send(res, 200, { none: true });
+    if (!videoLookups.take(clientIp(req))) return send(res, 429, { error: 'slow down' });
+    if (lookupsInFlight >= MAX_LOOKUPS_IN_FLIGHT) return send(res, 503, { unavailable: true });
+    lookupsInFlight++;
+    try {
+      const answer = await videos.lookup({
+        trackId: track.id, artist: mainArtist(track.artists), title: bareTitle(track.title), durationSec: Math.round(track.duration / 1000),
+      });
+      if (answer.status === 'found') return send(res, 200, { videoId: answer.videoId, kind: answer.kind });
+      if (answer.status === 'none') return send(res, 200, { none: true });
+      send(res, 503, { unavailable: true });
+    } finally {
+      lookupsInFlight--;
+    }
+  }
+
   return (req, res) => {
     const method = req.method ?? 'GET';
     const handle = async () => {
@@ -293,7 +328,7 @@ export function createApp(opts: { store: LiveStore; lyrics: LyricsSource; public
         return send(res, 400, { error: 'bad request' });
       }
       const path = url.pathname;
-      const live = /^\/api\/live\/([^/]+)(\/events|\/lyrics|\/viewers)?$/.exec(path);
+      const live = /^\/api\/live\/([^/]+)(\/events|\/lyrics|\/viewers|\/video)?$/.exec(path);
       if (live) {
         const [, id, sub] = live;
         if (!ID_PATTERN.test(id)) return send(res, 404, { status: 'unknown' });
@@ -301,6 +336,7 @@ export function createApp(opts: { store: LiveStore; lyrics: LyricsSource; public
         if (sub === '/events') return stream(req, res, id);
         if (sub === '/lyrics') return lyricsRoute(req, res, id, url);
         if (sub === '/viewers') return viewersRoute(req, res, id);
+        if (sub === '/video') return videoRoute(req, res, id, url);
         if (method === 'PUT') return putLive(req, res, id);
         if (method === 'DELETE') return deleteLive(req, res, id);
         if (method !== 'GET') return send(res, 405, { error: 'method' });

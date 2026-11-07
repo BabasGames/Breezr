@@ -8,6 +8,8 @@ import { creationKey, createApp, createLiveServer, writeOrDrop } from '../server
 import { connect } from 'net';
 import { LiveStore } from '../server/src/store';
 import type { LiveState } from '../src/shared/live';
+import type { VideoAnswer } from '../server/src/youtube';
+import type { TrackQuery } from '../server/src/youtube-pick';
 
 const ID = 'k7Qm2xP9ab';
 const SECRET = 's'.repeat(43);
@@ -20,6 +22,16 @@ let dir = '';
 let server: Server;
 let base = '';
 const lookups: { title: string; artist: string; album: string; durationSec: number }[] = [];
+const videoLookups: TrackQuery[] = [];
+// Track ids decide the fake answer: 1 found, 3 none, anything else unavailable.
+const videos = {
+  lookup: async (q: TrackQuery): Promise<VideoAnswer> => {
+    videoLookups.push(q);
+    if (q.trackId === '1') return { status: 'found', videoId: '5NV6Rdv1a3I', kind: 'audio' };
+    return q.trackId === '3' ? { status: 'none' } : { status: 'unavailable' };
+  },
+};
+const noVideos = { lookup: async (): Promise<VideoAnswer> => ({ status: 'unavailable' }) };
 const put = (id: string, body: unknown, secret: string | null = SECRET) => fetch(`${base}/api/live/${id}`, {
   method: 'PUT',
   headers: { 'content-type': 'application/json', ...(secret ? { authorization: `Bearer ${secret}` } : {}) },
@@ -34,7 +46,7 @@ beforeAll(async () => {
   writeFileSync(join(publicDir, 'assets', 'app.js'), 'console.log(1)');
   const store = new LiveStore({ file: join(dir, 'ids.json') });
   const lyrics = { lookup: async (q: (typeof lookups)[number]) => { lookups.push(q); return { result: { kind: 'plain' as const, text: 'La la' }, ok: true }; } };
-  server = createServer(createApp({ store, lyrics, publicDir }));
+  server = createServer(createApp({ store, lyrics, videos, publicDir }));
   await new Promise<void>((r) => server.listen(0, '127.0.0.1', r));
   base = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
 });
@@ -113,7 +125,7 @@ describe('page and lyrics', () => {
     expect(res.status).toBe(200);
     expect(await res.text()).toContain('<title>page</title>');
     expect(res.headers.get('content-security-policy')).toBe(
-      "default-src 'self'; img-src 'self' https://*.dzcdn.net data:; style-src 'self'; script-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'",
+      "default-src 'self'; img-src 'self' https://*.dzcdn.net data:; style-src 'self'; script-src 'self' https://www.youtube.com; frame-src https://www.youtube-nocookie.com; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'",
     );
     expect(res.headers.get('referrer-policy')).toBe('no-referrer');
     // Always revalidated: it names the current script and stylesheet (?v=…), which can be cached for long.
@@ -149,6 +161,44 @@ describe('page and lyrics', () => {
     expect((await fetch(`${base}/api/live/${id}/lyrics`)).status).toBe(400);
   });
 
+  test('video: found, none and unavailable answers for the current track', async () => {
+    const id = 'VVVVVVVVVV';
+    await put(id, state('Get Lucky'));
+    const found = await fetch(`${base}/api/live/${id}/video?track=1`);
+    expect(found.status).toBe(200);
+    expect(found.headers.get('cache-control')).toBe('no-store');
+    expect(await found.json()).toEqual({ videoId: '5NV6Rdv1a3I', kind: 'audio' });
+    await put(id, { ...state('Other'), track: { ...state().track, id: '3', title: 'Other' } });
+    expect(await (await fetch(`${base}/api/live/${id}/video?track=3`)).json()).toEqual({ none: true });
+    await put(id, { ...state('Third'), track: { ...state().track, id: '4', title: 'Third' } });
+    const down = await fetch(`${base}/api/live/${id}/video?track=4`);
+    expect(down.status).toBe(503);
+    expect(await down.json()).toEqual({ unavailable: true });
+  });
+
+  test('video: only for the track being played, and the track must be named', async () => {
+    const id = 'WWWWWWWWWW';
+    expect((await fetch(`${base}/api/live/${id}/video?track=1`)).status).toBe(404);
+    await put(id, state('Get Lucky'));
+    expect((await fetch(`${base}/api/live/${id}/video?track=999`)).status).toBe(409);
+    expect((await fetch(`${base}/api/live/${id}/video`)).status).toBe(400);
+  });
+
+  test('video: the search uses the main artist', async () => {
+    const id = 'XXXXXXXXXX';
+    await put(id, { ...state('Get Lucky'), track: { ...state().track, artists: 'Daft Punk, Pharrell Williams' } });
+    await fetch(`${base}/api/live/${id}/video?track=1`);
+    expect(videoLookups.at(-1)).toEqual({ trackId: '1', artist: 'Daft Punk', title: 'Get Lucky', durationSec: 248 });
+  });
+
+  test('duration 0 answers none without calling YouTube', async () => {
+    const id = 'YYYYYYYYYY';
+    await put(id, { ...state('Radio'), track: { ...state().track, id: '7', title: 'Radio', duration: 0 } });
+    const before = videoLookups.length;
+    expect(await (await fetch(`${base}/api/live/${id}/video?track=7`)).json()).toEqual({ none: true });
+    expect(videoLookups.length).toBe(before);
+  });
+
   test('there is no free-form lyrics lookup', async () => {
     expect((await fetch(`${base}/api/lyrics?title=x&artist=y`)).status).toBe(404);
   });
@@ -161,7 +211,7 @@ describe('abuse', () => {
   beforeAll(async () => {
     dir2 = mkdtempSync(join(tmpdir(), 'breezr-abuse-'));
     const store = new LiveStore({ file: join(dir2, 'ids.json') });
-    server2 = createServer(createApp({ store, lyrics: { lookup: async () => ({ result: { kind: 'none' as const }, ok: false }) }, publicDir: dir2 }));
+    server2 = createServer(createApp({ store, lyrics: { lookup: async () => ({ result: { kind: 'none' as const }, ok: false }) }, videos: noVideos, publicDir: dir2 }));
     await new Promise<void>((r) => server2.listen(0, '127.0.0.1', r));
     base2 = `http://127.0.0.1:${(server2.address() as AddressInfo).port}`;
   });
@@ -184,6 +234,15 @@ describe('abuse', () => {
     expect((await put2(id, SECRET, 'Still mine')).status).toBe(204);
   });
 
+  test('video requests are rate limited per IP', async () => {
+    const id = 'ZZZZZZZZZZ';
+    await put2(id, SECRET);
+    const codes = [];
+    for (let i = 0; i < 7; i++) codes.push((await fetch(`${base2}/api/live/${id}/video?track=1`)).status);
+    expect(codes.slice(0, 5)).toEqual([503, 503, 503, 503, 503]);
+    expect(codes).toContain(429);
+  });
+
   test('lyrics requests are rate limited per IP', async () => {
     const id = 'GGGGGGGGGG';
     await put2(id, SECRET);
@@ -202,7 +261,7 @@ describe('hardening', () => {
   beforeAll(async () => {
     dir3 = mkdtempSync(join(tmpdir(), 'breezr-hard-'));
     const store = new LiveStore({ file: join(dir3, 'ids.json') });
-    server3 = createLiveServer({ store, lyrics: { lookup: async () => ({ result: { kind: 'none' as const }, ok: false }) }, publicDir: dir3 });
+    server3 = createLiveServer({ store, lyrics: { lookup: async () => ({ result: { kind: 'none' as const }, ok: false }) }, videos: noVideos, publicDir: dir3 });
     await new Promise<void>((r) => server3.listen(0, '127.0.0.1', r));
     port3 = (server3.address() as AddressInfo).port;
     base3 = `http://127.0.0.1:${port3}`;
@@ -285,7 +344,7 @@ describe('viewer count', () => {
   beforeAll(async () => {
     dir4 = mkdtempSync(join(tmpdir(), 'breezr-viewers-'));
     const store = new LiveStore({ file: join(dir4, 'ids.json') });
-    server4 = createLiveServer({ store, lyrics: { lookup: async () => ({ result: { kind: 'none' as const }, ok: true }) }, publicDir: dir4 });
+    server4 = createLiveServer({ store, lyrics: { lookup: async () => ({ result: { kind: 'none' as const }, ok: true }) }, videos: noVideos, publicDir: dir4 });
     await new Promise<void>((r) => server4.listen(0, '127.0.0.1', r));
     base4 = `http://127.0.0.1:${(server4.address() as AddressInfo).port}`;
   });
@@ -322,7 +381,7 @@ describe('viewer count on the page', () => {
   beforeAll(async () => {
     dir5 = mkdtempSync(join(tmpdir(), 'breezr-showviewers-'));
     const store = new LiveStore({ file: join(dir5, 'ids.json') });
-    server5 = createLiveServer({ store, lyrics: { lookup: async () => ({ result: { kind: 'none' as const }, ok: true }) }, publicDir: dir5 });
+    server5 = createLiveServer({ store, lyrics: { lookup: async () => ({ result: { kind: 'none' as const }, ok: true }) }, videos: noVideos, publicDir: dir5 });
     await new Promise<void>((r) => server5.listen(0, '127.0.0.1', r));
     base5 = `http://127.0.0.1:${(server5.address() as AddressInfo).port}`;
   });
