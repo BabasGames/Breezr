@@ -22,12 +22,19 @@ export function normalizeName(s: string): string {
   return s.normalize('NFKD').replace(/\p{M}/gu, '').toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
 }
 
-/** The title without "(feat. …)" and version suffixes such as " - Remastered 2011" or " - Radio Edit". */
+/**
+ * The song name alone: every bracketed part goes ("(Radio Edit - feat. …)", "[ft. …]", "(Live)"), and version
+ * suffixes such as " - Remastered 2011". Versions are still told apart: isSameSong checks variant words
+ * against the full Deezer title.
+ */
 export function bareTitle(title: string): string {
-  return title
-    .replace(/\s*[([](?:feat\.?|ft\.?|with)\s[^)\]]*[)\]]/gi, '')
+  const bare = title
+    .replace(/\s*[([][^)\]]*[)\]]/g, ' ')
     .replace(/\s+-\s+(?:[^-]*remaster[^-]*|radio edit|single version|mono|stereo)$/i, '')
+    .replace(/\s+/g, ' ')
     .trim();
+  // A title that is only brackets keeps them.
+  return bare || title.trim();
 }
 
 export function mainArtist(artists: string): string {

@@ -83,6 +83,18 @@ describe('names and titles', () => {
     expect(bareTitle('Song - Radio Edit')).toBe('Song');
   });
 
+  test('Deezer\'s real titles: any bracketed part goes, the song name stays', () => {
+    expect(bareTitle('Get Lucky (Radio Edit - feat. Pharrell Williams and Nile Rodgers)')).toBe('Get Lucky');
+    expect(bareTitle('(I Can\'t Get No) Satisfaction')).toBe('Satisfaction');
+    const real = { ...qLucky, title: 'Get Lucky (Radio Edit - feat. Pharrell Williams and Nile Rodgers)' };
+    expect(pickOfficial(searchLucky as YtVideo[], real)).toEqual({ videoId: '5NV6Rdv1a3I', kind: 'audio' });
+  });
+
+  test('a live track on Deezer may match a live upload', () => {
+    const live = { ...q505, title: '505 (Live)', durationSec: 276 };
+    expect(pickTopic(topic505 as YtVideo[], live)).toEqual({ videoId: 'IEpEg9RNOUQ', kind: 'audio' });
+  });
+
   test('main artist is the first of the list', () => {
     expect(mainArtist('Daft Punk, Pharrell Williams')).toBe('Daft Punk');
     expect(mainArtist('Queen')).toBe('Queen');
