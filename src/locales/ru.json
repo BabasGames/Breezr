@@ -156,5 +156,8 @@
   "tray.repeatAll": "Весь список",
   "tray.repeatOne": "Этот трек",
   "tray.like": "Добавить в Любимые треки",
-  "tray.unlike": "Убрать из Любимых треков"
+  "tray.unlike": "Убрать из Любимых треков",
+  "settings.general.liveLinkShowViewers": "Показывать число зрителей на странице",
+  "settings.general.liveLinkShowViewersHelp": "Те, кто открывает вашу ссылку, видят, сколько страниц сейчас её смотрят. Показывается только число.",
+  "web.viewers": "Зрители: {count}"
 }

@@ -46,6 +46,10 @@ body {
   display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 999px;
   font-size: 13px; font-weight: 600; background: color-mix(in srgb, var(--fg) 12%, transparent);
 }
+.viewers {
+  display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px;
+  font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; background: color-mix(in srgb, var(--fg) 12%, transparent);
+}
 .status::before { content: ""; inline-size: 8px; block-size: 8px; border-radius: 50%; background: currentColor; }
 .status.live::before { background: #ff4d6d; animation: pulse 1.6s ease-in-out infinite; }
 @keyframes pulse { 50% { opacity: 0.35; } }

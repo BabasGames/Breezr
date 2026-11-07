@@ -81,6 +81,7 @@ export function createLiveLink(opts: {
   function unchanged(state: LiveState): boolean {
     if (!lastSent || lastSent.track.id !== state.track.id || lastSent.playing !== state.playing) return false;
     if (lastSent.track.title !== state.track.title) return false;
+    if (Boolean(lastSent.showViewers) !== Boolean(state.showViewers)) return false;
     const expected = caughtUp(lastSent, state.at).position;
     return Math.abs(expected - state.position) <= POSITION_TOLERANCE_MS;
   }

@@ -51,6 +51,11 @@ describe('validateLiveState', () => {
     expect(validateLiveState({ ...valid(), extra: 1 })).toBeNull();
     expect(validateLiveState(withTrack({ extra: 1 }))).toBeNull();
   });
+  test('the owner may ask the page to show its viewer count', () => {
+    expect(validateLiveState({ ...valid(), showViewers: true })?.showViewers).toBe(true);
+    expect(validateLiveState(valid())?.showViewers).toBeUndefined();
+    expect(validateLiveState({ ...valid(), showViewers: 'yes' })).toBeNull();
+  });
   test('accepts a live radio (duration 0)', () => {
     expect(validateLiveState({ ...withTrack({ duration: 0 }), position: 5000 })).not.toBeNull();
   });

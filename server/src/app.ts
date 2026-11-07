@@ -116,6 +116,13 @@ export function createApp(opts: { store: LiveStore; lyrics: LyricsSource; public
   const streamsByIp = new Map<string, number>();
   // Open viewer pages per link: only a number, nothing about who they are.
   const streamsById = new Map<string, number>();
+  // Each open page's writer, so a page arriving or leaving can update the others' count.
+  const writersById = new Map<string, Set<(snap: Snapshot) => void>>();
+  const broadcastCount = (id: string) => {
+    const snap = store.get(id);
+    if (snap.status !== 'live' || !snap.state.showViewers) return;
+    for (const write of writersById.get(id) ?? []) write(snap);
+  };
   let lookupsInFlight = 0;
 
   /** 'ok' when the caller may write `id`, otherwise the response already sent. */
@@ -137,8 +144,10 @@ export function createApp(opts: { store: LiveStore; lyrics: LyricsSource; public
     return true;
   }
 
-  const snapshotBody = (snap: Snapshot) =>
-    snap.status === 'live' ? { ...snap, serverNow: now() }
+  // The count goes to pages only when the owner asked for it (state.showViewers).
+  const snapshotBody = (snap: Snapshot, id?: string) =>
+    snap.status === 'live'
+      ? { ...snap, serverNow: now(), ...(snap.state.showViewers && id ? { viewers: streamsById.get(id) ?? 0 } : {}) }
       : snap.status === 'idle' ? { status: 'idle', serverNow: now() }
         : { status: 'unknown' };
 
@@ -202,8 +211,12 @@ export function createApp(opts: { store: LiveStore; lyrics: LyricsSource; public
     res.writeHead(200, {
       ...SECURITY_HEADERS, 'Content-Type': 'text/event-stream; charset=utf-8', 'Cache-Control': 'no-store', 'X-Accel-Buffering': 'no',
     });
-    const write = (snap: Snapshot) => writeOrDrop(res, `data: ${JSON.stringify(snapshotBody(snap))}\n\n`);
+    const write = (snap: Snapshot) => writeOrDrop(res, `data: ${JSON.stringify(snapshotBody(snap, id))}\n\n`);
+    let writers = writersById.get(id);
+    if (!writers) writersById.set(id, (writers = new Set()));
+    writers.add(write);
     write(store.get(id));
+    broadcastOthers(id, write);
     const off = store.subscribe(id, write);
     const ping = setInterval(() => writeOrDrop(res, ': ping\n\n'), PING_MS);
     res.on('close', () => {
@@ -214,9 +227,19 @@ export function createApp(opts: { store: LiveStore; lyrics: LyricsSource; public
       const watching = (streamsById.get(id) ?? 1) - 1;
       if (watching > 0) streamsById.set(id, watching);
       else streamsById.delete(id);
+      writers.delete(write);
+      if (writers.size === 0) writersById.delete(id);
+      else broadcastCount(id);
       clearInterval(ping);
       off();
     });
+  }
+
+  /** A page arrived: the pages already open learn the new count (the newcomer got it with its first message). */
+  function broadcastOthers(id: string, except: (snap: Snapshot) => void) {
+    const snap = store.get(id);
+    if (snap.status !== 'live' || !snap.state.showViewers) return;
+    for (const write of writersById.get(id) ?? []) if (write !== except) write(snap);
   }
 
   /** How many pages follow the link right now: for its owner only (the key proves it). */
@@ -282,7 +305,7 @@ export function createApp(opts: { store: LiveStore; lyrics: LyricsSource; public
         if (method === 'DELETE') return deleteLive(req, res, id);
         if (method !== 'GET') return send(res, 405, { error: 'method' });
         const snap = store.get(id);
-        return send(res, snap.status === 'unknown' ? 404 : 200, snapshotBody(snap));
+        return send(res, snap.status === 'unknown' ? 404 : 200, snapshotBody(snap, id));
       }
       if (method !== 'GET' && method !== 'HEAD') return send(res, 405, { error: 'method' });
       if (/^\/l\/[^/]+$/.test(path)) return serveFile(res, 'index.html');

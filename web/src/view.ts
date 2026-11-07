@@ -50,6 +50,7 @@ export function createView(t: T) {
   const total = byId('total');
   const progress = byId('progress');
   const playState = byId('play-state');
+  const viewers = byId('viewers');
   let lines: HTMLElement[] = [];
   let currentLine = -2;
   let reconnecting = false;
@@ -147,6 +148,14 @@ export function createView(t: T) {
   }
 
   return {
+    /** The owner's viewer count, when they chose to show it; null hides it. */
+    setViewers(count: number | null) {
+      viewers.hidden = count === null || (shownStatus !== 'live' && shownStatus !== 'paused');
+      if (count === null) return;
+      byId('viewers-count').textContent = String(count);
+      viewers.setAttribute('aria-label', t('viewers').replace('{count}', String(count)));
+      viewers.title = viewers.getAttribute('aria-label') ?? '';
+    },
     setStatus(next: Status) {
       shownStatus = next;
       renderStatus();

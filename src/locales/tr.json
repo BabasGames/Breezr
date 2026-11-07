@@ -151,5 +151,8 @@
   "tray.repeatAll": "Tüm liste",
   "tray.repeatOne": "Bu parça",
   "tray.like": "Favorilere ekle",
-  "tray.unlike": "Favorilerden çıkar"
+  "tray.unlike": "Favorilerden çıkar",
+  "settings.general.liveLinkShowViewers": "Sayfada izleyici sayısını göster",
+  "settings.general.liveLinkShowViewersHelp": "Bağlantını açanlar, şu anda kaç sayfanın onu takip ettiğini görür. Yalnızca sayı gösterilir.",
+  "web.viewers": "İzleyiciler: {count}"
 }

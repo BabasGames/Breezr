@@ -152,5 +152,8 @@
   "tray.repeatAll": "Whole list",
   "tray.repeatOne": "This track",
   "tray.like": "Add to Favourite tracks",
-  "tray.unlike": "Remove from Favourite tracks"
+  "tray.unlike": "Remove from Favourite tracks",
+  "settings.general.liveLinkShowViewers": "Show the viewer count on the page",
+  "settings.general.liveLinkShowViewersHelp": "People who open your link see how many pages follow it right now. Only the number is shown.",
+  "web.viewers": "Viewers: {count}"
 }

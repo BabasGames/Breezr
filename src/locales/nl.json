@@ -152,5 +152,8 @@
   "tray.repeatAll": "Hele lijst",
   "tray.repeatOne": "Dit nummer",
   "tray.like": "Toevoegen aan Favorieten",
-  "tray.unlike": "Verwijderen uit Favorieten"
+  "tray.unlike": "Verwijderen uit Favorieten",
+  "settings.general.liveLinkShowViewers": "Aantal kijkers op de pagina tonen",
+  "settings.general.liveLinkShowViewersHelp": "Wie je link opent, ziet hoeveel pagina's hem nu volgen. Alleen het aantal wordt getoond.",
+  "web.viewers": "Kijkers: {count}"
 }

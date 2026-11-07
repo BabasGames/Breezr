@@ -73,7 +73,8 @@ export function registerSettings(app: Electron.App, win: BrowserWindow, state: T
       if (config.live_link) await liveLink(app).enable();
       else await liveLink(app).disable();
     }
-    if (config.live_link !== current.live_link || config.live_link_discord !== current.live_link_discord) onLiveChange();
+    if (config.live_link !== current.live_link || config.live_link_discord !== current.live_link_discord
+      || config.live_link_show_viewers !== current.live_link_show_viewers) onLiveChange();
     void applyPageTweaks(win.webContents, { animateSidebar: config.animate_sidebar });
     state.setModalOpen(false);
     // Answer only once the page shows the saved theme, so the modal never closes on stale colors.

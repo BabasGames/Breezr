@@ -314,3 +314,61 @@ describe('viewer count', () => {
     expect((await viewers('ZZZZZZZZZZ', SECRET)).status).toBe(404);
   });
 });
+
+describe('viewer count on the page', () => {
+  let dir5 = '';
+  let server5: Server;
+  let base5 = '';
+  beforeAll(async () => {
+    dir5 = mkdtempSync(join(tmpdir(), 'breezr-showviewers-'));
+    const store = new LiveStore({ file: join(dir5, 'ids.json') });
+    server5 = createLiveServer({ store, lyrics: { lookup: async () => ({ result: { kind: 'none' as const }, ok: true }) }, publicDir: dir5 });
+    await new Promise<void>((r) => server5.listen(0, '127.0.0.1', r));
+    base5 = `http://127.0.0.1:${(server5.address() as AddressInfo).port}`;
+  });
+  afterAll(() => {
+    server5.closeAllConnections();
+    server5.close();
+    rmSync(dir5, { recursive: true, force: true });
+  });
+  const publish = (id: string, showViewers?: boolean) => fetch(`${base5}/api/live/${id}`, {
+    method: 'PUT', headers: { authorization: `Bearer ${SECRET}` }, body: JSON.stringify({ ...state(), ...(showViewers === undefined ? {} : { showViewers }) }),
+  });
+  const reader = async (id: string) => {
+    const res = await fetch(`${base5}/api/live/${id}/events`);
+    const r = res.body!.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+    return {
+      next: async () => {
+        while (!buffer.includes('\n\n')) buffer += decoder.decode((await r.read()).value);
+        const event = buffer.slice(0, buffer.indexOf('\n\n'));
+        buffer = buffer.slice(buffer.indexOf('\n\n') + 2);
+        return JSON.parse(event.replace(/^data: /, ''));
+      },
+      close: () => r.cancel(),
+    };
+  };
+
+  test('when the owner allows it, pages get the count and its changes', async () => {
+    const id = 'LLLLLLLLLL';
+    await publish(id, true);
+    const first = await reader(id);
+    expect((await first.next()).viewers).toBe(1);
+    const second = await reader(id);
+    expect((await second.next()).viewers).toBe(2);
+    expect((await first.next()).viewers).toBe(2);
+    await second.close();
+    expect((await first.next()).viewers).toBe(1);
+    await first.close();
+  });
+
+  test('otherwise the count is never sent to pages', async () => {
+    const id = 'MMMMMMMMMM';
+    await publish(id);
+    const page = await reader(id);
+    expect('viewers' in (await page.next())).toBe(false);
+    await page.close();
+    expect('viewers' in (await (await fetch(`${base5}/api/live/${id}`)).json())).toBe(false);
+  });
+});

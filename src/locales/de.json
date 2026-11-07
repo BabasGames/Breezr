@@ -152,5 +152,8 @@
   "tray.repeatAll": "Ganze Liste",
   "tray.repeatOne": "Dieser Titel",
   "tray.like": "Zu Lieblingstiteln hinzufügen",
-  "tray.unlike": "Aus Lieblingstiteln entfernen"
+  "tray.unlike": "Aus Lieblingstiteln entfernen",
+  "settings.general.liveLinkShowViewers": "Zuschauerzahl auf der Seite zeigen",
+  "settings.general.liveLinkShowViewersHelp": "Wer deinen Link öffnet, sieht, wie viele Seiten ihm gerade folgen. Nur die Zahl wird gezeigt.",
+  "web.viewers": "Zuschauer: {count}"
 }

@@ -131,7 +131,7 @@ describe('animate_sidebar', () => {
   });
 });
 
-describe.each([['live_link'], ['live_link_discord']] as const)('%s', (key) => {
+describe.each([['live_link'], ['live_link_discord'], ['live_link_show_viewers']] as const)('%s', (key) => {
   test('off by default, also for older configs', () => {
     expect(DEFAULT_CONFIG[key]).toBe(false);
     const { config, warnings } = validateConfig({ status_name: 'song_title' });

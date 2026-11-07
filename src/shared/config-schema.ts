@@ -22,6 +22,8 @@ export interface BreezrConfig {
   live_link: boolean;
   /** Show the live link as a button in the Discord status. */
   live_link_discord: boolean;
+  /** Let the live page show how many pages follow the link. */
+  live_link_show_viewers: boolean;
   language: 'auto' | LocaleCode;
   theme: ThemeConfig;
 }
@@ -33,6 +35,7 @@ export const DEFAULT_CONFIG: BreezrConfig = {
   animate_sidebar: true,
   live_link: false,
   live_link_discord: false,
+  live_link_show_viewers: false,
   language: 'auto',
   theme: DEFAULT_THEME,
 };
@@ -140,6 +143,7 @@ export function validateConfig(raw: unknown, opts: { home?: string } = {}): { co
     animate_sidebar: bool(raw.animate_sidebar, DEFAULT_CONFIG.animate_sidebar, 'animate_sidebar', warnings),
     live_link: bool(raw.live_link, DEFAULT_CONFIG.live_link, 'live_link', warnings),
     live_link_discord: bool(raw.live_link_discord, DEFAULT_CONFIG.live_link_discord, 'live_link_discord', warnings),
+    live_link_show_viewers: bool(raw.live_link_show_viewers, DEFAULT_CONFIG.live_link_show_viewers, 'live_link_show_viewers', warnings),
     language: language as BreezrConfig['language'],
     theme: theme(raw.theme, warnings, opts.home ?? ''),
   };

@@ -351,7 +351,7 @@ async function updateActivity(app: Electron.App, currentTimeChanged: boolean) {
   // The live link does not depend on Discord: publish before Discord's deduplication and connection checks.
   if (Config.get(app, 'live_link')) {
     const live = buildLiveState({ ...result, trackId: String(result.trackId), coverUrl: result.coverUrl ?? '' }, Date.now());
-    if (live) liveLink(app).publish(live);
+    if (live) liveLink(app).publish(Config.get(app, 'live_link_show_viewers') ? { ...live, showViewers: true } : live);
   }
 
   // The duration is part of the key because Deezer reports 0 until the track has loaded.

@@ -150,5 +150,8 @@
   "tray.repeatAll": "リスト全体",
   "tray.repeatOne": "この曲",
   "tray.like": "お気に入りに追加",
-  "tray.unlike": "お気に入りから削除"
+  "tray.unlike": "お気に入りから削除",
+  "settings.general.liveLinkShowViewers": "ページに視聴者数を表示",
+  "settings.general.liveLinkShowViewersHelp": "リンクを開いた人に、今このリンクを見ているページの数が表示されます。表示されるのは数だけです。",
+  "web.viewers": "視聴者: {count}"
 }

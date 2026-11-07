@@ -152,5 +152,8 @@
   "tray.repeatAll": "Toute la liste",
   "tray.repeatOne": "Le morceau",
   "tray.like": "Ajouter aux Coups de cœur",
-  "tray.unlike": "Retirer des Coups de cœur"
+  "tray.unlike": "Retirer des Coups de cœur",
+  "settings.general.liveLinkShowViewers": "Afficher le nombre de spectateurs sur la page",
+  "settings.general.liveLinkShowViewersHelp": "Les personnes qui ouvrent votre lien voient combien de pages le suivent en ce moment. Seul le nombre est montré.",
+  "web.viewers": "Spectateurs : {count}"
 }

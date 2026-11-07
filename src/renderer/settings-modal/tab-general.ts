@@ -24,6 +24,8 @@ export function renderGeneral(ctx: ModalContext): HTMLElement {
 
   const liveDiscord = toggle('live-link-discord', ctx.draft.live_link_discord, (live_link_discord) => set({ live_link_discord }));
   liveDiscord.disabled = !ctx.snapshot.liveUrl;
+  const liveShowViewers = toggle('live-link-viewers', ctx.draft.live_link_show_viewers, (live_link_show_viewers) => set({ live_link_show_viewers }));
+  liveShowViewers.disabled = !ctx.snapshot.liveUrl;
 
   const liveUrlRow = (url: string) => {
     // dir=ltr: a URL reads left to right even in Arabic.
@@ -82,7 +84,9 @@ export function renderGeneral(ctx: ModalContext): HTMLElement {
       ctx.snapshot.liveUrl ? liveUrlRow(ctx.snapshot.liveUrl) : null,
       ctx.snapshot.liveUrl ? viewersLine() : null,
       setting({ label: t('settings.general.liveLinkDiscord'), id: 'live-link-discord', help: t('settings.general.liveLinkDiscordHelp') },
-        liveDiscord)),
+        liveDiscord),
+      setting({ label: t('settings.general.liveLinkShowViewers'), id: 'live-link-viewers', help: t('settings.general.liveLinkShowViewersHelp') },
+        liveShowViewers)),
     section(t('settings.general.section.tray'),
       setting({ label: t('tray.tooltipText'), id: 'tooltip-text', help: t('settings.general.tooltipTextHelp') },
         select<TooltipText>('tooltip-text', ctx.draft.tooltip_text, TOOLTIP_TEXTS.map((id) => [id, t(`option.tooltip.${id}`)]),

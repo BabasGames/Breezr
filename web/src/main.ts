@@ -6,7 +6,7 @@ import { openLiveStream } from './stream';
 import { createView } from './view';
 
 type Message =
-  | { status: 'live'; state: LiveState; receivedAt: number; serverNow: number }
+  | { status: 'live'; state: LiveState; receivedAt: number; serverNow: number; viewers?: number }
   | { status: 'idle'; serverNow: number }
   | { status: 'unknown' };
 
@@ -45,6 +45,7 @@ async function start() {
     if (message.status !== 'live') {
       live = null;
       trackId = null;
+      view.setViewers(null);
       view.setStatus(message.status === 'idle' ? 'idle' : 'inactive');
       return;
     }
@@ -57,6 +58,7 @@ async function start() {
       void loadLyrics(trackId);
     }
     view.setStatus(message.state.playing ? 'live' : 'paused');
+    view.setViewers(typeof message.viewers === 'number' ? message.viewers : null);
   };
   openLiveStream(`/api/live/${id}/events`, {
     message: onMessage,
@@ -70,6 +72,7 @@ async function start() {
       live = null;
       trackId = null;
       view.setStatus('idle');
+      view.setViewers(null);
     }
     if (live) {
       const position = positionAt(live.state, clock.serverTime(Date.now()), live.receivedAt);

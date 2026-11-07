@@ -199,5 +199,18 @@ describe('live link', () => {
     fail = true;
     expect(await link.viewers()).toBeNull();
   });
+
+  test('turning the page viewer count on or off is sent at once, even if the track did not change', async () => {
+    setup();
+    const { fn, calls } = fakeFetch();
+    const link = make(fn);
+    await link.enable();
+    link.publish(state());
+    await wait(60);
+    link.publish({ ...state(), showViewers: true });
+    await wait(60);
+    expect(calls.filter((c) => c.method === 'PUT').length).toBe(2);
+    expect(calls.at(-1)!.body!.showViewers).toBe(true);
+  });
 });
 

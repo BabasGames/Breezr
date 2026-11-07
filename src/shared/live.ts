@@ -22,6 +22,8 @@ export interface LiveState {
   playing: boolean;
   position: number;
   at: number;
+  /** The owner lets the page show how many pages follow the link. */
+  showViewers?: boolean;
 }
 
 export type LyricsResult =
@@ -77,7 +79,7 @@ function isDeezerCover(v: unknown): v is string {
 }
 
 const TRACK_KEYS = ['id', 'isrc', 'title', 'artists', 'album', 'cover', 'duration'] as const;
-const STATE_KEYS = ['track', 'playing', 'position', 'at'] as const;
+const STATE_KEYS = ['track', 'playing', 'position', 'at', 'showViewers'] as const;
 
 /** The exact shape the server accepts; anything else (unknown fields included) is refused. */
 export function validateLiveState(raw: unknown): LiveState | null {
@@ -89,13 +91,16 @@ export function validateLiveState(raw: unknown): LiveState | null {
   if (!text(t.title) || !text(t.artists) || !text(t.album, true) || !isDeezerCover(t.cover)) return null;
   if (!int(t.duration, 0, MAX_DURATION)) return null;
   if (typeof raw.playing !== 'boolean') return null;
+  if (raw.showViewers !== undefined && typeof raw.showViewers !== 'boolean') return null;
   if (!int(raw.position, 0, Math.max(t.duration as number, MAX_DURATION)) || !int(raw.at, 1, Number.MAX_SAFE_INTEGER)) return null;
   const track: LiveTrack = {
     id: t.id, title: t.title as string, artists: t.artists as string, album: t.album as string,
     cover: t.cover, duration: t.duration as number,
   };
   if (t.isrc !== undefined) track.isrc = t.isrc;
-  return { track, playing: raw.playing, position: raw.position as number, at: raw.at as number };
+  const state: LiveState = { track, playing: raw.playing, position: raw.position as number, at: raw.at as number };
+  if (raw.showViewers !== undefined) state.showViewers = raw.showViewers;
+  return state;
 }
 
 /** The page's own check: a stream that stays open does not hear that Breezr went silent. */

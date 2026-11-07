@@ -156,5 +156,8 @@
   "tray.repeatAll": "Cała lista",
   "tray.repeatOne": "Ten utwór",
   "tray.like": "Dodaj do Ulubionych",
-  "tray.unlike": "Usuń z Ulubionych"
+  "tray.unlike": "Usuń z Ulubionych",
+  "settings.general.liveLinkShowViewers": "Pokazuj liczbę widzów na stronie",
+  "settings.general.liveLinkShowViewersHelp": "Osoby, które otworzą twój link, widzą, ile stron go teraz śledzi. Pokazywana jest tylko liczba.",
+  "web.viewers": "Widzowie: {count}"
 }

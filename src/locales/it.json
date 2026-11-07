@@ -152,5 +152,8 @@
   "tray.repeatAll": "Tutta la lista",
   "tray.repeatOne": "Questo brano",
   "tray.like": "Aggiungi ai Preferiti",
-  "tray.unlike": "Rimuovi dai Preferiti"
+  "tray.unlike": "Rimuovi dai Preferiti",
+  "settings.general.liveLinkShowViewers": "Mostra il numero di spettatori sulla pagina",
+  "settings.general.liveLinkShowViewersHelp": "Chi apre il tuo link vede quante pagine lo seguono in questo momento. Viene mostrato solo il numero.",
+  "web.viewers": "Spettatori: {count}"
 }

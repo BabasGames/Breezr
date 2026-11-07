@@ -150,5 +150,8 @@
   "tray.repeatAll": "整个列表",
   "tray.repeatOne": "这首歌",
   "tray.like": "添加到我喜欢的",
-  "tray.unlike": "从我喜欢的移除"
+  "tray.unlike": "从我喜欢的移除",
+  "settings.general.liveLinkShowViewers": "在页面上显示观看人数",
+  "settings.general.liveLinkShowViewersHelp": "打开你链接的人可以看到当前有多少页面在关注它。只显示数字。",
+  "web.viewers": "观看人数：{count}"
 }

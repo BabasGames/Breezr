@@ -152,5 +152,8 @@
   "tray.repeatAll": "Toda la lista",
   "tray.repeatOne": "Esta canción",
   "tray.like": "Añadir a Favoritos",
-  "tray.unlike": "Quitar de Favoritos"
+  "tray.unlike": "Quitar de Favoritos",
+  "settings.general.liveLinkShowViewers": "Mostrar el número de espectadores en la página",
+  "settings.general.liveLinkShowViewersHelp": "Quienes abren tu enlace ven cuántas páginas lo siguen ahora mismo. Solo se muestra el número.",
+  "web.viewers": "Espectadores: {count}"
 }

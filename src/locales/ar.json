@@ -159,5 +159,8 @@
   "tray.repeatAll": "القائمة كلها",
   "tray.repeatOne": "هذا المقطع",
   "tray.like": "إضافة إلى المفضلة",
-  "tray.unlike": "إزالة من المفضلة"
+  "tray.unlike": "إزالة من المفضلة",
+  "settings.general.liveLinkShowViewers": "عرض عدد المشاهدين على الصفحة",
+  "settings.general.liveLinkShowViewersHelp": "يرى من يفتح رابطك عدد الصفحات التي تتابعه الآن. يُعرض الرقم فقط.",
+  "web.viewers": "المشاهدون: {count}"
 }
