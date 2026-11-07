@@ -78,7 +78,9 @@ body {
   .stage { grid-template-columns: 1fr; gap: 20px; align-items: start; padding-block-start: 0; }
   .cover { inline-size: min(56vw, 240px); }
   .lyrics { max-block-size: none; block-size: 46dvh; padding-block: 18dvh; }
-  .bar { grid-template-columns: auto minmax(0, 1fr); }
+  /* The big cover is right above: a second, small one in the bar would only repeat it. */
+  .mini-cover { display: none; }
+  .bar { grid-template-columns: minmax(0, 1fr); }
   .progress { grid-column: 1 / -1; }
 }
 @media (prefers-reduced-motion: reduce) {
