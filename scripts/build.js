@@ -35,7 +35,8 @@ const config = {
     // .deb/.rpm need a maintainer; package.json's author has no email on purpose.
     maintainer: 'BabasGames (https://github.com/BabasGames/Breezr)',
     publish: null,
-    icon: join(__dirname, '..', 'src', 'img', 'app.png'),
+    // A single PNG is installed at its own size only (1024, which no taskbar looks for): one per hicolor size.
+    icon: join(__dirname, '..', 'src', 'img', 'icons'),
   },
   // electron-builder's default pacman dependencies are those of a system-wide Electron (one of them no longer
   // exists in Arch): Breezr ships its own Electron and needs only these.
