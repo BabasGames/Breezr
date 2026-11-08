@@ -23,6 +23,16 @@ describe('isNewerRelease', () => {
     expect(isNewerRelease('2.0.0', '2.0.0')).toBe(false);
     expect(isNewerRelease('1.4.0', '2.0.0')).toBe(false);
   });
+  test('a beta tester is offered the final version of their beta', () => {
+    expect(isNewerRelease('2.3.0', '2.3.0-beta.1')).toBe(true);
+    expect(isNewerRelease('2.3.0-beta.1', '2.3.0')).toBe(false);
+    expect(isNewerRelease('2.3.0-beta.1', '2.2.1')).toBe(true);
+  });
+  test('betas of the same version compare by their number', () => {
+    expect(isNewerRelease('2.3.0-beta.2', '2.3.0-beta.1')).toBe(true);
+    expect(isNewerRelease('2.3.0-beta.10', '2.3.0-beta.9')).toBe(true);
+    expect(isNewerRelease('2.3.0-beta.1', '2.3.0-beta.1')).toBe(false);
+  });
   test('no release yet (404 body) is not newer', () => {
     expect(isNewerRelease(undefined, '2.0.0')).toBe(false);
     expect(isNewerRelease(null, '2.0.0')).toBe(false);
