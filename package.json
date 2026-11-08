@@ -1,7 +1,7 @@
 {
   "name": "breezr",
   "productName": "Breezr",
-  "version": "2.3.0-beta.1",
+  "version": "2.3.0-beta.2",
   "description": "Deezer desktop client, vanilla+: the real Deezer player with Discord Rich Presence and custom colors",
   "desktopName": "breezr.desktop",
   "main": "./build/src/main/index.js",
