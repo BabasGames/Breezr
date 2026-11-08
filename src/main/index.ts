@@ -20,14 +20,16 @@ log('App', 'Breezr version', version, process.argv0.includes('node') ? '(debug)'
 app.whenReady().then(async () => {
   const gotTheLock = app.requestSingleInstanceLock();
 
+  // app.quit() only schedules the quit: returning keeps this instance from starting its own tray, window,
+  // update check and Discord connection before it closes.
   if (!gotTheLock) {
     app.quit();
-  } else {
-    app.on('second-instance', () => {
-      // If someone opens a second instance we show our windows after the new instance closes
-      showWindow();
-    });
+    return;
   }
+  app.on('second-instance', () => {
+    // If someone opens a second instance we show our windows after the new instance closes
+    showWindow();
+  });
 
   await Tray.init(app);
   await Window.load(app);

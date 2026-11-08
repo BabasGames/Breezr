@@ -26,7 +26,8 @@ export async function readPlayback(): Promise<PlaybackState | null> {
   return typeof raw === 'string' ? (JSON.parse(raw) as PlaybackState) : null;
 }
 
-const run = (code: string) => runJs(`typeof dzPlayer !== 'undefined' && (${code})`).catch(() => undefined);
+// `void`: the result is not needed, and one that cannot be cloned would make Electron 45+ reject the call.
+const run = (code: string) => runJs(`void (typeof dzPlayer !== 'undefined' && (${code}))`).catch(() => undefined);
 
 export const playbackControls = {
   previous: () => run('dzPlayer.control.prevSong()'),

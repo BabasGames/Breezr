@@ -214,8 +214,10 @@ function showOfflinePage(reason: string) {
 async function watchForPlayer(app: Electron.App, watchId: number) {
   while (watchId === playerWatchId && !win.isDestroyed()) {
     // Rejects while the page is navigating; the next tick simply tries again.
-    const element = await runJs('document.querySelector(\'[data-testid="item_title"]\')').catch(() => null);
-    if (element) {
+    // A boolean, not the element: Electron 45 rejects results that cannot be cloned (DOM nodes), which read as
+    // "no player yet" for good.
+    const hasPlayer = await runJs('!!document.querySelector(\'[data-testid="item_title"]\')').catch(() => false);
+    if (hasPlayer) {
       // Deezer's stylesheets are loaded by now; checking at dom-ready gave false alarms.
       checkTempoVariables(win.webContents);
       injectPlayerHooks();
@@ -254,6 +256,8 @@ export async function showWindow() {
 }
 
 export async function setThumbarButtons() {
+  // Taskbar thumbnail buttons exist on Windows only; elsewhere the call fails and only fills the log.
+  if (process.platform !== 'win32') return;
   const hasPreviousSong = await runJs('dzPlayer && !!dzPlayer.getPrevSong()');
   const hasNextSong = await runJs('dzPlayer && !!dzPlayer.getNextSong()');
   const isPlaying = await runJs('dzPlayer && dzPlayer.isPlaying()');
@@ -261,13 +265,13 @@ export async function setThumbarButtons() {
   const updated = win.setThumbarButtons([
     {
       icon: nativeImage.createFromPath(join(__dirname, '..', 'img', `previous${hasPreviousSong ? '' : '_inactive'}.png`)),
-      click(){ runJs('dzPlayer.control.prevSong()'); }
+      click(){ runJs('void dzPlayer.control.prevSong()'); }
     }, {
       icon: nativeImage.createFromPath(join(__dirname, '..', 'img', `${isPlaying ? 'pause' : 'play'}.png`)),
-      click(){ runJs('dzPlayer.control.togglePause()'); }
+      click(){ runJs('void dzPlayer.control.togglePause()'); }
     }, {
       icon: nativeImage.createFromPath(join(__dirname, '..', 'img', `next${hasNextSong ? '' : '_inactive'}.png`)),
-      click(){ runJs('dzPlayer.control.nextSong()'); }
+      click(){ runJs('void dzPlayer.control.nextSong()'); }
     }
   ]);
   if (updated) {
