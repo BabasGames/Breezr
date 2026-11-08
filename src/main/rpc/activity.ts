@@ -1,4 +1,5 @@
 import * as Config from '../config';
+import { statusFields } from './status';
 import { tray } from '../tray';
 import { version } from '../../../package.json';
 import { ActivityType } from 'discord-api-types/v10';
@@ -47,21 +48,6 @@ export async function setActivity({
     return trackTitle;
   };
 
-  const getStatusName = () => {
-    switch (statusName) {
-      case 'song_title':
-        return trackTitle;
-      case 'artists_song':
-        return trackArtists;
-      case 'artists_and_title':
-        return `${trackArtists} - ${trackTitle}`;
-      case 'title_and_artists':
-        return `${trackTitle} - ${trackArtists}`;
-      default:
-        return 'Deezer';
-    }
-  };
-
   const trackLink = getTrackLink();
   const buttons = activityButtons(
     trackLink && Number.parseInt(trackId) > 0 ? trackLink : undefined,
@@ -74,7 +60,7 @@ export async function setActivity({
   // Rejections (e.g. Discord's rate limit) reach the caller so it can retry instead of assuming the update landed.
   return client.user.setActivity({
     type: ActivityType.Listening,
-    name: getStatusName(),
+    ...statusFields(statusName, trackTitle, trackArtists),
     details: getTrackTitle(),
     detailsUrl: trackLink,
     state: trackArtists,
