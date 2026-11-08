@@ -1,5 +1,21 @@
 # Changelog
 
+## 2.3.0
+
+- Live lyrics link (opt-in, Settings → Sharing): a page that follows what you play, with the cover, synced
+  lyrics and progress, in four colour modes. Share it from Deezer's lyrics view, show it on your Discord status
+  ("Live lyrics" button), and choose whether it shows how many people are watching.
+- On that page, viewers can listen along: the official YouTube video of the track (the clip, or the YouTube
+  Music audio) plays in sync with you, or they keep the lyrics only.
+- Tray: playback controls with icons (previous, play/pause, next, shuffle, repeat, like); the settings left the
+  tray menu for the settings window.
+- Discord: title and artist statuses keep "Deezer" as the app name, and a new status name shows right away.
+- New downloads: Linux and Windows on ARM, an Arch package (.pkg.tar.zst), and SHA256SUMS to check them.
+- The updater offers the file for your processor and distribution.
+- Linux: the icon shows in taskbars and launchers.
+- A second launch no longer opens a tray icon and a window before closing.
+- Electron 44.10 (Chromium security fixes).
+
 ## 2.2.1
 
 - The Discord status comes back on its own when Discord is closed and reopened, or started after Breezr.

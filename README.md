@@ -13,12 +13,12 @@ by Tenshii (MIT). It installs side by side with it and keeps its own settings.
 
 Grab the latest version from the [releases page](https://github.com/BabasGames/Breezr/releases/latest):
 
-- **Windows**: `Breezr-win-x64.exe`
+- **Windows**: `Breezr-win-x64.exe`, or `Breezr-win-arm64.exe` on ARM
 - **macOS**: `Breezr-mac-arm64.dmg` (Apple Silicon) or `Breezr-mac-x64.dmg` (Intel)
-- **Linux**: `.deb`, `.rpm`, `.snap` or `.AppImage`
+- **Linux**: `.deb`, `.rpm`, `.AppImage` or an Arch package (`.pkg.tar.zst`), for x64 and ARM; `.snap` for x64
 
 The installers aren't signed yet, so Windows and macOS will show a warning the first time.
-Breezr tells you when a new version is out.
+Each release has a `SHA256SUMS` file to check your download, and Breezr tells you when a new version is out.
 
 ## Features
 
@@ -27,6 +27,9 @@ Breezr tells you when a new version is out.
   an Advanced mode lets you override any single color
 - Colour sources (optional): follow your desktop's palette live: [Caelestia](https://github.com/caelestia-dots),
   any pywal-format `colors.json` (pywal, wallust, matugen…), or the system accent colour
+- Live lyrics link (optional): a page that follows what you play, with the cover and synced lyrics.
+  Share it from the lyrics view or your Discord status; friends can listen along with the official YouTube video
+- Playback controls in the tray menu
 - The left menu slides when you fold it (can be turned off)
 - Settings window (`Ctrl+,` / `Cmd+,`, tray menu, or the ⚙ button), with a "?" next to anything that needs explaining
 - Available in 14 languages (follows Deezer's language by default)
