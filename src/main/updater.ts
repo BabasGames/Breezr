@@ -4,6 +4,7 @@ import { app, dialog, shell } from 'electron';
 import { readFileSync } from 'fs';
 import { win } from './window';
 import { isNewerRelease, latestReleaseTag } from '../shared/version';
+import { parseOsRelease, releaseAssetName, type Distro } from '../shared/release-asset';
 import { t } from './i18n';
 
 /**
@@ -12,35 +13,13 @@ import { t } from './i18n';
  */
 export const updatesEnabled = !app.commandLine.hasSwitch('disable-updates');
 
-function getDistroId() {
+/** The distribution, from /etc/os-release (Linux only). */
+function readDistro(): Distro {
   try {
-    const release = readFileSync('/etc/os-release', 'utf8');
-    return release.match(/^ID="?([^"\n]+)"?$/m)?.[1].toLowerCase();
+    return parseOsRelease(readFileSync('/etc/os-release', 'utf8'));
   } catch {
-    return undefined;
+    return {};
   }
-}
-
-function getOsAndArch(): { os: string | null; arch: string | null; ext?: string } {
-  const os = process.platform;
-  const arch = process.arch;
-  if (os === 'darwin') {
-    return { os: 'mac', arch };
-  } else if (os === 'win32') {
-    return { os: 'win', arch };
-  } else if (os === 'linux') {
-    const appImage = { os: 'linux', arch: 'x86_64', ext: 'AppImage' };
-    // The AppImage runtime sets APPIMAGE, so its users get an AppImage back whatever their distro.
-    if (process.env.APPIMAGE) return appImage;
-    const distro = getDistroId();
-    if (distro === 'ubuntu' || distro === 'debian') {
-      return { os: 'linux', arch: 'amd64', ext: 'deb' };
-    } else if (distro === 'fedora' || distro === 'centos' || distro === 'rhel') {
-      return { os: 'linux', arch: 'x86_64', ext: 'rpm' };
-    }
-    return appImage;
-  }
-  return { os: null, arch: null };
 }
 
 export default async function updater(fromStartup: boolean = false) {
@@ -59,12 +38,11 @@ export default async function updater(fromStartup: boolean = false) {
         defaultId: 1,
       }).then(({ response }) => {
         if (response === 1) {
-          const { os, arch, ext } = getOsAndArch();
-          const file = release.assets.find(f => {
-            if (ext)
-              return f.name === `Breezr-${os}-${arch}.${ext}`;
-            return f.name.startsWith(`Breezr-${os}-${arch}`);
+          const name = releaseAssetName({
+            platform: process.platform, arch: process.arch, appImage: Boolean(process.env.APPIMAGE),
+            distro: process.platform === 'linux' ? readDistro() : undefined,
           });
+          const file = release.assets.find((f) => f.name === name);
           shell.openExternal(file ? file.browser_download_url : release.html_url);
         }
       });
