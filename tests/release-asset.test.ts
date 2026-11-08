@@ -29,9 +29,9 @@ describe('releaseAssetName', () => {
   });
 
   test('Arch family: the pacman package', () => {
-    expect(linux('x64', { id: 'arch' })).toBe('Breezr-linux-x86_64.pkg.tar.xz');
-    expect(linux('x64', { id: 'cachyos', like: ['arch'] })).toBe('Breezr-linux-x86_64.pkg.tar.xz');
-    expect(linux('arm64', { id: 'archarm', like: ['arch'] })).toBe('Breezr-linux-aarch64.pkg.tar.xz');
+    expect(linux('x64', { id: 'arch' })).toBe('Breezr-linux-x86_64.pkg.tar.zst');
+    expect(linux('x64', { id: 'cachyos', like: ['arch'] })).toBe('Breezr-linux-x86_64.pkg.tar.zst');
+    expect(linux('arm64', { id: 'archarm', like: ['arch'] })).toBe('Breezr-linux-aarch64.pkg.tar.zst');
   });
 
   test('anything else on Linux: the AppImage', () => {

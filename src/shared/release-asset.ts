@@ -32,7 +32,7 @@ export function releaseAssetName(machine: { platform: string; arch: string; dist
   switch (family(machine.distro ?? {})) {
     case 'debian': return `Breezr-linux-${arm ? 'arm64' : 'amd64'}.deb`;
     case 'fedora': return `Breezr-linux-${arm ? 'aarch64' : 'x86_64'}.rpm`;
-    case 'arch': return `Breezr-linux-${arm ? 'aarch64' : 'x86_64'}.pkg.tar.xz`;
+    case 'arch': return `Breezr-linux-${arm ? 'aarch64' : 'x86_64'}.pkg.tar.zst`;
     default: return appImage;
   }
 }

@@ -3,31 +3,25 @@ name: Build
 on:
   push:
     branches: [main]
-    # A version tag (e.g. 2.1.0, no "v": the updater compares it with package.json) also drafts a release.
-    tags: ['[0-9]+.[0-9]+.[0-9]+']
+    # A version tag (e.g. 2.1.0, no "v": the updater compares it with package.json) also drafts a release;
+    # a beta tag (2.3.0-beta.2) drafts a pre-release.
+    tags: ['[0-9]+.[0-9]+.[0-9]+', '[0-9]+.[0-9]+.[0-9]+-*']
   pull_request:
     branches: [main]
 
 jobs:
   build:
     strategy:
+      fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
         include:
-          - os: ubuntu-latest
-            build-os: linux
-            artifacts: |
-              dist/*.deb
-              dist/*.AppImage
-              dist/*.AppImage.zsync
-              dist/*.rpm
-              dist/*.snap
-          - os: windows-latest
-            build-os: windows
-            artifacts: dist/*.exe
-          - os: macos-latest
-            build-os: macos
-            artifacts: dist/*.dmg
+          # arm64 Linux and Windows are built on x64 machines: electron-builder cross-builds both.
+          - { name: linux-x64, os: ubuntu-latest, build-os: linux, arch: x64 }
+          - { name: linux-arm64, os: ubuntu-latest, build-os: linux, arch: arm64 }
+          - { name: windows-x64, os: windows-latest, build-os: windows, arch: x64 }
+          - { name: windows-arm64, os: windows-latest, build-os: windows, arch: arm64 }
+          # The macOS config already lists both processors.
+          - { name: macos, os: macos-latest, build-os: macos, arch: '' }
 
     runs-on: ${{ matrix.os }}
 
@@ -39,20 +33,33 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
+      # rpmbuild for .rpm, bsdtar for the Arch package, zsync for AppImage updates.
+      - name: Install Linux packaging tools
+        if: matrix.build-os == 'linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y rpm libarchive-tools zsync
+
       - name: Build
         run: |
           bun run tsc
           bun run build:modal
           bun run copy-assets
-          bun scripts/build.js ${{ matrix.build-os }}
+          bun scripts/build.js ${{ matrix.build-os }} ${{ matrix.arch }}
+
+      # electron-builder names it `.pacman`; Arch's own name, with Arch's processor names.
+      - name: Name the Arch package
+        if: matrix.build-os == 'linux'
+        working-directory: dist
+        run: |
+          case "${{ matrix.arch }}" in x64) arch=x86_64 ;; arm64) arch=aarch64 ;; esac
+          for package in *.pacman; do mv "$package" "Breezr-linux-$arch.pkg.tar.zst"; done
 
       # AppImage update tools download this to fetch only the blocks that changed.
       - name: Generate AppImage zsync file
         if: matrix.build-os == 'linux'
         working-directory: dist
         run: |
-          sudo apt-get update
-          sudo apt-get install -y zsync
           for appimage in *.AppImage; do
             zsyncmake -u "$appimage" -o "$appimage.zsync" "$appimage"
           done
@@ -60,8 +67,16 @@ jobs:
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          path: ${{ matrix.artifacts }}
-          name: ${{ runner.os }}-artifacts
+          name: ${{ matrix.name }}
+          path: |
+            dist/*.deb
+            dist/*.rpm
+            dist/*.snap
+            dist/*.AppImage
+            dist/*.AppImage.zsync
+            dist/*.pkg.tar.zst
+            dist/*.exe
+            dist/*.dmg
           if-no-files-found: error
 
   release:
@@ -84,13 +99,22 @@ jobs:
           path: artifacts
           merge-multiple: true
 
+      # Lets anyone check a download: sha256sum -c SHA256SUMS --ignore-missing
+      - name: Checksums
+        working-directory: artifacts
+        run: sha256sum -- * > SHA256SUMS
+
       - name: Release notes from the changelog
         run: |
           awk -v heading="## $GITHUB_REF_NAME" '$0 == heading { keep = 1; next } /^## / { keep = 0 } keep' CHANGELOG.md > notes.md
           test -s notes.md || echo "Breezr $GITHUB_REF_NAME" > notes.md
 
-      # A draft: nothing is public until it is reviewed and published on GitHub.
+      # A draft: nothing is public until it is reviewed and published on GitHub. A beta tag is marked as a
+      # pre-release, which GitHub never reports as the latest release: the updater does not offer it.
       - name: Create a draft release
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "$GITHUB_REF_NAME" artifacts/* --draft --title "Breezr $GITHUB_REF_NAME" --notes-file notes.md
+        run: |
+          prerelease=()
+          case "$GITHUB_REF_NAME" in *-*) prerelease=(--prerelease) ;; esac
+          gh release create "$GITHUB_REF_NAME" artifacts/* --draft "${prerelease[@]}" --title "Breezr $GITHUB_REF_NAME" --notes-file notes.md

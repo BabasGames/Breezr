@@ -31,11 +31,18 @@ const config = {
   linux: {
     category: 'Audio;AudioVideo',
     syncDesktopName: true,
-    target: ['snap', 'deb', 'AppImage', 'rpm'],
+    target: ['snap', 'deb', 'AppImage', 'rpm', 'pacman'],
     // .deb/.rpm need a maintainer; package.json's author has no email on purpose.
     maintainer: 'BabasGames (https://github.com/BabasGames/Breezr)',
     publish: null,
     icon: join(__dirname, '..', 'src', 'img', 'app.png'),
+  },
+  // electron-builder's default pacman dependencies are those of a system-wide Electron (one of them no longer
+  // exists in Arch): Breezr ships its own Electron and needs only these.
+  pacman: {
+    // Arch's own package format (.pkg.tar.zst); CI renames the `.pacman` file accordingly.
+    compression: 'zstd',
+    depends: ['gtk3', 'nss', 'alsa-lib', 'libxss', 'libxtst', 'libsecret', 'libnotify', 'xdg-utils'],
   },
   toolsets: {
     // The legacy runtime links against the host glibc and needs libfuse2;
@@ -52,8 +59,15 @@ const config = {
   ]
 };
 
-const lastArg = process.argv.pop();
-const specifiedOS = ['windows', 'macos', 'linux'].includes(lastArg) ? lastArg : undefined;
+// `bun scripts/build.js [windows|macos|linux] [x64|arm64]`: without a processor, the machine's own.
+const args = process.argv.slice(2);
+const specifiedOS = args.find((a) => ['windows', 'macos', 'linux'].includes(a));
+const specifiedArch = args.find((a) => ['x64', 'arm64'].includes(a));
+// Snap is built for x64 only.
+if (specifiedArch === 'arm64' && config.linux) {
+  // @ts-expect-error Readonly property
+  config.linux.target = config.linux.target.filter((t) => t !== 'snap');
+}
 if (specifiedOS) {
   console.log(`Building for ${specifiedOS}...`);
   if (specifiedOS === 'windows') {
@@ -83,7 +97,8 @@ const [, owner, repo] = repository.match(/github\.com\/([^/]+)\/([^/]+?)(?:\.git
 
 build({
   config,
-  publish: 'never'
+  publish: 'never',
+  ...(specifiedArch ? { [specifiedArch]: true } : {}),
 }).then((artifacts) => {
   // Points AppImage update tools at the .zsync file CI publishes next to the AppImage on each release.
   for (const appImage of artifacts.filter((artifact) => artifact.endsWith('.AppImage'))) {

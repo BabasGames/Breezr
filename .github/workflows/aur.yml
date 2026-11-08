@@ -1,0 +1,54 @@
+name: AUR
+
+# Updates the AUR package breezr-bin when a release (not a pre-release) is published. Does nothing until the
+# repository has an AUR_SSH_PRIVATE_KEY secret (the private half of a key added to the AUR account).
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Version to publish (an existing release tag, e.g. 2.3.0)
+        required: true
+
+jobs:
+  aur:
+    if: github.event_name == 'workflow_dispatch' || !github.event.release.prerelease
+    runs-on: ubuntu-latest
+    env:
+      HAS_KEY: ${{ secrets.AUR_SSH_PRIVATE_KEY != '' }}
+      VERSION: ${{ github.event.release.tag_name || inputs.version }}
+    steps:
+      - name: Skip without an AUR key
+        if: env.HAS_KEY != 'true'
+        run: echo 'No AUR_SSH_PRIVATE_KEY secret yet, so the AUR package is not updated.'
+
+      - name: Checkout repository
+        if: env.HAS_KEY == 'true'
+        uses: actions/checkout@v4
+
+      - name: Fill in the PKGBUILD
+        if: env.HAS_KEY == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Only plain versions: makepkg refuses a "-" in pkgver, and betas never go to the AUR.
+          [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "Not a release version: $VERSION"; exit 1; }
+          gh release download "$VERSION" -p 'Breezr-linux-amd64.deb' -p 'Breezr-linux-arm64.deb' -D debs
+          sed -e "s/@VERSION@/$VERSION/" \
+              -e "s/@SHA256_AMD64@/$(sha256sum debs/Breezr-linux-amd64.deb | cut -d' ' -f1)/" \
+              -e "s/@SHA256_ARM64@/$(sha256sum debs/Breezr-linux-arm64.deb | cut -d' ' -f1)/" \
+              packaging/aur/PKGBUILD.in > PKGBUILD
+          cat PKGBUILD
+
+      - name: Publish to the AUR
+        if: env.HAS_KEY == 'true'
+        uses: KSXGitHub/github-actions-deploy-aur@v4.1.1
+        with:
+          pkgname: breezr-bin
+          pkgbuild: ./PKGBUILD
+          commit_username: BabasGames
+          commit_email: 96499176+BabasGames@users.noreply.github.com
+          ssh_private_key: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
+          commit_message: Update to ${{ env.VERSION }}
+          test: true
