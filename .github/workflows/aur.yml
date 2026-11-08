@@ -43,7 +43,8 @@ jobs:
 
       - name: Publish to the AUR
         if: env.HAS_KEY == 'true'
-        uses: KSXGitHub/github-actions-deploy-aur@v4.1.1
+        # Pinned to the commit of v4.1.1: this step receives the AUR key, a moved tag must not change the code.
+        uses: KSXGitHub/github-actions-deploy-aur@2ac5a4c1d7035885d46b10e3193393be8460b6f1 # v4.1.1
         with:
           pkgname: breezr-bin
           pkgbuild: ./PKGBUILD
