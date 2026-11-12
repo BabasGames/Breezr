@@ -424,6 +424,25 @@ describe('viewer count', () => {
     expect(Date.now() - started).toBeGreaterThanOrEqual(380);
   });
 
+  test('at most 4 waiting requests per link, also after earlier ones were answered', async () => {
+    const id = 'KKKKKKKKK4';
+    await fetch(`${base4}/api/live/${id}`, { method: 'PUT', headers: { authorization: `Bearer ${SECRET}` }, body: JSON.stringify(state()) });
+    const ask = (since: number) => fetch(`${base4}/api/live/${id}/viewers?since=${since}`, { headers: { authorization: `Bearer ${SECRET}` } });
+    // Four wait, a page opens and answers them all.
+    const first = [ask(0), ask(0), ask(0), ask(0)];
+    await new Promise((r) => setTimeout(r, 50));
+    const page = await fetch(`${base4}/api/live/${id}/events`);
+    await Promise.all(first);
+    // Four wait again: a fifth must be answered at once, the cap still holds.
+    const second = [ask(1), ask(1), ask(1), ask(1)];
+    await new Promise((r) => setTimeout(r, 50));
+    const started = Date.now();
+    expect(await (await ask(1)).json()).toEqual({ viewers: 1 });
+    expect(Date.now() - started).toBeLessThan(200);
+    await page.body!.cancel();
+    await Promise.all(second);
+  });
+
   test('a stranger cannot hold requests open', async () => {
     const res = await fetch(`${base4}/api/live/KKKKKKKKK3/viewers?since=0`, { headers: { authorization: `Bearer ${'x'.repeat(43)}` } });
     expect(res.status).toBe(403);

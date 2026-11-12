@@ -19,6 +19,7 @@ const MAX_LOOKUPS_IN_FLIGHT = 20;
 // An owner waiting for its viewer count to change: answered on the change, or after this long at most.
 const VIEWER_WAIT_MS = 25_000;
 const MAX_VIEWER_WAITERS = 4;
+const MAX_VIEWER_WAITERS_TOTAL = 2000;
 const REPO_URL = 'https://github.com/BabasGames/Breezr';
 
 const SECURITY_HEADERS: Record<string, string> = {
@@ -144,6 +145,7 @@ export function createApp(opts: {
   let lookupsInFlight = 0;
   // Owners waiting for their link's count to change (see viewersRoute).
   const viewerWaiters = new Map<string, Set<() => void>>();
+  let viewerWaitersTotal = 0;
   const wakeViewerWaiters = (id: string) => {
     for (const wake of viewerWaiters.get(id) ?? []) wake();
   };
@@ -284,18 +286,27 @@ export function createApp(opts: {
     const count = () => streamsById.get(id) ?? 0;
     const since = Number(url.searchParams.get('since'));
     let waiters = viewerWaiters.get(id);
-    if (!url.searchParams.has('since') || since !== count() || (waiters?.size ?? 0) >= MAX_VIEWER_WAITERS) {
+    if (!url.searchParams.has('since') || since !== count() || (waiters?.size ?? 0) >= MAX_VIEWER_WAITERS
+      || viewerWaitersTotal >= MAX_VIEWER_WAITERS_TOTAL) {
       return send(res, 200, { viewers: count() });
     }
     if (!waiters) viewerWaiters.set(id, (waiters = new Set()));
+    const mine = waiters;
+    let settled = false;
+    // Runs once (the answer, then the socket's close, both call it), and only ever touches its own set: a newer
+    // set for this link must stay in the map, or the per-link cap would stop seeing its waiters.
     const done = () => {
+      if (settled) return;
+      settled = true;
+      viewerWaitersTotal--;
       clearTimeout(timer);
-      waiters.delete(done);
-      if (waiters.size === 0) viewerWaiters.delete(id);
+      mine.delete(done);
+      if (mine.size === 0 && viewerWaiters.get(id) === mine) viewerWaiters.delete(id);
       if (!res.writableEnded && !res.destroyed) send(res, 200, { viewers: count() });
     };
     const timer = setTimeout(done, opts.viewerWaitMs ?? VIEWER_WAIT_MS);
-    waiters.add(done);
+    mine.add(done);
+    viewerWaitersTotal++;
     res.on('close', done);
   }
 
