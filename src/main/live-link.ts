@@ -203,6 +203,19 @@ export function createLiveLink(opts: {
       void watchViewers(creds);
       return known.count;
     },
+    /**
+     * Breezr is quitting: the page must stop at once instead of playing on for the 10 minutes it takes to
+     * notice the silence. Sends a paused state and waits for it at most `timeoutMs`, so a dead network never
+     * holds the quit back.
+     */
+    async goOffline(timeoutMs = 1500): Promise<void> {
+      clearTimeout(pending);
+      if (!credentials() || !latest?.playing) return;
+      latest = { ...caughtUp(latest, now()), playing: false, at: now() };
+      let timer: ReturnType<typeof setTimeout> | undefined;
+      await Promise.race([send(true), new Promise((r) => { timer = setTimeout(r, timeoutMs); })]);
+      clearTimeout(timer);
+    },
     publish(state: LiveState) {
       latest = state;
       if (credentials()) schedule();

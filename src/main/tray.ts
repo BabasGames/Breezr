@@ -8,6 +8,7 @@ import { t, onLocaleChange } from './i18n';
 import { openSettings } from './settings';
 import { buildTrayTemplate, type MenuIcon, type PlaybackState } from './tray-menu';
 import { playbackControls, readPlayback } from './playback';
+import { liveLink } from './live-runtime';
 
 const imgDir = join(__dirname, '..', 'img');
 const iconPath = join(imgDir, 'tray.png');
@@ -87,10 +88,13 @@ export function refreshTrayMenu() {
     settings: () => openSettings(win),
     checkUpdates: () => void updater(),
     quit: () => {
-      RPC.disconnect().catch(console.error);
-      win.close();
-      app.quit();
-      process.exit(0);
+      // The live page hears "paused" before the process ends (process.exit would cut the send short).
+      void liveLink(app).goOffline().finally(() => {
+        RPC.disconnect().catch(console.error);
+        win.close();
+        app.quit();
+        process.exit(0);
+      });
     },
   }, { updates: updatesEnabled, version: t(debug ? 'tray.versionDebug' : 'tray.version', { version }) });
   tray.setContextMenu(Menu.buildFromTemplate(items.map((item) => ({

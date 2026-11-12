@@ -177,6 +177,48 @@ describe('live link', () => {
     expect(events).toEqual(['PUT start', 'PUT end', 'DELETE start', 'DELETE end']);
   });
 
+  test('quitting Breezr tells the page the music stopped', async () => {
+    setup();
+    const { fn, calls } = fakeFetch();
+    const link = make(fn);
+    await link.enable();
+    link.publish(state({ playing: true, position: 30_000 }));
+    await wait(60);
+    await link.goOffline();
+    const last = calls.at(-1)!;
+    expect(last.method).toBe('PUT');
+    expect(last.body?.playing).toBe(false);
+    expect(last.body?.track.title).toBe('Get Lucky');
+    // Already paused: nothing more to say.
+    const count = calls.length;
+    await link.goOffline();
+    expect(calls.length).toBe(count);
+  });
+
+  test('quitting never waits long on a dead network', async () => {
+    setup();
+    const hanging = (async (_: unknown, init?: RequestInit) => {
+      if (init?.method !== 'PUT' || !String(init.body).includes('"playing":false')) return new Response(null, { status: 204 });
+      return new Promise<Response>(() => undefined);
+    }) as unknown as typeof fetch;
+    const link = make(hanging);
+    await link.enable();
+    link.publish(state({ playing: true }));
+    await wait(60);
+    const started = Date.now();
+    await link.goOffline(300);
+    expect(Date.now() - started).toBeLessThan(600);
+  });
+
+  test('quitting with the link off sends nothing', async () => {
+    setup();
+    const { fn, calls } = fakeFetch();
+    const link = make(fn);
+    link.publish(state({ playing: true }));
+    await link.goOffline();
+    expect(calls).toEqual([]);
+  });
+
   test('viewer count: read with the key, then kept up to date by one waiting request', async () => {
     setup();
     const calls: string[] = [];

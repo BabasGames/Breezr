@@ -41,6 +41,16 @@ app.whenReady().then(async () => {
   // The option is on but its credentials file is gone (deleted by hand, new machine): start a new link.
   if (Config.get(app, 'live_link') && !liveLink(app).url()) void liveLink(app).enable();
 
+  // Any other way out (closing the window with "quit on close", logging out): hold the quit until the live
+  // page heard "paused", 1.5 s at most.
+  let wentOffline = false;
+  app.on('before-quit', (event) => {
+    if (wentOffline) return;
+    wentOffline = true;
+    event.preventDefault();
+    void liveLink(app).goOffline().finally(() => app.quit());
+  });
+
   app.on('quit', () => {
     liveLink(app).stop();
     RPC.disconnect();
