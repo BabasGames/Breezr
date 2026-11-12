@@ -9,12 +9,14 @@ import { setActivity } from './rpc/activity';
 import { setDeezerLanguage } from './i18n';
 import { checkTempoVariables, forgetInsertedTheme } from './theme';
 import { applyPageTweaks, forgetPageTweaks } from './page-tweaks';
-import { createThemeState } from './theme-runtime';
+import { createThemeState, pathEnv } from './theme-runtime';
+import { loadSourceCache } from './source-cache';
+import { windowBackground } from '../shared/theme-model';
 import { withTimeout } from './timeout';
 import { buildLiveState } from './live-link';
 import { liveLink } from './live-runtime';
 import { updateTrayPlayback } from './tray';
-import type { ThemeState } from './theme-state';
+import { sourceKey, type ThemeState } from './theme-state';
 import { openSettings, registerSettings } from './settings';
 import { classifyWindowOpen, isDeezerUrl } from '../shared/origin';
 import { readFileSync } from 'fs';
@@ -63,7 +65,11 @@ let rateLastRefill = Date.now();
 export async function load(app: Electron.App) {
   const width = Config.get(app, 'window_width') ?? 1920;
   const height = Config.get(app, 'window_height') ?? 1080;
+  // The window shows Deezer's background (or the theme's, from the last palette seen) until the page paints.
+  const theme = Config.get(app, 'theme');
+  const palette = theme.enabled && theme.source !== 'manual' ? loadSourceCache(app.getPath('userData'), sourceKey(theme, pathEnv())) : null;
   win = new BrowserWindow({
+    backgroundColor: windowBackground(theme, palette),
     width, height,
     minimizable: true,
     maximizable: true,

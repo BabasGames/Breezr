@@ -281,3 +281,12 @@ export function themeContrast(vars: Record<ManagedVar, string>): { text: number;
     accent: contrastRatio(vars[`${T}background-accent-primary-default`], bg),
   };
 }
+
+/**
+ * The window's colour before Deezer has painted anything: the page's main background, so opening never
+ * flashes white (Deezer's own dark background when the custom theme is off).
+ */
+export function windowBackground(theme: ThemeConfig, palette: ExternalPalette | null): string {
+  if (!theme.enabled) return DEEZER_COLORS.background;
+  return buildThemeVars(theme, palette)[`${T}background-neutral-primary-default`];
+}

@@ -1,7 +1,8 @@
 import { describe, expect, test } from 'bun:test';
 import { contrastRatio, isHex, parseHex, relativeLuminance, rgbToHsl } from '../src/shared/color';
 import {
-  BUILTIN_PRESETS, DEFAULT_THEME, LADDER_STEPS, MANAGED_VARS, buildThemeVars, deriveLadder, isManagedVar, themeToCss,
+  BUILTIN_PRESETS, DEEZER_COLORS, DEFAULT_THEME, LADDER_STEPS, MANAGED_VARS, buildThemeVars, deriveLadder, isManagedVar, themeToCss,
+  windowBackground,
   type Derivation,
 } from '../src/shared/theme-model';
 
@@ -150,5 +151,18 @@ describe('presets and defaults', () => {
     expect(isManagedVar(`${T}text-neutral-primary-default`)).toBe(true);
     expect(isManagedVar('--color-intent-error')).toBe(false);
     expect(isManagedVar(`${T}background-brand-pink-default`)).toBe(false);
+  });
+});
+
+describe('windowBackground', () => {
+  test('theme off: Deezer\'s own dark background, so the window never flashes white', () => {
+    expect(windowBackground({ ...DEFAULT_THEME, enabled: false }, null)).toBe(DEEZER_COLORS.background);
+  });
+
+  test('theme on: the page\'s main background, the source palette included', () => {
+    const theme = { ...DEFAULT_THEME, enabled: true, colors: { ...DEFAULT_THEME.colors, background: '#203040' } };
+    expect(windowBackground(theme, null)).toBe(buildThemeVars(theme, null)['--tempo-colors-background-neutral-primary-default']);
+    const palette = { colors: { background: '#112233' } };
+    expect(windowBackground(theme, palette)).toBe(buildThemeVars(theme, palette)['--tempo-colors-background-neutral-primary-default']);
   });
 });
