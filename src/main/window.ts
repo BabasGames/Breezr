@@ -12,6 +12,7 @@ import { applyPageTweaks, forgetPageTweaks } from './page-tweaks';
 import { createThemeState, pathEnv } from './theme-runtime';
 import { loadSourceCache } from './source-cache';
 import { windowBackground } from '../shared/theme-model';
+import { createMemoryTrim } from './memory-trim';
 import { withTimeout } from './timeout';
 import { buildLiveState } from './live-link';
 import { liveLink } from './live-runtime';
@@ -83,6 +84,13 @@ export async function load(app: Electron.App) {
     }
   });
   if (width === 1920 && height === 1080) win.maximize();
+  const memoryTrim = createMemoryTrim({ trim: () => collectGarbage(win.webContents) });
+  // Trimmed only while out of sight or out of use: never while someone is looking at the page.
+  win.on('blur', () => memoryTrim.background());
+  win.on('hide', () => memoryTrim.background());
+  win.on('minimize', () => memoryTrim.background());
+  win.on('focus', () => memoryTrim.foreground());
+  win.on('closed', () => memoryTrim.foreground());
   win.focus();
   win.show();
   win.setMenuBarVisibility(process.platform === 'darwin');
@@ -203,6 +211,19 @@ export async function load(app: Electron.App) {
   const started = await withTimeout(themeState.start(Config.get(app, 'theme')), 1000);
   if (started === 'timeout') log('Theme', 'Colour source slow to read: loading Deezer without waiting for it');
   await loadDeezer();
+}
+
+/** One full garbage collection in Deezer's page, through Chromium's debugging protocol (no flag needed). */
+async function collectGarbage(wc: Electron.WebContents) {
+  if (wc.isDestroyed()) return;
+  const dbg = wc.debugger;
+  const attachedHere = !dbg.isAttached();
+  if (attachedHere) dbg.attach('1.3');
+  try {
+    await dbg.sendCommand('HeapProfiler.collectGarbage');
+  } finally {
+    if (attachedHere && dbg.isAttached()) dbg.detach();
+  }
 }
 
 async function loadDeezer() {
