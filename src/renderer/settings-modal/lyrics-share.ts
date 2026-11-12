@@ -109,7 +109,7 @@ export function startLyricsShareButton(
   setInterval(ensure, 1000);
 }
 
-/** "👁 3": how many people follow the live link, shown only when someone does; refreshed while the view is open. */
+/** "👁 3": how many people follow the live link, shown only when someone does; re-read every 2 s while the view is open. */
 function viewerBadge(viewers: { count: () => Promise<number | null>; describe: (count: number) => string }): HTMLElement {
   const badge = document.createElement('span');
   badge.className = 'breezr-lyrics-viewers';
@@ -130,7 +130,8 @@ function viewerBadge(viewers: { count: () => Promise<number | null>; describe: (
       badge.setAttribute('aria-label', viewers.describe(count));
     }).catch(() => undefined);
   };
-  const timer = setInterval(refresh, 30_000);
+  // A local read: the main process keeps the count fresh with one request waiting on the server.
+  const timer = setInterval(refresh, 2000);
   setTimeout(refresh, 0);
   return badge;
 }

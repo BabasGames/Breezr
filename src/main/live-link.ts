@@ -7,7 +7,11 @@ interface LinkFile extends Partial<Credentials> { pendingDelete?: Credentials[] 
 
 const REQUEST_TIMEOUT_MS = 5000;
 const POSITION_TOLERANCE_MS = 2000;
-const VIEWERS_CACHE_MS = 20_000;
+// The count is watched while someone reads it (the lyrics view asks every few seconds), then left alone.
+const VIEWERS_WATCH_IDLE_MS = 15_000;
+// The server holds a ?since= request up to 25 s: give it room before calling it lost.
+const VIEWERS_WAIT_TIMEOUT_MS = 35_000;
+const VIEWERS_RETRY_MS = 5000;
 
 /** Where the state would be now, extrapolated from when it was read in the player. */
 function caughtUp(state: LiveState, now: number): LiveState {
@@ -46,7 +50,10 @@ export function createLiveLink(opts: {
   let lastSent: LiveState | null = null;
   let lastSentAt = 0;
   let pending: ReturnType<typeof setTimeout> | undefined;
-  let viewersCache: { at: number; id: string; count: number } | null = null;
+  let known: { id: string; count: number } | null = null;
+  let lastAsked = 0;
+  let watching = false;
+  let stopped = false;
   // PUTs and DELETEs go out one at a time, in order: a send still in flight must never land after the
   // DELETE that turned the link off.
   let queue: Promise<unknown> = Promise.resolve();
@@ -136,6 +143,38 @@ export function createLiveLink(opts: {
     return liveLinkUrl(creds.id);
   }
 
+  async function readViewers(creds: Credentials, since: number | null, timeoutMs: number): Promise<number | null> {
+    try {
+      const query = since === null ? '' : `?since=${since}`;
+      const res = await doFetch(`${endpoint(creds.id)}/viewers${query}`, {
+        headers: { Authorization: `Bearer ${creds.secret}` }, signal: AbortSignal.timeout(timeoutMs),
+      });
+      if (!res.ok) return null;
+      const body = (await res.json()) as { viewers?: unknown };
+      return typeof body.viewers === 'number' ? body.viewers : null;
+    } catch {
+      return null;
+    }
+  }
+
+  /** One waiting request at a time, for as long as someone keeps reading the count. */
+  async function watchViewers(creds: Credentials) {
+    if (watching) return;
+    watching = true;
+    try {
+      while (!stopped && now() - lastAsked <= VIEWERS_WATCH_IDLE_MS && credentials()?.id === creds.id && known?.id === creds.id) {
+        const count = await readViewers(creds, known.count, VIEWERS_WAIT_TIMEOUT_MS);
+        if (count === null) {
+          await new Promise((r) => setTimeout(r, VIEWERS_RETRY_MS));
+          continue;
+        }
+        if (known?.id === creds.id) known = { id: creds.id, count };
+      }
+    } finally {
+      watching = false;
+    }
+  }
+
   return {
     url: () => {
       const creds = credentials();
@@ -148,22 +187,21 @@ export function createLiveLink(opts: {
       return enable();
     },
     /** How many pages follow the link now (owner-only on the server); null when off or unreachable. */
+    /**
+     * How many pages follow the link. The first read asks the server; then one request waits on the server for
+     * the count to change, so a new viewer shows within moments. It stops once nobody has asked for a while.
+     */
     async viewers(): Promise<number | null> {
       const creds = credentials();
       if (!creds) return null;
-      if (viewersCache && viewersCache.id === creds.id && now() - viewersCache.at <= VIEWERS_CACHE_MS) return viewersCache.count;
-      try {
-        const res = await doFetch(`${endpoint(creds.id)}/viewers`, {
-          headers: { Authorization: `Bearer ${creds.secret}` }, signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
-        });
-        if (!res.ok) return null;
-        const body = (await res.json()) as { viewers?: unknown };
-        if (typeof body.viewers !== 'number') return null;
-        viewersCache = { at: now(), id: creds.id, count: body.viewers };
-        return body.viewers;
-      } catch {
-        return null;
+      lastAsked = now();
+      if (known?.id !== creds.id) {
+        const count = await readViewers(creds, null, REQUEST_TIMEOUT_MS);
+        if (count === null) return null;
+        known = { id: creds.id, count };
       }
+      void watchViewers(creds);
+      return known.count;
     },
     publish(state: LiveState) {
       latest = state;
@@ -177,6 +215,7 @@ export function createLiveLink(opts: {
       save();
     },
     stop() {
+      stopped = true;
       clearTimeout(pending);
       clearInterval(heartbeat);
     },

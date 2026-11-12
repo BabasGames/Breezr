@@ -177,13 +177,18 @@ describe('live link', () => {
     expect(events).toEqual(['PUT start', 'PUT end', 'DELETE start', 'DELETE end']);
   });
 
-  test('viewer count: read with the key, cached for a while, null when off or unreachable', async () => {
+  test('viewer count: read with the key, then kept up to date by one waiting request', async () => {
     setup();
     const calls: string[] = [];
-    let fail = false;
+    // The server answers a request carrying ?since= only when the count changes: released by hand here.
+    const waiting: ((count: number) => void)[] = [];
     const fn = (async (input: string | URL | Request, init?: RequestInit) => {
-      calls.push(`${init?.method ?? 'GET'} ${String(input).split('/').pop()} ${new Headers(init?.headers).get('authorization') ? 'auth' : 'anon'}`);
-      if (fail) throw new Error('offline');
+      const url = new URL(String(input));
+      calls.push(`${url.pathname.split('/').pop()}${url.search} ${new Headers(init?.headers).get('authorization') ? 'auth' : 'anon'}`);
+      if (url.searchParams.has('since')) {
+        const count = await new Promise<number>((r) => waiting.push(r));
+        return new Response(JSON.stringify({ viewers: count }), { status: 200 });
+      }
       return new Response(JSON.stringify({ viewers: 3 }), { status: 200 });
     }) as typeof fetch;
     let now = 1000;
@@ -193,10 +198,26 @@ describe('live link', () => {
     expect(calls).toEqual([]);
     await link.enable();
     expect(await link.viewers()).toBe(3);
-    expect(await link.viewers()).toBe(3);
-    expect(calls).toEqual(['GET viewers auth']);
-    now += 20_001;
-    fail = true;
+    await wait(10);
+    expect(calls).toEqual(['viewers auth', 'viewers?since=3 auth']);
+    // A new page opens: the waiting request answers, and the next read has it without asking again.
+    waiting.shift()!(4);
+    await wait(10);
+    expect(await link.viewers()).toBe(4);
+    expect(calls.at(-1)).toBe('viewers?since=4 auth');
+    // Nobody asked for a while (lyrics view closed): the watch stops after its current request.
+    now += 16_000;
+    waiting.shift()!(4);
+    await wait(10);
+    expect(calls.length).toBe(3);
+  });
+
+  test('viewer count: null when the server cannot be reached', async () => {
+    setup();
+    const fn = (async () => { throw new Error('offline'); }) as unknown as typeof fetch;
+    const link = createLiveLink({ file: join(dir, 'live-link.json'), fetch: fn, now: () => 1000, log: () => undefined });
+    links.push(link);
+    await link.enable().catch(() => undefined);
     expect(await link.viewers()).toBeNull();
   });
 

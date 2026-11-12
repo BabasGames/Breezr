@@ -371,7 +371,7 @@ describe('viewer count', () => {
   beforeAll(async () => {
     dir4 = mkdtempSync(join(tmpdir(), 'breezr-viewers-'));
     const store = new LiveStore({ file: join(dir4, 'ids.json') });
-    server4 = createLiveServer({ store, lyrics: { lookup: async () => ({ result: { kind: 'none' as const }, ok: true }) }, videos: noVideos, publicDir: dir4 });
+    server4 = createLiveServer({ store, lyrics: { lookup: async () => ({ result: { kind: 'none' as const }, ok: true }) }, videos: noVideos, publicDir: dir4, viewerWaitMs: 400 });
     await new Promise<void>((r) => server4.listen(0, '127.0.0.1', r));
     base4 = `http://127.0.0.1:${(server4.address() as AddressInfo).port}`;
   });
@@ -398,6 +398,35 @@ describe('viewer count', () => {
     expect((await viewers(id, null)).status).toBe(401);
     expect((await viewers(id, 'x'.repeat(43))).status).toBe(403);
     expect((await viewers('ZZZZZZZZZZ', SECRET)).status).toBe(404);
+  });
+
+  test('asked with the count it knows, the owner hears back as soon as it changes', async () => {
+    const id = 'KKKKKKKKK2';
+    await fetch(`${base4}/api/live/${id}`, { method: 'PUT', headers: { authorization: `Bearer ${SECRET}` }, body: JSON.stringify(state()) });
+    const started = Date.now();
+    const waiting = fetch(`${base4}/api/live/${id}/viewers?since=0`, { headers: { authorization: `Bearer ${SECRET}` } });
+    await new Promise((r) => setTimeout(r, 100));
+    const page = await fetch(`${base4}/api/live/${id}/events`);
+    expect(await (await waiting).json()).toEqual({ viewers: 1 });
+    expect(Date.now() - started).toBeLessThan(380);
+    await page.body!.cancel();
+  });
+
+  test('a count that already differs answers at once; an unchanged one answers when the wait ends', async () => {
+    const id = 'KKKKKKKKK3';
+    await fetch(`${base4}/api/live/${id}`, { method: 'PUT', headers: { authorization: `Bearer ${SECRET}` }, body: JSON.stringify(state()) });
+    const auth = { headers: { authorization: `Bearer ${SECRET}` } };
+    let started = Date.now();
+    expect(await (await fetch(`${base4}/api/live/${id}/viewers?since=5`, auth)).json()).toEqual({ viewers: 0 });
+    expect(Date.now() - started).toBeLessThan(200);
+    started = Date.now();
+    expect(await (await fetch(`${base4}/api/live/${id}/viewers?since=0`, auth)).json()).toEqual({ viewers: 0 });
+    expect(Date.now() - started).toBeGreaterThanOrEqual(380);
+  });
+
+  test('a stranger cannot hold requests open', async () => {
+    const res = await fetch(`${base4}/api/live/KKKKKKKKK3/viewers?since=0`, { headers: { authorization: `Bearer ${'x'.repeat(43)}` } });
+    expect(res.status).toBe(403);
   });
 });
 

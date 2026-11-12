@@ -16,6 +16,9 @@ const MAX_STREAMS_PER_IP = 20;
 const MAX_STREAM_BUFFER = 64 * 1024;
 const REQUEST_TIMEOUT_MS = 10_000;
 const MAX_LOOKUPS_IN_FLIGHT = 20;
+// An owner waiting for its viewer count to change: answered on the change, or after this long at most.
+const VIEWER_WAIT_MS = 25_000;
+const MAX_VIEWER_WAITERS = 4;
 const REPO_URL = 'https://github.com/BabasGames/Breezr';
 
 const SECURITY_HEADERS: Record<string, string> = {
@@ -112,6 +115,7 @@ export function createApp(opts: {
   store: LiveStore; lyrics: LyricsSource; videos: VideoSource; publicDir: string; now?: () => number;
   /** The server owner's own links: they spend the reserved quota and skip the paid-search limits. */
   priorityLinks?: ReadonlySet<string>;
+  viewerWaitMs?: number;
 }): RequestListener {
   const { store, lyrics, videos, publicDir } = opts;
   const now = opts.now ?? Date.now;
@@ -138,6 +142,11 @@ export function createApp(opts: {
     for (const write of writersById.get(id) ?? []) write(snap);
   };
   let lookupsInFlight = 0;
+  // Owners waiting for their link's count to change (see viewersRoute).
+  const viewerWaiters = new Map<string, Set<() => void>>();
+  const wakeViewerWaiters = (id: string) => {
+    for (const wake of viewerWaiters.get(id) ?? []) wake();
+  };
 
   /** 'ok' when the caller may write `id`, otherwise the response already sent. */
   function authorize(req: IncomingMessage, res: ServerResponse, id: string, secret: string): boolean {
@@ -222,6 +231,7 @@ export function createApp(opts: {
     streams++;
     streamsByIp.set(ip, mine + 1);
     streamsById.set(id, (streamsById.get(id) ?? 0) + 1);
+    wakeViewerWaiters(id);
     res.writeHead(200, {
       ...SECURITY_HEADERS, 'Content-Type': 'text/event-stream; charset=utf-8', 'Cache-Control': 'no-store', 'X-Accel-Buffering': 'no',
     });
@@ -241,6 +251,7 @@ export function createApp(opts: {
       const watching = (streamsById.get(id) ?? 1) - 1;
       if (watching > 0) streamsById.set(id, watching);
       else streamsById.delete(id);
+      wakeViewerWaiters(id);
       writers.delete(write);
       if (writers.size === 0) writersById.delete(id);
       else broadcastCount(id);
@@ -256,8 +267,12 @@ export function createApp(opts: {
     for (const write of writersById.get(id) ?? []) if (write !== except) write(snap);
   }
 
-  /** How many pages follow the link right now: for its owner only (the key proves it). */
-  function viewersRoute(req: IncomingMessage, res: ServerResponse, id: string) {
+  /**
+   * How many pages follow the link right now: for its owner only (the key proves it). With `?since=<count>`
+   * equal to the current count, the answer waits until the count changes (or VIEWER_WAIT_MS), so Breezr shows a
+   * new viewer at once without asking every few seconds.
+   */
+  function viewersRoute(req: IncomingMessage, res: ServerResponse, id: string, url: URL) {
     const secret = bearer(req);
     if (!secret) return send(res, 401, { error: 'missing key' });
     const ownership = store.check(id, secret);
@@ -266,7 +281,22 @@ export function createApp(opts: {
       if (!wrongKeys.take(clientIp(req))) return send(res, 429, { error: 'slow down' });
       return send(res, 403, { error: 'wrong key' });
     }
-    send(res, 200, { viewers: streamsById.get(id) ?? 0 });
+    const count = () => streamsById.get(id) ?? 0;
+    const since = Number(url.searchParams.get('since'));
+    let waiters = viewerWaiters.get(id);
+    if (!url.searchParams.has('since') || since !== count() || (waiters?.size ?? 0) >= MAX_VIEWER_WAITERS) {
+      return send(res, 200, { viewers: count() });
+    }
+    if (!waiters) viewerWaiters.set(id, (waiters = new Set()));
+    const done = () => {
+      clearTimeout(timer);
+      waiters.delete(done);
+      if (waiters.size === 0) viewerWaiters.delete(id);
+      if (!res.writableEnded && !res.destroyed) send(res, 200, { viewers: count() });
+    };
+    const timer = setTimeout(done, opts.viewerWaitMs ?? VIEWER_WAIT_MS);
+    waiters.add(done);
+    res.on('close', done);
   }
 
   /**
@@ -347,7 +377,7 @@ export function createApp(opts: {
         if (sub && method !== 'GET') return send(res, 405, { error: 'method' });
         if (sub === '/events') return stream(req, res, id);
         if (sub === '/lyrics') return lyricsRoute(req, res, id, url);
-        if (sub === '/viewers') return viewersRoute(req, res, id);
+        if (sub === '/viewers') return viewersRoute(req, res, id, url);
         if (sub === '/video') return videoRoute(req, res, id, url);
         if (method === 'PUT') return putLive(req, res, id);
         if (method === 'DELETE') return deleteLive(req, res, id);
