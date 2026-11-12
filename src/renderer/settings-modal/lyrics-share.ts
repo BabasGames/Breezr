@@ -77,7 +77,12 @@ export function startLyricsShareButton(
     if (!view) return;
     const existing = view.querySelector('.breezr-lyrics-share');
     if (existing) {
-      if (existing.parentElement && existing.parentElement !== view) mirrorColor(existing.parentElement);
+      const group = existing.parentElement;
+      if (!group || group === view) return;
+      // Deezer redraws this header (coming from the queue page, for one) and can drop our badge while keeping
+      // the button: put the badge back, in front of the button as at first.
+      if (viewers && !group.querySelector('.breezr-lyrics-viewers')) group.insertBefore(viewerBadge(viewers), existing);
+      mirrorColor(group);
       return;
     }
     const button = document.createElement('button');
