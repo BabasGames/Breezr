@@ -6,6 +6,7 @@ import { log } from './log';
 import { runJs, wait } from './functions';
 import { BrowserWindow, ipcMain, shell, nativeImage, session } from 'electron';
 import { setActivity } from './rpc/activity';
+import { createSendGate } from './rpc/send-gate';
 import { setDeezerLanguage } from './i18n';
 import { checkTempoVariables, forgetInsertedTheme } from './theme';
 import { applyPageTweaks, forgetPageTweaks } from './page-tweaks';
@@ -41,9 +42,6 @@ const ERR_ABORTED = -3;
 // Deezer re-renders the player and silently detaches the MutationObservers, so a poll keeps Discord in sync anyway.
 const ACTIVITY_POLL_MS = 1500;
 const ACTIVITY_DEBOUNCE_MS = 300;
-// Discord allows about 5 SET_ACTIVITY calls per 20 seconds.
-const RATE_CAPACITY = 4;
-const RATE_REFILL_MS = 5000;
 const CLEARED_ACTIVITY = 'cleared';
 
 export let win: BrowserWindow;
@@ -60,8 +58,7 @@ let updateSeq = 0;
 // What Discord is confirmed to show; it only advances on a successful send, so failed updates get retried.
 let sentKey = '';
 let sendInFlight = false;
-let rateTokens = RATE_CAPACITY;
-let rateLastRefill = Date.now();
+const discordGate = createSendGate();
 
 export async function load(app: Electron.App) {
   const width = Config.get(app, 'window_width') ?? 1920;
@@ -177,6 +174,7 @@ export async function load(app: Electron.App) {
   // Discord drops the activity when the connection closes, so resend it once the client is back.
   RPC.client.on('ready', () => {
     sentKey = '';
+    discordGate.reset();
     scheduleActivityUpdate(app);
   });
 
@@ -316,17 +314,6 @@ const UpdateReason = {
   MUSIC_NOT_RIGHT_TIME: 'song time wasn\'t the right one'
 };
 
-function takeRateToken(): boolean {
-  const refills = Math.floor((Date.now() - rateLastRefill) / RATE_REFILL_MS);
-  if (refills > 0) {
-    rateTokens = Math.min(RATE_CAPACITY, rateTokens + refills);
-    rateLastRefill += refills * RATE_REFILL_MS;
-  }
-  if (rateTokens < 1) return false;
-  rateTokens--;
-  return true;
-}
-
 // Skipping tracks fires a burst of events; only the state after the burst is worth sending.
 function scheduleActivityUpdate(app: Electron.App, currentTimeChanged = false) {
   if (currentTimeChanged) pendingTimeChanged = true;
@@ -388,7 +375,7 @@ async function updateActivity(app: Electron.App, currentTimeChanged: boolean) {
   // The duration is part of the key because Deezer reports 0 until the track has loaded.
   const desiredKey = result.playing ? `${result.trackId}|${result.trackName}|${result.songTime}` : CLEARED_ACTIVITY;
   if (desiredKey === sentKey && !currentTimeChanged) return;
-  if (sendInFlight || !client.isConnected || !takeRateToken()) {
+  if (sendInFlight || !client.isConnected || !discordGate.take()) {
     if (currentTimeChanged) pendingTimeChanged = true;
     return;
   }
@@ -425,10 +412,12 @@ async function updateActivity(app: Electron.App, currentTimeChanged: boolean) {
   sendInFlight = false;
 
   if (sent) {
+    discordGate.succeeded();
     sentKey = desiredKey;
     log('Activity', 'Updated');
-  } else if (currentTimeChanged) {
-    pendingTimeChanged = true;
+  } else {
+    discordGate.failed();
+    if (currentTimeChanged) pendingTimeChanged = true;
   }
 }
 
