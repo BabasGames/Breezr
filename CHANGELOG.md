@@ -1,5 +1,16 @@
 # Changelog
 
+## 2.3.1
+
+- Less memory: while Breezr is in the background, it gives back the memory Deezer no longer uses (about 300 MB
+  less after an hour of listening). Nothing changes on screen or in the music.
+- The window opens on your theme's colour instead of a white flash.
+- Discord: the status no longer stays stuck on an old track after skipping tracks quickly.
+- Live link: the viewer count updates as soon as someone opens the page, and it no longer disappears when you go
+  from the queue to the lyrics.
+- Live link: quitting Breezr pauses the music on the page.
+- Live page: bigger play/pause button.
+
 ## 2.3.0
 
 - Live lyrics link (opt-in, Settings → Sharing): a page that follows what you play, with the cover, synced
